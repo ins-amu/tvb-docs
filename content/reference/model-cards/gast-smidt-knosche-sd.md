@@ -8,8 +8,8 @@ The Gast–Schmidt–Knosche SD model is the Montbrió–Pazo–Roxin QIF mean f
 **short-term synaptic depression** added: a slow adaptation variable $A$
 multiplies the recurrent coupling, so activity depletes the synapses that
 sustain it. That single change turns a population that saturates into one that
-bursts. This card documents the implementation shipped with the `tvbl` engine
-(`tvbl.models.GastSchmidtKnosche_SD`).
+bursts. This card documents the implementation in TVB
+(`tvb.simulator.models.GastSchmidtKnosche_SD`).
 
 In this implementation **SD means synaptic depression** (and the companion
 [SF card](gast-smidt-knosche-sf.md) means spike-frequency adaptation); the two
@@ -69,7 +69,7 @@ weighted by `cr` and `cv`. The adaptation variables are not coupled, and
 | `cr` | 0.0 – 1.0 | 1.0 | Weight of the coupling arriving through $r$ |
 | `cv` | 0.0 – 1.0 | 0.0 | Weight of the coupling arriving through $V$ |
 
-Ranges are the trait domains declared in `tvbl.models.GastSchmidtKnosche_SD`;
+Ranges are the trait domains declared in `tvb.simulator.models.GastSchmidtKnosche_SD`;
 defaults are the shipped `NArray` defaults. Note that the declared domain of
 `tau` and `tau_A` starts at 0, although both appear in denominators — a value of
 0 is inside the declared range but singular in the equations. The only non-trait

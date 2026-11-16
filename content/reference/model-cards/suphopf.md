@@ -5,7 +5,7 @@ The SupHopf model is the **normal form of a supercritical Hopf bifurcation**
 the minimal model in which a region can be *at rest* or *rhythmic* depending on
 one parameter, which is why it is TVB's default stand-in for "a neural mass that
 can switch between a damped and an oscillatory regime". This card documents the
-implementation shipped with the `tvbl` engine (`tvbl.models.SupHopf`).
+implementation in TVB (`tvb.simulator.models.SupHopf`).
 
 ## Model
 
@@ -55,7 +55,7 @@ Reading the four pieces:
 | `a` | -10.0 – 10.0 | -0.5 | Local bifurcation parameter: $a<0$ stable fixed point (damped), $a>0$ stable limit cycle of amplitude $\sqrt{a}$ |
 | `omega` | 0.05 – 630.0 | 1.0 | Angular frequency of the oscillation [rad/ms] |
 
-Ranges are the trait domains declared in `tvbl.models.SupHopf`; defaults are the
+Ranges are the trait domains declared in `tvb.simulator.models.SupHopf`; defaults are the
 shipped `NArray` defaults. There are no hardcoded non-trait constants in `dfun`:
 the saturation coefficient is 1 and the rotation coefficient is $\omega$ by
 construction of the normal form. `state_variable_range` is $x, y \in [-5, 5]$;

@@ -7,7 +7,7 @@ bibliography:
 The Jansen–Rit model is the canonical EEG neural mass: a cortical column made
 of pyramidal cells and two interneuron populations, built to generate alpha
 rhythms and visually evoked potentials. This card documents the implementation
-shipped with the `tvbl` engine (`tvbl.models.JansenRit`), whose equations are
+in TVB (`tvb.simulator.models.JansenRit`), whose equations are
 taken from Jansen & Rit (1995).
 
 ## Model
@@ -80,7 +80,7 @@ The constant background drive $p$ is the trait `mu`.
 | `p_max` | 0.0 – 0.32 | 0.32 | Maximum background input firing rate [ms⁻¹] |
 | `mu` | 0.0 – 0.22 | 0.22 | Mean background input firing rate $p$ [ms⁻¹]; the drive actually used by `dfun` |
 
-Ranges are the trait domains declared in `tvbl.models.JansenRit`; defaults are
+Ranges are the trait domains declared in `tvb.simulator.models.JansenRit`; defaults are
 the shipped `NArray` defaults. Note that `p_min` and `p_max` are declared for
 background-noise generation, while the shipped `dfun` uses the constant `mu` as
 $p(t)$.
@@ -122,8 +122,8 @@ The model builds on Jansen's earlier neurophysiologically-based model of flash
 visual evoked potentials (Jansen, Zouridakis & Brandt, 1993) and on the
 Wilson–Cowan population framework; the direct Wilson–Cowan-derived precursor is
 documented in the [Zetterberg–Jansen model card](zetterberg-jansen.md). The
-equations and defaults above follow the 1995 paper as transcribed in the
-`tvbl` source. See also the [Wilson–Cowan model card](wilson-cowan.md) for the
+equations and defaults above follow the 1995 paper as transcribed in
+`tvb.simulator.models`. See also the [Wilson–Cowan model card](wilson-cowan.md) for the
 population model this mass descends from, and the
 [phase-plane tutorial](../../tutorials/phase-plane.md) for the nullclines and
 trajectories of mean-field models in TVB.

@@ -8,8 +8,8 @@ The Reduced Wong–Wang model is the one-variable, NMDA-mediated firing-rate
 reduction of the Wong–Wang decision-integration network: each brain region is
 described by a single slow synaptic gating variable, which makes it the standard
 TVB workhorse for resting-state and BOLD simulations. This card documents the
-implementation shipped with the `tvbl` engine
-(`tvbl.models.ReducedWongWang`).
+implementation in TVB
+(`tvb.simulator.models.ReducedWongWang`).
 
 ## Model
 
@@ -69,7 +69,7 @@ connectivity weights), not in the model.
 | `I_o` | 0.0 – 1.0 | 0.33 | Constant external input $I_0$ [nA] |
 | `sigma_noise` | 0.0 – 0.005 | 1e-9 | Noise amplitude [nA]; **not used by `dfun`** — it is read by stochastic integration schemes |
 
-Ranges are the trait domains declared in `tvbl.models.ReducedWongWang`; defaults
+Ranges are the trait domains declared in `tvb.simulator.models.ReducedWongWang`; defaults
 are the shipped `NArray` defaults. Bracketed units are the ones written in the
 source docstrings.
 
@@ -124,7 +124,7 @@ integration in perceptual decisions. *Journal of Neuroscience*, 26(4):
 reduction used here collapses it to the single synaptic gating variable $S$ and
 its saturating $H$-function response.
 
-The form implemented in `tvbl` — including the parameter values above — is taken
+The form implemented in `tvb.simulator.models` — including the parameter values above — is taken
 from the class docstring's citation of Deco, G., Ponce Alvarez, A., Mantini, D.,
 Romani, G.L., Hagmann, P. and Corbetta, M. (2013). Resting-state functional
 connectivity emerges from structurally and dynamically shaped slow linear

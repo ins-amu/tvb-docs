@@ -1,3 +1,10 @@
+---
+kernelspec:
+  name: python3
+  display_name: Python 3
+  language: python
+---
+
 # Your first tvb-lite simulation
 
 *Tutorial — a guided first run of the FitzHugh–Nagumo network.*
@@ -8,15 +15,10 @@ source of truth behind the [How-to](../howtos/tvbl-inference.md),
 [Reference](../reference/model-cards/fitzhugh-nagumo.md) and
 [Explanation](../explanation/tvbl-sim-to-inference.md) pages.
 
-```{marimo-config}
-:echo: true
-```
-
-```{marimo} python
-:include: false
+```{code-cell} ipython3
+:tags: [remove-cell]
 
 import sys, pathlib
-import marimo as mo
 
 # The vendored tvb-lite engine lives in content/_code; make it importable from any page.
 _root = pathlib.Path.cwd()
@@ -31,24 +33,24 @@ import tvbl_docs as td
 
 One call builds a random delayed connectome and integrates the model:
 
-```{marimo} python
+```{code-cell} ipython3
 trace = td.run_sim()
-out = mo.md(f"Trace shape (time, state, node, item): **{trace.shape}**")
-out
+print(f"Trace shape (time, state, node, item): {trace.shape}")
 ```
 
 ## 2. Look at the activity
 
 Each node's activity variable `x(t)` is in `trace[:, 0, :, 0]`:
 
-```{marimo} python
+```{code-cell} ipython3
 import matplotlib.pyplot as plt
+
 fig, ax = plt.subplots(figsize=(7, 2.5))
 ax.plot(trace[:, 0, :, 0], "k", alpha=0.3)
 ax.set_xlabel("time (ms)")
 ax.set_ylabel("x(t)")
 ax.set_title("FitzHugh–Nagumo network activity")
-fig
+plt.show()
 ```
 
 You should see a mix of quiescent and oscillating nodes — the network's delayed

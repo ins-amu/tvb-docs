@@ -12,8 +12,8 @@ of retained modes of their distribution. This is a different model from the
 single-oscillator [FitzHugh–Nagumo card](fitzhugh-nagumo.md): that card's model
 has two state variables per node, this one has four state variables **per mode**
 (three modes, so twelve degrees of freedom per node). This card documents the
-implementation shipped with the `tvbl` engine
-(`tvbl.models.ReducedSetFitzHughNagumo`, called "Stefanescu–Jirsa 2D" in the
+implementation in TVB
+(`tvb.simulator.models.ReducedSetFitzHughNagumo`, called "Stefanescu–Jirsa 2D" in the
 source article).
 
 ## Model
@@ -96,7 +96,7 @@ equations.
 | `sigma` | 0.0 – 1.0 | 0.35 | Standard deviation of the Gaussian distribution of population heterogeneity |
 | `mu` | 0.0 – 1.0 | 0.0 | Mean of that Gaussian distribution |
 
-Ranges are the trait domains declared in `tvbl.models.ReducedSetFitzHughNagumo`;
+Ranges are the trait domains declared in `tvb.simulator.models.ReducedSetFitzHughNagumo`;
 defaults are the shipped `NArray` defaults. `state_variable_range` is
 $\xi, \alpha \in [-4, 4]$ and $\eta, \beta \in [-3, 3]$;
 `variables_of_interest` offers all four but defaults to `("xi", "alpha")`, so

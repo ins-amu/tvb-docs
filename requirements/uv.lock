@@ -108,10 +108,6 @@ authlib==1.8.0 \
     --hash=sha256:88aebbd9af6757e14e912d5dc007ae1dc1f3e27e3b2152ce7c552ee2c3b3c121 \
     --hash=sha256:f3ecd5f1da737262fb53bf1a4d95c4ea1ad9dd509316587a255c99ab1838a4f0
     # via fastmcp-slim
-autograd==1.9.1 \
-    --hash=sha256:7818c5c69ddf9efb7da74097bd741a4c7920133f41966f68537223a15ef798bc \
-    --hash=sha256:b788bae3fa010cbffb4cfb7b8ba2a3f0daa6072a8506da6164c779fe9cf3e05a
-    # via -r requirements/base.txt
 autopep8==2.3.2 \
     --hash=sha256:89440a4f969197b69a995e4ce0661b031f455a9f776d2c5ba3dbd83466931758 \
     --hash=sha256:ce8ad498672c845a0c3de2629c15b635ec2b05ef8177a6e7c91c74f3e9b51128
@@ -1958,7 +1954,6 @@ numpy==2.5.3 \
     --hash=sha256:ffdc76bfcae6b255dff75202c5e7feaf95b40246bc0a17944facc1fecf9f79ab
     # via
     #   -r requirements/base.txt
-    #   autograd
     #   contourpy
     #   matplotlib
     #   numba
@@ -3230,9 +3225,11 @@ truststore==0.10.4 ; sys_platform != 'emscripten' \
     # via
     #   httpcore2
     #   httpx2
-tvb-library==2.10.0 \
-    --hash=sha256:8b7d4e64f56d02eba3b19490201fb9de59d6160d821eea24e4022da5914f2037 \
-    --hash=sha256:cd4ad32dcf4c58a8b926bd30baed269272d217d92605e308d7d3f22d900b8641
+tvb-data==3.0.0 \
+    --hash=sha256:681e9fb1fd807b57f9b55c7fd147ac7563ded90c978d42eeae1bb150adab0b12 \
+    --hash=sha256:6cadd8b0c7757bd367d1eb8b7c107c6d933d7528b0917440d4e57e646e82a3d1
+    # via -r requirements/base.txt
+tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@5799c7b5f1c1d20b2dd67797440048d1bfdb70b0#subdirectory=tvb_library
     # via -r requirements/base.txt
 tvb-phaseplane==0.1.0 \
     --hash=sha256:195064edc146a497aeac9fdf4d9023108fd120885e5d12a41a8e5eb86458233d \
@@ -3246,10 +3243,8 @@ typing-extensions==4.16.0 \
     #   anyio
     #   anywidget
     #   beautifulsoup4
-    #   exceptiongroup
     #   fastmcp-slim
     #   google-genai
-    #   httpx2
     #   jupyter-client
     #   logfire
     #   mcp
@@ -3262,8 +3257,6 @@ typing-extensions==4.16.0 \
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
-    #   referencing
-    #   starlette
     #   typing-inspection
 typing-inspection==0.4.4 \
     --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \

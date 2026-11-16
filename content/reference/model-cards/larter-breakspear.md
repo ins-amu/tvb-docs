@@ -7,8 +7,8 @@ bibliography:
 The Larter–Breakspear model is a conductance-based cortical column: a modified
 Morris–Lecar excitatory population with a third equation representing a
 population of inhibitory interneurons synapsing onto the pyramidal cells. This
-card documents the implementation shipped with the `tvbl` engine
-(`tvbl.models.LarterBreakspear`), whose equations and defaults follow
+card documents the implementation in TVB
+(`tvb.simulator.models.LarterBreakspear`), whose equations and defaults follow
 Breakspear, Terry & Friston (2003). All variables are non-dimensional and
 normalised.
 
@@ -98,7 +98,7 @@ follows the code.
 | `b` | 0.0001 – 1.0 | 0.1 | Time-constant scaling factor of the inhibitory population |
 | `t_scale` | 0.1 – 1.0 | 1.0 | Overall time-scale factor applied to all three equations |
 
-Ranges are the trait domains declared in `tvbl.models.LarterBreakspear`;
+Ranges are the trait domains declared in `tvb.simulator.models.LarterBreakspear`;
 defaults are the shipped `NArray` defaults. Published parameter sets used in the
 literature (reproduced in the source docstring) include Breakspear et al. (2003)
 Table 1 — `I = 0.3`, `a_ee = 0.4`, `a_ei = 0.1`, `a_ie = 1.0`, `a_ne = 1.0`,

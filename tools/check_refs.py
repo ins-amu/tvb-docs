@@ -7,22 +7,23 @@ different paper, a wrong author list, or an unresolvable DOI) before they ship.
 Usage:
     uv run python tools/check_refs.py [path/to/references.bib]
     python3 tools/check_refs.py content/references.bib
+    python3 tools/check_refs.py --refresh content/references.bib
 
 Exit code 0 = all entries verified; 1 = at least one mismatch/unresolved DOI.
 No third-party dependencies (stdlib only). Add a mailto for the Crossref
 politeness pool via env CROSSREF_MAILTO.
 """
+import argparse
+import difflib
 import json
 import os
 import re
 import sys
 import time
-import difflib
-import urllib.request
 import urllib.parse
+import urllib.request
 from urllib.error import HTTPError, URLError
 
-BIB = sys.argv[1] if len(sys.argv) > 1 else "content/references.bib"
 MAILTO = os.environ.get("CROSSREF_MAILTO") or "tvb-docs-check-refs@users.noreply.github.com"
 THRESHOLD = 0.80  # normalized-title similarity below this => mismatch
 
@@ -98,15 +99,39 @@ def bib_year(body: str):
     return m.group(1) if m else ""
 
 
-def main():
-    if not os.path.exists(BIB):
-        print(f"bib file not found: {BIB}", file=sys.stderr)
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Validate DOIs in a BibTeX file against Crossref.")
+    parser.add_argument("bib", nargs="?", default="content/references.bib", help="Path to references.bib")
+    parser.add_argument("--refresh", action="store_true", help="Bypass cache and re-query Crossref for all DOIs")
+    parser.add_argument("--cache", default=None, help="Path to cache JSON file (defaults to .refs-cache.json)")
+    args = parser.parse_args(argv)
+
+    bib_path = args.bib
+    if not os.path.exists(bib_path):
+        print(f"bib file not found: {bib_path}", file=sys.stderr)
         return 2
-    text = open(BIB, encoding="utf-8").read()
+
+    cache_path = args.cache
+    if not cache_path:
+        cache_dir = os.path.dirname(bib_path) or "."
+        cache_path = os.path.join(cache_dir, ".refs-cache.json")
+
+    cache = {}
+    if os.path.exists(cache_path) and not args.refresh:
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+        except Exception as e:
+            print(f"Warning: could not read cache at {cache_path}: {e}", file=sys.stderr)
+            cache = {}
+
+    cache_dirty = False
+    text = open(bib_path, encoding="utf-8").read()
     rows = entries(text)
     hard = 0      # fabrications / unresolved DOIs -> fail CI
     advisory = 0  # metadata slips -> warn only
-    print(f"checking {len(rows)} entries in {BIB}\n")
+    print(f"checking {len(rows)} entries in {bib_path}\n")
+
     for etype, key, body in rows:
         doi = field(body, "doi")
         title = field(body, "title")
@@ -114,14 +139,31 @@ def main():
             print(f"[NO-DOI] {key}: no DOI field to verify")
             hard += 1
             continue
-        try:
-            msg = crossref_doi(doi)
-        except Exception as e:
-            print(f"[UNRESOLVED] {key}: DOI {doi} -> {e}")
-            hard += 1
-            continue
-        time.sleep(0.4)  # polite pacing for the Crossref polite pool
-        ct = (msg.get("title") or [""])[0]
+
+        cached = cache.get(doi) if not args.refresh else None
+        if cached:
+            ct = cached.get("title", "")
+            cy = cached.get("year")
+            ca = {norm(a) for a in cached.get("authors", []) if a}
+        else:
+            try:
+                msg = crossref_doi(doi)
+            except Exception as e:
+                print(f"[UNRESOLVED] {key}: DOI {doi} -> {e}")
+                hard += 1
+                continue
+            time.sleep(0.4)  # polite pacing for the Crossref polite pool
+            ct = (msg.get("title") or [""])[0]
+            cy = (msg.get("issued", {}).get("date-parts") or [[None]])[0][0]
+            authors = sorted([a.get("family") for a in msg.get("author", []) if a.get("family")])
+            ca = {norm(a) for a in authors if a}
+            cache[doi] = {
+                "title": ct,
+                "year": cy,
+                "authors": authors,
+            }
+            cache_dirty = True
+
         ratio = difflib.SequenceMatcher(None, norm(title), norm(ct)).ratio()
         if ratio < THRESHOLD:
             print(f"[MISMATCH] {key}: DOI {doi} resolves to:")
@@ -132,11 +174,9 @@ def main():
 
         # secondary metadata checks (advisory only)
         notes = []
-        cy = (msg.get("issued", {}).get("date-parts") or [[None]])[0][0]
         by = bib_year(body)
         if by and cy and str(by) != str(cy):
             notes.append(f"year bib={by} crossref={cy}")
-        ca = {norm(a.get("family", "")) for a in msg.get("author", []) if a.get("family")}
         ba = bib_author_families(body)
         if ba and ca and not (ba & ca):
             notes.append(f"no author-family overlap (bib={sorted(ba)} crossref={sorted(ca)})")
@@ -145,9 +185,19 @@ def main():
             advisory += 1
         else:
             print(f"[OK] {key}: {doi}")
+
+    if cache_dirty:
+        try:
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(cache, f, indent=2, sort_keys=True, ensure_ascii=False)
+                f.write("\n")
+        except Exception as e:
+            print(f"Warning: could not write cache to {cache_path}: {e}", file=sys.stderr)
+
     print(f"\n{len(rows) - hard - advisory}/{len(rows)} clean, {advisory} advisory, {hard} hard problem(s).")
     return 1 if hard else 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+

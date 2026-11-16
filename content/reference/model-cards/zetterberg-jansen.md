@@ -7,8 +7,8 @@ bibliography:
 The Zetterberg–Jansen model is a Wilson–Cowan-derived cortical column model
 with explicit pyramidal, excitatory-interneuron and inhibitory-interneuron
 populations filtered by alpha-function synapses. It is the direct precursor of
-the better-known Jansen–Rit mass. This card documents the implementation shipped
-with the `tvbl` engine (`tvbl.models.ZetterbergJansen`).
+the better-known Jansen–Rit mass. This card documents the implementation
+in TVB (`tvb.simulator.models.ZetterbergJansen`).
 
 ## Model
 
@@ -91,7 +91,7 @@ reproduces the code as written.
 | `U` | 0.0 – 0.350 | 0.12 | Constant extrinsic firing rate to the stellate/excitatory population [ms⁻¹] |
 | `Q` | 0.0 – 0.350 | 0.12 | Constant extrinsic firing rate to the inhibitory interneurons [ms⁻¹] |
 
-Ranges are the trait domains declared in `tvbl.models.ZetterbergJansen`;
+Ranges are the trait domains declared in `tvb.simulator.models.ZetterbergJansen`;
 defaults are the shipped `NArray` defaults. The derived quantities
 $H_e\kappa_e$, $H_i\kappa_i$, $2\kappa_e$, $2\kappa_i$, $\kappa_e^2$ and
 $\kappa_i^2$ are computed once by `update_derived_parameters`.
@@ -131,6 +131,6 @@ The formulation was reworked by Jansen and colleagues in the early 1990s and
 became the widely used Jansen–Rit mass; see the
 [Jansen–Rit model card](jansen-rit.md) for that descendant and the
 [Wilson–Cowan model card](wilson-cowan.md) for the population model this one is
-derived from. The `tvbl` implementation follows the version used in TVB's
+derived from. The `tvb.simulator.models` implementation follows the version used in TVB's
 evoked-response and neural-mass studies. For the shared alpha-function/sigmoid
 structure see [neural mass models](../../explanation/neural-mass-models.md).

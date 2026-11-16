@@ -7,7 +7,7 @@ bibliography:
 The Epileptor is a six-dimensional composite neural mass built to reproduce the
 full phenomenology of a seizure — onset, ictal fast activity, slow wave,
 termination and post-ictal recovery — inside one model. This card documents the
-implementation shipped with the `tvbl` engine (`tvbl.models.Epileptor`), whose
+implementation in TVB (`tvb.simulator.models.Epileptor`), whose
 equations and defaults follow Jirsa et al. (2014).
 
 ## Model
@@ -121,7 +121,7 @@ activity).
 | `tt` | 0.001 – 10.0 | 1.0 | Global time scaling of the whole system |
 | `modification` | {True, False} | False | Use the sigmoid form of $h$ (nonlinear influence on $z$) instead of the linear one |
 
-Ranges are the trait domains declared in `tvbl.models.Epileptor`; defaults are
+Ranges are the trait domains declared in `tvb.simulator.models.Epileptor`; defaults are
 the shipped `NArray` defaults. Traits marked — have no `Range` domain in the
 code. The following quantities are **fixed constants** inside `dfun` rather than
 configurable traits:

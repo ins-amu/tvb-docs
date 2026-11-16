@@ -8,8 +8,8 @@ The Reduced Wong–Wang Excitatory–Inhibitory model is the two-population vers
 of the reduced Wong–Wang firing-rate model: an NMDA-mediated excitatory
 population and an explicit fast GABAergic inhibitory population, with the local
 excitation/inhibition ratio carried by a single tunable current. This card
-documents the implementation shipped with the `tvbl` engine
-(`tvbl.models.ReducedWongWangExcInh`).
+documents the implementation in TVB
+(`tvb.simulator.models.ReducedWongWangExcInh`).
 
 ## Model
 
@@ -96,7 +96,7 @@ population is not a coupling source.
 | `G` | 0.0 – 10.0 | 2.0 | Global coupling scaling |
 | `lamda` | 0.0 – 1.0 | 0.0 | Fraction of the long-range/local coupling term delivered to the I population |
 
-Ranges are the trait domains declared in `tvbl.models.ReducedWongWangExcInh`;
+Ranges are the trait domains declared in `tvb.simulator.models.ReducedWongWangExcInh`;
 defaults are the shipped `NArray` defaults. `gamma_e` and `gamma_i` are written
 in the source as `0.641/1000` and `1.0/1000`.
 

@@ -7,3 +7,26 @@ __pycache__/
 standup-workflow.js
 content/_code/**/__pycache__/
 .jupyter-book-marimo/
+
+# JupyterLite build artifacts
+.jupyterlite.doit.db
+*.doit.db
+cockle_wasm_env/
+dist/
+local-channel/
+environment.ci.yml
+
+# wasm test runner
+wasm-tests/.cache/
+wasm-tests/.cache*/
+wasm-tests/.pyjs-patched/
+wasm-tests/.pyjs-patched*/
+wasm-tests/chunk.txt
+wasm-tests/notebook.txt
+
+# Node / labextension artifacts
+node_modules/
+mcp-hub-extension/.yarn/
+mcp-hub-extension/lib/
+mcp-hub-extension/tsconfig.tsbuildinfo
+

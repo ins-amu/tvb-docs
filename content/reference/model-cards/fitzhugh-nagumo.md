@@ -8,7 +8,7 @@ bibliography:
 
 ## Model
 
-A FitzHugh–Nagumo neural mass with delayed network coupling `Cx` (from `tvbl.core.DFun`):
+A FitzHugh–Nagumo neural mass with delayed network coupling `Cx`. In TVB, FitzHugh–Nagumo dynamics are canonically provided by `tvb.simulator.models.Generic2dOscillator` (see the [Generic 2D oscillator card](generic-2d-oscillator.md)); the formulation below and the interactive explorer match the implementation in `tvbl.core.DFun` used throughout the tutorial workflows:
 
 ```{math}
 :label: fhn

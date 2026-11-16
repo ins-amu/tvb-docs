@@ -1,0 +1,13 @@
+name: build-env
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - pip
+  - jupyter_server
+  - jupyterlite-core >=0.6
+  - jupyterlab >=4.6,<4.7
+  - jupyterlite-xeus >=4
+  - jupyterlite-terminal
+  # host-side builder for emscripten-wasm32 packages (tvb-gdist)
+  - rattler-build >=0.67,<0.68

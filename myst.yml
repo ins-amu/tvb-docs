@@ -56,3 +56,7 @@ site:
       url: /index-2
     - title: Explanation
       url: /index-3
+    - title: Demos
+      url: /index-4
+    - title: Launch Lab
+      url: /lite/lab/index.html

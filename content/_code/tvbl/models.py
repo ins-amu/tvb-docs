@@ -350,8 +350,8 @@ class KIonEx(Model):
         else_xdot = Delta+2*R_plus*(V-c_plus)*x-J*r*x
         derivative[0] = np.where(V <= Vstar, if_xdot, else_xdot)
 
-        if_Vdot = Vdot - R_minus*x**2 + eta + (R_minus/np.pi)*Coupling_Term*(E-V)
-        else_Vdot = Vdot - R_plus*x**2 + eta + (R_minus/np.pi)*Coupling_Term*(E-V)
+        if_Vdot = Vdot - R_minus*x**2 + eta + J*r*(E-V) + (R_minus/np.pi)*Coupling_Term*(E-V)
+        else_Vdot = Vdot - R_plus*x**2 + eta + J*r*(E-V) + (R_minus/np.pi)*Coupling_Term*(E-V)
         derivative[1] = np.where(V <= Vstar, if_Vdot, else_Vdot)
 
         derivative[2] = (ninf - n) / tau_n

@@ -3,6 +3,8 @@ name: Publish MyST book
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -16,7 +18,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -24,32 +26,113 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
       - name: Install pinned dependencies
         run: |
           uv venv
           uv pip install -r requirements/uv.lock
+
       - name: Check references against Crossref
         env:
           CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
         run: python3 tools/check_refs.py content/references.bib
+
       - name: Build MyST HTML
         run: uv run myst build --execute --html
+
+      - name: Stage JupyterLite contents
+        run: uv run python tools/stage_lite.py
+
+      - name: Install mamba
+        if: github.event_name != 'pull_request'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          micromamba-version: '1.5.8-0'
+          environment-file: build-environment.yml
+          cache-environment: true
+
+      - name: Build the tvb-gdist wasm package
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: |
+          rattler-build build \
+            --recipe wasm-tests/recipes/tvb-gdist \
+            --target-platform emscripten-wasm32 \
+            --test skip \
+            --output-dir "$GITHUB_WORKSPACE/local-channel" \
+            -c https://repo.prefix.dev/emscripten-forge-4x \
+            -c https://repo.prefix.dev/emscripten-forge-dev \
+            -c https://repo.prefix.dev/conda-forge \
+            -c microsoft \
+            -m wasm-tests/recipes/variant.yaml
+
+      - name: Add tvb-gdist to the kernel environment
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path.cwd()
+          lines = Path("environment.yml").read_text().splitlines()
+          out = []
+          for line in lines:
+              out.append(line)
+              if line.strip() == "channels:":
+                  out.append(f"  - file://{root}/local-channel")
+          lines, out = out, []
+          for line in lines:
+              out.append(line)
+              if line.strip() == "dependencies:":
+                  out.append("  - tvb-gdist")
+          Path("environment.ci.yml").write_text("\n".join(out) + "\n")
+          PY
+
+      - name: Build the MCP hub JupyterLite extension
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: |
+          cd mcp-hub-extension
+          jlpm install --immutable
+          jlpm build
+          ls -R ../extensions/@tvbl/jupyterlite-mcp-hub | head -20
+
+      - name: Build the JupyterLite site
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: |
+          jupyter lite build --contents _build/lite_contents --output-dir _build/html/lite \
+            --XeusAddon.environment_file=environment.ci.yml
+          cp -rv _build/html/lite/extensions/catppuccin_jupyterlab/themes/catppuccin_jupyterlab _build/html/lite/build/themes/
+          cp .nojekyll _build/html/.nojekyll
+
+      - name: Patch xpython/pyjs RTLD_GLOBAL for Numba
+        if: github.event_name != 'pull_request'
+        run: python3 tools/patch_lite_runtime.py _build/html/lite
+
       - name: Setup Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _build/html
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

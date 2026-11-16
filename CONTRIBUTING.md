@@ -1,52 +1,151 @@
-# Contributing — writers guide
+# Contributing to TVB Documentation & JupyterLite Lab
 
-## Diátaxis rules
+Welcome to the unified TVB documentation and interactive lab repository. This guide explains our architecture, developer workflow, and authoring conventions.
 
-Every page belongs to exactly one quadrant. Decide before you write, and keep
-the register consistent throughout the page:
+---
 
-| Quadrant | Directory | Orientation | Ask yourself |
-| --- | --- | --- | --- |
-| Tutorials | `content/tutorials/` | learning by doing | Does the reader achieve a guaranteed result by following steps? |
-| How-to guides | `content/howtos/` | task recipes | Does the reader solve one specific real-world problem? |
-| Reference | `content/reference/` | accurate information | Am I describing the system accurately, like a datasheet? |
-| Explanation | `content/explanation/` | conceptual background | Am I discussing why things are the way they are? |
+## Architecture: Unified Single-Repository
 
-Do not mix modes on one page. If a tutorial needs a side note, link to the
-reference or explanation page instead of turning the tutorial into an essay.
+This repository houses both the **MyST documentation** (served at `/`) and **JupyterLite** (served at `/lite/`) as two synchronized views over a single source of truth in `content/`.
 
-## Page conventions
+```
+content/
+├── tutorials/       \
+├── howtos/           |--> MyST Build  ---> _build/html/ (HTML Documentation at /)
+├── reference/        |--> stage_lite  ---> _build/lite_contents/
+├── explanation/      |                       │
+└── demos/           /                        ▼
+                                     JupyterLite Build ---> _build/html/lite/ (In-browser Lab at /lite/)
+```
 
-- MyST Markdown (`.md`) with a single H1 title; start with one sentence saying
-  what the page is for.
-- File names are lowercase, hyphen-separated, and descriptive
-  (e.g. `phase-plane-widget.md`).
-- Cross-link the other quadrants where a reader would naturally want to jump.
-- Executable examples must run under `myst build --execute` with no manual
-  steps; keep them minimal and deterministic.
-- Register the page in `_toc.yml` (and the matching `site.nav` entry in
-  `myst.yml` when it is a quadrant landing page) in the same commit.
+- **Single source of truth:** Markdown pages (`.md`) containing ` ```{code-cell} ipython3 ` are compiled into static HTML with executed outputs during `myst build`, and **automatically converted** into interactive `.ipynb` notebooks for JupyterLite (`/lite/lab/index.html`) and downloadable notebooks (`/notebooks/`) by `tools/stage_lite.py`.
+- **Zero synchronization drift:** Authors write and maintain one document. Readers can read the text online, run the code live in their browser without installation, or download the notebook to run locally.
 
-## How to add a page
+---
 
-1. Create `content/<quadrant>/<your-page>.md` following the conventions above.
-2. Add it to the right part in `_toc.yml`, e.g.:
+## 3-Step Quickstart
 
-   ```yaml
-   - caption: How-to guides
-     chapters:
-       - file: content/howtos/index.md
-       - file: content/howtos/your-page.md
+You will need Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
+
+### 1. Setup
+Create the virtual environment and install pinned dependencies:
+```bash
+make setup
+```
+
+### 2. Verify and Build Docs
+Run the reference validation and MyST build with code execution:
+```bash
+make check
+```
+*(This runs `make refs` followed by `make docs`—the exact checks CI executes on pull requests).*
+
+### 3. Preview the Unified Site
+Start a local web server to inspect both the documentation and the lab:
+```bash
+make serve
+```
+Visit:
+- **MyST Documentation:** [http://localhost:8000](http://localhost:8000)
+- **Interactive JupyterLite Lab:** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
+
+*(Optional)* To build the WebAssembly kernel and JupyterLite distribution locally, run `make lite-setup` followed by `make lite`.
+
+---
+
+## Diátaxis Framework
+
+Every page belongs to exactly one quadrant. Decide before you write, and keep the register consistent throughout the page:
+
+| Quadrant | Directory | Orientation | Core Question |
+|---|---|---|---|
+| **Tutorials** | `content/tutorials/` | Learning-oriented (hands-on) | *Does the reader achieve a guaranteed result by following steps?* |
+| **How-to guides** | `content/howtos/` | Task-oriented (recipes) | *Does the reader solve one specific real-world problem?* |
+| **Reference** | `content/reference/` | Information-oriented (datasheets) | *Am I describing the system accurately and concisely?* |
+| **Explanation** | `content/explanation/` | Understanding-oriented (theory) | *Am I discussing why things are the way they are?* |
+
+Do not mix modes on one page. If a tutorial needs deep theory or mathematical derivations, link to an Explanation page instead of inflating the tutorial.
+
+---
+
+## How to Contribute Content
+
+There are two primary ways to contribute:
+
+### Way 1: Authoring a New Page from a Template
+
+Page templates with pre-configured frontmatter, Diátaxis structure, and interactive callouts are available in `content/_templates/`:
+
+- `content/_templates/tutorial-template.md`
+- `content/_templates/howto-template.md`
+- `content/_templates/reference-model-card-template.md`
+- `content/_templates/explanation-template.md`
+
+#### Steps:
+1. **Copy the template:**
+   ```bash
+   cp content/_templates/tutorial-template.md content/tutorials/my-new-tutorial.md
    ```
+2. **Edit your page:**
+   - Update frontmatter, title, and orientation sentence.
+   - Use ` ```{code-cell} ipython3 ` blocks for executable code.
+   - Ensure simulations are fast and deterministic (execution time < 10 seconds per page) so the build completes quickly.
+3. **Automatic JupyterLite notebook generation:**
+   - You do **not** need to manually create or sync a `.ipynb` notebook.
+   - When `tools/stage_lite.py` runs (part of `make docs` / `make check`), it detects markdown pages with code cells and automatically generates:
+     - Interactive notebook: `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
+     - Downloadable notebook: `_build/html/notebooks/<quadrant>/<slug>.ipynb`.
+4. **Register in `_toc.yml`:**
+   Add your page under the appropriate quadrant chapter in `_toc.yml`:
+   ```yaml
+   - caption: Tutorials
+     chapters:
+       - file: content/tutorials/index.md
+       - file: content/tutorials/my-new-tutorial.md
+   ```
+5. **Verify:**
+   Run `make check` to ensure your code executes without errors and references resolve.
 
-3. Preview with `myst build` and check the page appears under its group.
+---
 
-## How to add a notebook
+### Way 2: Migrating or Curating a Legacy Notebook from `content/demos/`
 
-1. Put the executed, narrative-clean notebook in `content/<quadrant>/` as
-   `your-notebook.ipynb` (same naming rules as pages). Prefer pairing it with
-   `jupytext` so the text source stays reviewable.
-2. Add it to `_toc.yml` exactly like a Markdown page (`file:` accepts
-   `.ipynb`).
-3. Verify `myst build --execute` runs it cleanly — notebooks are executed at
-   build time, so any cell that fails will fail the build.
+The `content/demos/` directory contains 60+ legacy demonstration notebooks from previous TVB releases. Contributors can claim and modernize these notebooks:
+
+1. **Transform into a Diátaxis page:**
+   - Distil the demo into a focused Tutorial, How-to guide, or Reference Model Card.
+   - Follow the structure of `content/_templates/`.
+   - Strip out extraneous debugging cells and unneeded widgets.
+2. **Curate and modernize in place:**
+   - Update deprecated TVB 2.x imports to modern TVB 3.0 / `tvbl` APIs.
+   - Ensure imports and dependencies are pinned in `requirements/uv.lock` or `environment.yml`.
+   - Once the notebook executes cleanly and deterministically within build time limits, remove `"execute": {"skip": true}` from the notebook metadata so CI verifies it on every PR.
+
+---
+
+## Citations & References
+
+All academic citations live in `content/references.bib`.
+
+- Cite entries using standard MyST syntax: `[@CitationKey]` or `{cite}`.
+- Relative bibliography path in frontmatter:
+  - For pages in `content/<quadrant>/`: `bibliography: [../references.bib]`
+  - For model cards in `content/reference/model-cards/`: `bibliography: [../../references.bib]`
+- **Validate citations:** Run `make refs`. This script checks every DOI in `references.bib` against the official Crossref API to detect dead DOIs, author mismatches, or title hallucinations.
+- **Cache:** Crossref verification results are cached in `content/.refs-cache.json`. Commit any updates to this cache file alongside your changes in `content/references.bib`.
+
+---
+
+## Pull Request & CI Workflow
+
+1. **Branch:** Create a focused feature branch:
+   ```bash
+   git checkout -b docs/<feature-or-topic>
+   ```
+2. **Local check:** Run `make check`. This must pass with zero errors:
+   - All Crossref references validate.
+   - All code cells in all notebooks and executable markdown pages execute successfully.
+   - Table of contents links and MyST syntax are valid.
+3. **Commit & PR:** Open a Pull Request against `main`.
+   - CI will run `make check` (fast PR verification).
+   - Once merged into `main`, GitHub Actions will build the complete unified MyST + JupyterLite artifact and deploy to GitHub Pages.

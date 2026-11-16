@@ -1,0 +1,24 @@
+{
+  "FederatedExtensionAddon": {
+    "extra_labextensions_path": ["extensions"]
+  },
+  "LiteBuildConfig": {
+    "extra_ignore_contents": [
+      ".*__pycache__.*",
+      ".*\\.nbc$",
+      ".*\\.nbi$",
+      ".*\\.pyc$",
+      ".*test_.*\\.py$"
+    ]
+  },
+  "ContentsManager": {
+    "ignore_globs": [
+      "*__pycache__*",
+      "__pycache__",
+      "*.nbc",
+      "*.nbi",
+      "*.pyc",
+      "test_*.py"
+    ]
+  }
+}

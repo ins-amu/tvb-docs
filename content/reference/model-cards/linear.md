@@ -5,8 +5,8 @@ $\dot{x} = \gamma x + \text{input}$. It is the **linear part of the supercritica
 Hopf normal form** — the amplitude equation of [SupHopf](suphopf.md) with the
 rotating quadrature and the saturating cubic term removed — so it behaves as a
 pure amplifier/low-pass filter whose only intrinsic behaviour is relaxation.
-This card documents the implementation shipped with the `tvbl` engine
-(`tvbl.models.Linear`).
+This card documents the implementation in TVB
+(`tvb.simulator.models.Linear`).
 
 ## Model
 
@@ -34,9 +34,9 @@ Reading the three pieces:
   node do anything. `cvar = [0]` declares $x$ as the coupling variable, and the
   model names that slot explicitly: `coupling_terms = ["c"]` and
   `state_variable_dfuns = {"x": "gamma * x + c"}`, the drift function the
-  tooling reads. $C$ is the weighted, delayed sum of the connected nodes' $x$
-  (for the vendored `tvbl` engine, `coupling[0, k]` $= \sum_j u_{kj}\,x_j(t -
-  \tau_{kj})$).
+  tooling reads. $C$ is the incoming coupling term `coupling[0, :]`: the weighted,
+  delayed sum of connected nodes' activity $\sum_j u_{kj}\,x_j(t - \tau_{kj})$ delivered
+  by the network coupling function.
 - $\lambda x$ is the **local (self-)coupling**, added to the same linear term as
   $\gamma$. Functionally it renames the damping to $\gamma + \lambda$, which is
   the quantity that decides stability.
@@ -57,7 +57,7 @@ constant $1/|\gamma + \lambda|$.
 |------|-------|---------|-------------|
 | `gamma` | -100.0 – 0.0 | -10.0 | Damping coefficient [1/ms]. The trait doc requires it to be "larger than the node's in-degree in order to remain stable": in a network the coupled system $\dot{\mathbf{x}} = (\gamma I + W)\mathbf{x}$ is stable only when $|\gamma|$ exceeds the growth rate of the weighted adjacency $W$ |
 
-Ranges are the trait domains declared in `tvbl.models.Linear`; defaults are the
+Ranges are the trait domains declared in `tvb.simulator.models.Linear`; defaults are the
 shipped `NArray` defaults. `gamma` is the only entry of `parameter_names`. There
 are no hardcoded non-trait constants in `dfun`. `state_variable_range` is
 $x \in [-1, 1]$ and `variables_of_interest = ("x",)`.

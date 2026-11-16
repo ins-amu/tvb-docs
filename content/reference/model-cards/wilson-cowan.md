@@ -5,8 +5,8 @@ bibliography:
 # Wilson-Cowan
 
 The Wilson-Cowan model describes coupled excitatory (`E`) and inhibitory (`I`)
-neural populations. This card documents the implementation shipped with
-`tvb-library` (`tvb.simulator.models.WilsonCowan`), which follows equations 11
+neural populations. This card documents the implementation in TVB
+(`tvb.simulator.models.WilsonCowan`), which follows equations 11
 and 12 of Wilson & Cowan (1972) and adds a refractory saturation term.
 
 $$
@@ -66,8 +66,8 @@ local $(E, I)$ population.
 | `alpha_i` | 0.0 – 20.0 | 1.0 | Gain scaling the input to the inhibitory sigmoid |
 | `shift_sigmoid` | {True, False} | True | Translate the sigmoids so that $\mathcal{S}(0)=0$ |
 
-Typical ranges are the parameter domains declared by the `WilsonCowan` trait
-definitions; defaults are the shipped `NArray` defaults.
+Ranges are the trait domains declared in `tvb.simulator.models.WilsonCowan`; defaults
+are the shipped `NArray` defaults.
 
 ## Typical Dynamics
 

@@ -8,8 +8,7 @@ The Coombes–Byrne model is the Montbrió–Pazo–Roxin mean-field population
 equipped with a dynamical synaptic conductance: four variables — firing rate,
 mean membrane potential, conductance and its derivative — so that synaptic
 currents rise and decay on their own time scale instead of following the firing
-rate instantaneously. This card documents the implementation shipped with the
-`tvbl` engine (`tvbl.models.CoombesByrne`).
+rate instantaneously. This card documents the implementation in TVB (`tvb.simulator.models.CoombesByrne`).
 
 ## Model
 
@@ -62,7 +61,7 @@ used, and `local_coupling` is ignored by this implementation.
 | `k` | 0.0 – 5.0 | 1.0 | Local recurrent coupling strength $\kappa$; sets the steady conductance $\kappa\pi r$ |
 | `eta` | -10.0 – 10.0 | 20.0 | Mean of the Lorentzian distribution of intrinsic currents (note: the shipped default lies outside the declared range) |
 
-Ranges are the trait domains declared in `tvbl.models.CoombesByrne`; defaults
+Ranges are the trait domains declared in `tvb.simulator.models.CoombesByrne`; defaults
 are the shipped `NArray` defaults. The following quantities are **fixed
 constants** inside `dfun` rather than configurable traits:
 

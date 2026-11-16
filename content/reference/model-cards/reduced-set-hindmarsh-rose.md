@@ -14,8 +14,8 @@ and eighteen per node. It is the three-variable sibling of
 same reduction programme (Stefanescu & Jirsa's mode expansion of a heterogeneous
 population) and differ only in the single-neuron oscillator being reduced — the
 FHN relaxation oscillator there, the Hindmarsh–Rose burster here. This card
-documents the implementation shipped with the `tvbl` engine
-(`tvbl.models.ReducedSetHindmarshRose`, called "Stefanescu–Jirsa 3D" in the
+documents the implementation in TVB
+(`tvb.simulator.models.ReducedSetHindmarshRose`, called "Stefanescu–Jirsa 3D" in the
 source article).
 
 ## Model
@@ -114,7 +114,7 @@ $\lambda = \texttt{local\_coupling}$, again in both equations.
 | `sigma` | 0.0 – 1.0 | 0.3 | Standard deviation of the Gaussian distribution of population heterogeneity |
 | `mu` | 1.1 – 3.3 | 3.3 | Mean of that Gaussian distribution |
 
-Ranges are the trait domains declared in `tvbl.models.ReducedSetHindmarshRose`;
+Ranges are the trait domains declared in `tvb.simulator.models.ReducedSetHindmarshRose`;
 defaults are the shipped `NArray` defaults. `state_variable_range` is
 $\xi, \alpha \in [-4, 4]$, $\eta \in [-25, 20]$, $\beta \in [-20, 20]$,
 $\tau, \gamma \in [2, 10]$; `variables_of_interest` offers all six but defaults

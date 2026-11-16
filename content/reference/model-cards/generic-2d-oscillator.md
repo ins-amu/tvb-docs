@@ -9,8 +9,8 @@ one cubic nullcline and one polynomial nullcline whose coefficients can be
 reshaped to reproduce FitzHugh–Nagumo, Morris–Lecar-like, excitable, bistable or
 oscillatory behaviour. It is the model used when a region is meant to be a
 generic neural mass rather than a specific biophysical one. This card documents
-the implementation shipped with the `tvbl` engine
-(`tvbl.models.Generic2dOscillator`).
+the implementation in TVB
+(`tvb.simulator.models.Generic2dOscillator`).
 
 ## Model
 
@@ -60,7 +60,7 @@ negative.
 | `beta` | -5.0 – 5.0 | 1.0 | Scaling of the slow variable's self-feedback in $\dot W$ |
 | `gamma` | -1.0 – 1.0 | 1.0 | Scales both $I_{ext}$ and the long-range coupling term; reproduces FHN dynamics with negative excitatory drive |
 
-Ranges are the trait domains declared in `tvbl.models.Generic2dOscillator`;
+Ranges are the trait domains declared in `tvb.simulator.models.Generic2dOscillator`;
 defaults are the shipped `NArray` defaults.
 
 Parameter sets documented in the source (all with `d = 0.02`, `I = 0.0` unless

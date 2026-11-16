@@ -1,13 +1,16 @@
+---
+kernelspec:
+  name: python3
+  display_name: Python 3
+  language: python
+---
+
 # From simulation to inference
 
 *Explanation — why the FitzHugh–Nagumo network behaves as it does, and how inference recovers its parameters.*
 
-```{marimo-config}
-:echo: false
-```
-
-```{marimo} python
-:include: false
+```{code-cell} ipython3
+:tags: [remove-cell]
 
 import sys, pathlib
 
@@ -28,9 +31,10 @@ FitzHugh–Nagumo is a fast–slow system: `X` is the fast voltage-like variable
 trajectory circles it (oscillation) or settles on it (rest) is what you saw on the
 [Tutorial](../tutorials/tvbl-quickstart.md).
 
-```{marimo} python
+```{code-cell} ipython3
 import numpy as np
 import matplotlib.pyplot as plt
+
 a, tau = 1.28, 1.35
 X = np.linspace(-2.2, 2.2, 400)
 Y_null = a - X                      # dY/dt = 0
@@ -38,9 +42,11 @@ X_null = X**3 / 3 - X               # dX/dt = 0 (Y on this curve)
 fig, ax = plt.subplots(figsize=(5, 4))
 ax.plot(X, Y_null, label=r"$\dot Y=0$")
 ax.plot(X, X_null, label=r"$\dot X=0$")
-ax.set_xlabel("X"); ax.set_ylabel("Y"); ax.legend()
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.legend()
 ax.set_title("Nullclines")
-fig
+plt.show()
 ```
 
 ## Coupling and delays

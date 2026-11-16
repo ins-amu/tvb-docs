@@ -6,7 +6,7 @@ extracellular **potassium** concentrations is coupled to the mean membrane
 potential and to the population firing rate. It is the model to reach for when
 the question is not "what rhythm does this mass produce" but "what happens when
 extracellular potassium builds up". This card documents the implementation
-shipped with the `tvbl` engine (`tvbl.models.KIonEx`).
+in TVB (`tvb.simulator.models.KIonEx`).
 
 ## Model
 
@@ -29,8 +29,8 @@ $$
 \end{cases} \\[6pt]
 \dot V &=
 \begin{cases}
--\dfrac{1}{C_m}\big(I_{Na} + I_{K} + I_{Cl} + I_{pump}\big) - R_{-}x^2 + \bar\eta + \dfrac{R_{-}}{\pi}\,C_{\text{in}}\,(E - V), & V \le V^{*} \\[8pt]
--\dfrac{1}{C_m}\big(I_{Na} + I_{K} + I_{Cl} + I_{pump}\big) - R_{+}x^2 + \bar\eta + \dfrac{R_{-}}{\pi}\,C_{\text{in}}\,(E - V), & V > V^{*}
+-\dfrac{1}{C_m}\big(I_{Na} + I_{K} + I_{Cl} + I_{pump}\big) - R_{-}x^2 + J\,r\,(E - V) + \bar\eta + \dfrac{R_{-}}{\pi}\,C_{\text{in}}\,(E - V), & V \le V^{*} \\[8pt]
+-\dfrac{1}{C_m}\big(I_{Na} + I_{K} + I_{Cl} + I_{pump}\big) - R_{+}x^2 + J\,r\,(E - V) + \bar\eta + \dfrac{R_{-}}{\pi}\,C_{\text{in}}\,(E - V), & V > V^{*}
 \end{cases} \\[6pt]
 \dot n &= \frac{n_{\infty}(V) - n}{\tau_n} \\[6pt]
 \dot{\Delta K_i} &= -\frac{\gamma}{\omega_i}\big(I_K - 2\,I_{pump}\big) \\[6pt]
@@ -74,12 +74,17 @@ so $\dot{\Delta K_i}$ is driven by the potassium current against the Na/K pump,
 and $\dot K_g$ is a slow leak toward the bath concentration $[K^+]_{bath}$ at
 rate $\epsilon$.
 
-**Network coupling.** The coupling variable is `x` (`cvar = [0]`), the
-population firing-rate variable. In `dfun` the incoming term is
-`coupling[0, :]` ($C_{\text{in}}$ above) and it enters $\dot V$ as a synaptic
-current with reversal potential $E$, weighted by $R_{-}/\pi$ — that is,
-coupling arrives as a conductance change on the mean membrane potential, not as
-a drive on the firing rate. Stimulus is applied to $V$ (`stvar = [1]`).
+**Synaptic inputs and network coupling.** The coupling variable is `x` (`cvar = [0]`),
+the population firing-rate variable. Synaptic inputs enter $\dot V$ through two conductance-based
+terms with reversal potential $E$:
+- **Local synaptic self-excitation:** $J\,r\,(E - V)$ provides recurrent feedback from the local population
+  firing rate $r = R_{-}\,x/\pi$, scaled by the mean synaptic coupling weight $J$. (In the $\dot x$ equation,
+  this recurrence acts symmetrically through $-J\,r\,x$).
+- **Long-range network coupling:** $\dfrac{R_{-}}{\pi}\,C_{\text{in}}\,(E - V)$, where the incoming coupling
+  term $C_{\text{in}}$ (`coupling[0, :]`) arrives as a conductance change on the mean membrane potential,
+  weighted by $R_{-}/\pi$ rather than as a direct drive on the firing rate.
+
+Stimulus is applied to $V$ (`stvar = [1]`).
 
 ## Parameters
 
@@ -100,7 +105,7 @@ a drive on the firing rate. Stimulus is applied to $V$ (`stvar = [1]`).
 | `gamma` | 0.02 – 0.06 | 0.04 | Charge-to-concentration conversion factor [mol/C] |
 | `epsilon` | 0.0005 – 0.0015 | 0.001 | Diffusion (buffering) rate of extracellular potassium toward the bath [mHz] |
 
-Ranges are the trait domains declared in `tvbl.models.KIonEx`; defaults are the
+Ranges are the trait domains declared in `tvb.simulator.models.KIonEx`; defaults are the
 shipped `NArray` defaults. The following quantities are **fixed constants**
 inside `dfun` rather than configurable traits:
 
@@ -151,7 +156,7 @@ inside `dfun` rather than configurable traits:
 
 ## Paper Reference
 
-The `tvbl` source documents this model as a mean-field reduction of a
+The `tvb.simulator.models` source documents this model as a mean-field reduction of a
 population of Hodgkin–Huxley neurons with dynamic extracellular potassium,
 attributed there to work by Bandyopadhyay, Rabuffo and collaborators (2023),
 building on the Hodgkin–Huxley mean-field formulation of Depannemeyer and

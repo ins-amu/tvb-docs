@@ -7,8 +7,7 @@ bibliography:
 Coombes–Byrne 2D is the Coombes–Byrne population with the synaptic conductance
 made instantaneous: $g$ is no longer a state variable but an algebraic function
 of the firing rate, leaving a two-variable QIF mean field with a shunting
-recurrent current. This card documents the implementation shipped with the
-`tvbl` engine (`tvbl.models.CoombesByrne2D`).
+recurrent current. This card documents the implementation in TVB (`tvb.simulator.models.CoombesByrne2D`).
 
 ## Model
 
@@ -60,7 +59,7 @@ the weighted delayed firing rate of presynaptic regions) is added to $\dot{V}$.
 | `k` | 0.0 – 5.0 | 1.0 | Local recurrent coupling strength $\kappa$; conductance set-point is $\kappa\pi r$ |
 | `eta` | -10.0 – 10.0 | 2.0 | Mean of the Lorentzian distribution of intrinsic currents |
 
-Ranges are the trait domains declared in `tvbl.models.CoombesByrne2D`; defaults
+Ranges are the trait domains declared in `tvb.simulator.models.CoombesByrne2D`; defaults
 are the shipped `NArray` defaults. The following quantities are **fixed
 constants** inside `dfun` rather than configurable traits:
 

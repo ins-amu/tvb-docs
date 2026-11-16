@@ -7,13 +7,13 @@ ipykernel==7.4.0
 ipywidgets==8.1.9
 anywidget==0.11.0
 jupytext==1.19.6
-tvb-library==2.10.0
+tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@3.0.0a1#subdirectory=tvb_library
+tvb-data
 tvb-phaseplane==0.1.0
 matplotlib==3.11.2
 numpy==2.5.3
 # marimo islands pipeline (reactive {marimo} cells) + the vendored tvbl engine deps
 marimo
 jupyter-book-marimo
-autograd
 tqdm
 plotly

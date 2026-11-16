@@ -9,7 +9,7 @@ The Gast–Schmidt–Knosche SF model is the Montbrió–Pazo–Roxin QIF mean f
 activity-driven current from the population's voltage balance, the mean-field
 counterpart of the calcium-activated afterhyperpolarisation that makes real
 neurons fire less as they fire more. This card documents the implementation
-shipped with the `tvbl` engine (`tvbl.models.GastSchmidtKnosche_SF`).
+in TVB (`tvb.simulator.models.GastSchmidtKnosche_SF`).
 
 In this implementation **SF means spike-frequency adaptation** (the companion
 [SD card](gast-smidt-knosche-sd.md) is the synaptic-depression variant); the two
@@ -72,7 +72,7 @@ weighted by `cr` and `cv`. The adaptation variables are not coupled, and
 | `cr` | 0.0 – 1.0 | 1.0 | Weight of the coupling arriving through $r$ |
 | `cv` | 0.0 – 1.0 | 0.0 | Weight of the coupling arriving through $V$ |
 
-Ranges are the trait domains declared in `tvbl.models.GastSchmidtKnosche_SF`;
+Ranges are the trait domains declared in `tvb.simulator.models.GastSchmidtKnosche_SF`;
 defaults are the shipped `NArray` defaults. Two code-level cautions: the shipped
 `alpha` default (10.0) is an order of magnitude above its declared
 `Range(0.0, 1.0)`, so the shipped configuration is far stronger than the trait

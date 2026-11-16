@@ -34,6 +34,11 @@ browser — no server, no install. Read a page, drag a slider, and the simulatio
 responds. Examples are executed at build time, so they cannot silently rot.
 :::
 
+:::{tip} Open in JupyterLite Lab
+Run TVB simulations live in your browser with zero installation:
+[Open in JupyterLite Lab](/lite/lab/index.html) or launch [Your first simulation in Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb).
+:::
+
 ## Where to go
 
 This documentation follows [Diátaxis](https://diataxis.fr): four kinds of page for
@@ -45,6 +50,7 @@ four kinds of need. Pick the one that matches what you are trying to do.
 | **accomplish a specific task** (add a stimulus, run inference, …) | [How-to guides](howtos/index.md) | practical recipes |
 | **look up precise facts** (model equations, parameters, the API) | [Reference](reference/index.md) | accurate description |
 | **understand why** things work the way they do (concepts, theory) | [Explanation](explanation/index.md) | conceptual background |
+| **explore interactive demos & sandbox prototypes** | [Demos & Sandbox](content/demos/index.md) | notebooks & lab |
 
 **New here?** Start with the [Tutorials](tutorials/index.md) — run a first
 simulation, then explore the phase plane interactively.

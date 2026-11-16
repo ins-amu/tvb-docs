@@ -8,8 +8,8 @@ The Montbrió–Pazo–Roxin model is an exact macroscopic description of an
 infinite, all-to-all coupled population of quadratic integrate-and-fire
 (theta) neurons: two variables — mean firing rate and mean membrane potential —
 that reproduce the population's activity without any approximation beyond the
-thermodynamic limit. This card documents the implementation shipped with the
-`tvbl` engine (`tvbl.models.MontbrioPazoRoxin`).
+thermodynamic limit. This card documents the implementation in TVB
+(`tvb.simulator.models.MontbrioPazoRoxin`).
 
 ## Model
 
@@ -70,7 +70,7 @@ $\dot{V}$ only**, weighted by `cr` and `cv`. With the shipped defaults
 | `cr` | 0.0 – 1.0 | 1.0 | Weight of the coupling that arrives through $r$ |
 | `cv` | 0.0 – 1.0 | 0.0 | Weight of the coupling that arrives through $V$ |
 
-Ranges are the trait domains declared in `tvbl.models.MontbrioPazoRoxin`;
+Ranges are the trait domains declared in `tvb.simulator.models.MontbrioPazoRoxin`;
 defaults are the shipped `NArray` defaults. The model's declared
 `parameter_names` list is `tau Delta eta J I cr cv` — `Gamma` is not part of it,
 matching the fact that `dfun` never reads it. The only non-trait constants are

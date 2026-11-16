@@ -9,8 +9,7 @@ populations of integrate-and-fire neurons of the quadratic (QIF/theta) type —
 one excitatory, one inhibitory — with local synaptic dynamics. It is the
 Ott–Antonsen reduction of an infinite, all-to-all coupled, heterogeneous
 population, so its eight equations describe the population limit rather than an
-approximation of it. This card documents the implementation shipped with the
-`tvbl` engine (`tvbl.models.DumontGutkin`).
+approximation of it. This card documents the implementation in TVB (`tvb.simulator.models.DumontGutkin`).
 
 ## Model
 
@@ -80,7 +79,7 @@ The card follows the code.
 | `J_ii` | -25.0 – 25.0 | 15.0 | Local synaptic weight, inhibitory → inhibitory |
 | `Gamma` | 0. – 10. | 5.0 | Ratio of excitatory vs inhibitory global couplings, $G_{ie}/G_{ee}$ |
 
-Ranges are the trait domains declared in `tvbl.models.DumontGutkin`; defaults
+Ranges are the trait domains declared in `tvb.simulator.models.DumontGutkin`; defaults
 are the shipped `NArray` defaults. The firing rates are bounded below
 ($r_e, r_i \ge 0$) by the model's state-variable boundaries.
 

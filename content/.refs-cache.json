@@ -1,0 +1,213 @@
+{
+  "10.1007/978-3-319-71048-8_1": {
+    "authors": [
+      "Byrne",
+      "Coombes"
+    ],
+    "title": "Next Generation Neural Mass Models",
+    "year": 2018
+  },
+  "10.1007/BF00199471": {
+    "authors": [
+      "Jansen",
+      "Rit"
+    ],
+    "title": "Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns",
+    "year": 1995
+  },
+  "10.1007/BF00337367": {
+    "authors": [
+      "Kristiansson",
+      "Mossberg",
+      "Zetterberg"
+    ],
+    "title": "Performance of a model for a local neuron population",
+    "year": 1978
+  },
+  "10.1007/BFB0013365": {
+    "authors": [
+      "Kuramoto"
+    ],
+    "title": "Self-entrainment of a population of coupled non-linear oscillators",
+    "year": null
+  },
+  "10.1016/S0006-3495(61)86902-6": {
+    "authors": [
+      "FitzHugh"
+    ],
+    "title": "Impulses and Physiological States in Theoretical Models of Nerve Membrane",
+    "year": 1961
+  },
+  "10.1016/S0006-3495(72)86068-5": {
+    "authors": [
+      "Cowan",
+      "Wilson"
+    ],
+    "title": "Excitatory and Inhibitory Interactions in Localized Populations of Model Neurons",
+    "year": 1972
+  },
+  "10.1016/S0167-2789(00)00094-4": {
+    "authors": [
+      "Strogatz"
+    ],
+    "title": "From Kuramoto to Crawford: exploring the onset of synchronization in populations of coupled oscillators",
+    "year": 2000
+  },
+  "10.1016/S0925-2312(02)00740-3": {
+    "authors": [
+      "Breakspear",
+      "J. Friston",
+      "R. Terry"
+    ],
+    "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a nonlinear model of neuronal dynamics",
+    "year": 2003
+  },
+  "10.1063/1.166453": {
+    "authors": [
+      "Larter",
+      "Speelman",
+      "Worth"
+    ],
+    "title": "A coupled ordinary differential equation lattice model for the simulation of epileptic seizures",
+    "year": 1999
+  },
+  "10.1088/0954-898X/14/4/305": {
+    "authors": [
+      "Breakspear",
+      "Friston",
+      "Terry"
+    ],
+    "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a biophysical model of neuronal dynamics",
+    "year": 2003
+  },
+  "10.1093/brain/awu133": {
+    "authors": [
+      "Bernard",
+      "Ivanov",
+      "Jirsa",
+      "Quilichini",
+      "Stacey"
+    ],
+    "title": "On the nature of seizure dynamics",
+    "year": 2014
+  },
+  "10.1093/brain/awx004": {
+    "authors": [
+      "Bartolomei",
+      "Guye",
+      "Jirsa",
+      "Proix"
+    ],
+    "title": "Individual brain structure and modelling predict seizure propagation",
+    "year": 2017
+  },
+  "10.1098/rspb.1984.0024": {
+    "authors": [
+      "Hindmarsh",
+      "Rose"
+    ],
+    "title": "A model of neuronal bursting using three coupled first order differential equations",
+    "year": 1984
+  },
+  "10.1103/PhysRevX.5.021028": {
+    "authors": [
+      "Montbrió",
+      "Pazó",
+      "Roxin"
+    ],
+    "title": "Macroscopic Description for Networks of Spiking Neurons",
+    "year": 2015
+  },
+  "10.1109/JRPROC.1962.288235": {
+    "authors": [
+      "Arimoto",
+      "Nagumo",
+      "Yoshizawa"
+    ],
+    "title": "An Active Pulse Transmission Line Simulating Nerve Axon",
+    "year": 1962
+  },
+  "10.1126/sciadv.abf4752": {
+    "authors": [
+      "Aquino",
+      "Arnatkeviciute",
+      "Deco",
+      "Fornito",
+      "Kringelbach",
+      "Oldham",
+      "Rogasch",
+      "Sabaroedin"
+    ],
+    "title": "Dynamical consequences of regional heterogeneity in the brain’s transcriptional landscape",
+    "year": 2021
+  },
+  "10.1162/neco_a_01300": {
+    "authors": [
+      "Gast",
+      "Knösche",
+      "Schmidt"
+    ],
+    "title": "A Mean-Field Description of Bursting Dynamics in Spiking Neural Networks with Short-Term Adaptation",
+    "year": 2020
+  },
+  "10.1371/journal.pcbi.1000219": {
+    "authors": [
+      "Jirsa",
+      "Stefanescu"
+    ],
+    "title": "A Low Dimensional Description of Globally Coupled Heterogeneous Neural Networks of Excitatory and Inhibitory Neurons",
+    "year": 2008
+  },
+  "10.1371/journal.pcbi.1007019": {
+    "authors": [
+      "Dumont",
+      "Gutkin"
+    ],
+    "title": "Macroscopic phase resetting-curves determine oscillatory coherence and signal transfer in inter-coupled neural circuits",
+    "year": 2019
+  },
+  "10.1523/JNEUROSCI.1570-14.2014": {
+    "authors": [
+      "Bartolomei",
+      "Bernard",
+      "Chauvel",
+      "Jirsa",
+      "Proix"
+    ],
+    "title": "Permittivity Coupling across Brain Regions Determines Seizure Recruitment in Partial Epilepsy",
+    "year": 2014
+  },
+  "10.1523/JNEUROSCI.3733-05.2006": {
+    "authors": [
+      "Wang",
+      "Wong"
+    ],
+    "title": "A Recurrent Network Mechanism of Time Integration in Perceptual Decisions",
+    "year": 2006
+  },
+  "10.1523/JNEUROSCI.5068-13.2014": {
+    "authors": [
+      "Corbetta",
+      "Deco",
+      "Hagmann",
+      "Mantini",
+      "Ponce-Alvarez",
+      "Romani"
+    ],
+    "title": "How Local Excitation-Inhibition Ratio Impacts the Whole Brain Dynamics",
+    "year": 2014
+  },
+  "10.3389/fninf.2013.00010": {
+    "authors": [
+      "Domide",
+      "Jirsa",
+      "Knock",
+      "McIntosh",
+      "Mersmann",
+      "Sanz Leon",
+      "Woodman"
+    ],
+    "title": "The Virtual Brain: a simulator of primate brain network dynamics",
+    "year": 2013
+  }
+}

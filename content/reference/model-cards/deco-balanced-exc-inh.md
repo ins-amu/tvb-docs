@@ -9,7 +9,7 @@ region-level gain $M_i$ applied to the input–output drive of **both** the
 excitatory and the inhibitory population, used to encode regional differences in
 the excitation/inhibition ratio. Everything else — state variables, coupling, and
 all other traits — is inherited unchanged. This card documents the implementation
-shipped with the `tvbl` engine (`tvbl.models.DecoBalancedExcInh`).
+in TVB (`tvb.simulator.models.DecoBalancedExcInh`).
 
 ## Model
 
@@ -95,7 +95,7 @@ inhibitory population.
 | `G` | 0.0 – 10.0 | 2.0 | Global coupling scaling *(inherited)* |
 | `lamda` | 0.0 – 1.0 | 0.0 | Coupling delivered to the I population *(inherited)* |
 
-Ranges are the trait domains declared in `tvbl.models.DecoBalancedExcInh` and its
+Ranges are the trait domains declared in `tvb.simulator.models.DecoBalancedExcInh` and its
 base class; defaults are the shipped `NArray` defaults.
 
 ### Fixed constants

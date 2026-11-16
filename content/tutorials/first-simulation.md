@@ -7,6 +7,11 @@ kernelspec:
 
 # Your first simulation
 
+:::{tip} Open in Lab
+Run this simulation interactively in your browser with zero installation:
+[Open in JupyterLite Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb)
+:::
+
 This page builds and runs a complete TVB simulation: a **model** of local
 dynamics on a **connectivity** of brain regions, joined by **coupling**,
 stepped forward by a deterministic **integrator**, and recorded by two

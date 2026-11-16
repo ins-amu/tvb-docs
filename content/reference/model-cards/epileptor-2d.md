@@ -7,8 +7,8 @@ bibliography:
 The Epileptor 2D is the slow two-variable skeleton of the Epileptor: the fast
 population is slaved to its own nullcline and the second population is dropped,
 leaving the pair (excitability, permittivity) that decides whether a region is
-at rest or in a seizure state. This card documents the implementation shipped
-with the `tvbl` engine (`tvbl.models.Epileptor2D`).
+at rest or in a seizure state. This card documents the implementation
+in TVB (`tvb.simulator.models.Epileptor2D`).
 
 ## Model
 
@@ -82,7 +82,7 @@ gains default to $0$.
 | `tt` | 0.001 – 1.0 | 1.0 | Global time scaling of the system |
 | `modification` | {True, False} | False | Use the sigmoid form of $h$ instead of the linear one |
 
-Ranges are the trait domains declared in `tvbl.models.Epileptor2D`; defaults are
+Ranges are the trait domains declared in `tvb.simulator.models.Epileptor2D`; defaults are
 the shipped `NArray` defaults. Traits marked — have no `Range` domain in the
 code. The following quantities are **fixed constants** inside `dfun`:
 

@@ -8,7 +8,7 @@ The Kuramoto model is a **phase oscillator**: each node carries a single state
 variable, the phase $\theta$ of its local rhythm, and no amplitude at all. It is
 TVB's cheapest whole-brain oscillator and the standard tool for asking *when a
 network of rhythms locks together*. This card documents the implementation
-shipped with the `tvbl` engine (`tvbl.models.Kuramoto`).
+in TVB (`tvb.simulator.models.Kuramoto`).
 
 ## Model
 
@@ -38,12 +38,11 @@ Reading the three pieces:
   $\omega_k$ is the ingredient that opposes synchronization.
 - $C_k$ is the **network coupling input**, and it is the whole interaction.
   `cvar = [0]` declares $\theta$ as the coupling variable, so $C_k$ is the
-  coupling array's first row evaluated at node $k$. With tvb's
+  coupling array's first row evaluated at node $k$. With TVB's
   `coupling.Kuramoto(a)` that row is the classic phase-difference interaction
   $\frac{a}{N}\sum_j u_{kj}\sin\!\big(\theta_j(t-\tau_{kj}) - \theta_k(t)\big)$,
   where $u_{kj}$ are the connectome weights and $\tau_{kj}$ the conduction
-  delays; with a `Linear` coupling — and with the generic CSR coupling function
-  of the vendored `tvbl` engine — the row is instead the raw weighted delayed
+  delays; with a `Linear` coupling the row is instead the raw weighted delayed
   sum $\sum_j u_{kj}\,\theta_j(t-\tau_{kj})$, which is *not* the Kuramoto
   interaction and will not produce phase locking. Pair this model with a
   coupling function that takes the sine of the phase difference.
@@ -65,7 +64,7 @@ and for plotting, not for wrapping the state.
 |------|-------|---------|-------------|
 | `omega` | 0.01 – 200.0 | 1.0 | Natural frequency of each node [rad/ms]; per-node values give a heterogeneous population |
 
-Ranges are the trait domains declared in `tvbl.models.Kuramoto`; defaults are
+Ranges are the trait domains declared in `tvb.simulator.models.Kuramoto`; defaults are
 the shipped `NArray` defaults. `omega` is the **only** model-parameter trait of
 this model (the remaining traits are `state_variable_range` and
 `variables_of_interest`) — interaction strength, delays, and the shape of the

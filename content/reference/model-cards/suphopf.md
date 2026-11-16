@@ -1,3 +1,7 @@
+---
+bibliography:
+  - ../../references.bib
+---
 # SupHopf (supercritical Hopf)
 
 The SupHopf model is the **normal form of a supercritical Hopf bifurcation**
@@ -90,19 +94,23 @@ monitor records $x$ unless asked otherwise.
 
 ## Paper Reference
 
+Primary reference: [@deco2017; @kuznetsov2004].
+
+Deco, G., Kringelbach, M.L., Jirsa, V.K. and Ritter, P. (2017). The dynamics of
+resting fluctuations in the brain: metastability and its dynamical cortical
+core. *Scientific Reports*, 7: 3095.
+
+Kuznetsov, Y.A. (2004). *Elements of Applied Bifurcation Theory* (3rd ed.).
+Springer, *Applied Mathematical Sciences*, vol. 112.
+
 The mathematical source is the supercritical Hopf normal form (equivalently the
 Stuart–Landau equation of hydrodynamic stability theory); the standard
 derivation, the normal-form computation, and the classification of the
-supercritical versus subcritical case are in Kuznetsov, Y.A. *Elements of Applied
-Bifurcation Theory*, 3rd edition, Springer, *Applied Mathematical Sciences*
-vol. 112, 2013.
-
-Its use as the local neural mass in The Virtual Brain — where each region sits
-close to the Hopf point so that coupling can move it between a damped and an
-oscillatory state, and the resulting near-critical dynamics is what produces
-metastable resting-state activity — is Deco, G., Kringelbach, M.L., Jirsa, V.K.
-and Ritter, P. (2017). The dynamics of resting fluctuations in the brain:
-metastability and its dynamical cortical core. *Scientific Reports*, 7: 3095.
+supercritical versus subcritical case are in Kuznetsov [@kuznetsov2004]. Its use
+as the local neural mass in The Virtual Brain — where each region sits close to
+the Hopf point so that coupling can move it between a damped and an oscillatory
+state, and the resulting near-critical dynamics produces metastable
+resting-state activity — is established in Deco et al. [@deco2017].
 
 See also the [Generic2dOscillator](generic-2d-oscillator.md) card: that model
 reproduces this normal form with a suitable choice of its nullcline

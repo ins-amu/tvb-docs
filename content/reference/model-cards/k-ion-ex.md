@@ -1,3 +1,7 @@
+---
+bibliography:
+  - ../../references.bib
+---
 # K-Ion Ex (potassium ion exchange)
 
 The K-Ion Ex model is a mean-field description of a population of
@@ -156,16 +160,27 @@ inside `dfun` rather than configurable traits:
 
 ## Paper Reference
 
-The `tvb.simulator.models` source documents this model as a mean-field reduction of a
-population of Hodgkin–Huxley neurons with dynamic extracellular potassium,
-attributed there to work by Bandyopadhyay, Rabuffo and collaborators (2023),
-building on the Hodgkin–Huxley mean-field formulation of Depannemeyer and
-collaborators (2022). Full bibliographic details are not reproduced here rather
-than risk an inaccurate citation; the primary reference will be added to the
-site bibliography once verified. Conceptually the model sits in the lineage of
-population-density / mean-field reductions of conductance-based neurons
-(Ermentraout's integral-equation formulation, the Ott–Antonsen reduction used by
-[Dumont–Gutkin](dumont-gutkin.md)) extended with glia-mediated potassium
-regulation. See [neural mass models](../../explanation/neural-mass-models.md) for
-the mean-field idea and [forward models](../../explanation/forward-models.md) for
-how population variables become measurable signals.
+Primary reference: [@rabuffo2026; @depannemaecker2022].
+
+Rabuffo, G., Bandyopadhyay, A., Calabrese, C., Gudibanda, K., Depannemaecker,
+D., Takarabe, L.M., Chatterjee, S., Saggio, M.L., Desroches, M., Ivanov, A.,
+Linne, M.-L., Bernard, C., Petkoski, S. and Jirsa, V. (2026). Biophysically
+inspired mean-field model of neuronal populations driven by ion-exchange
+mechanisms. *eLife*, 14: RP104249.
+
+Depannemaecker, D., Ivanov, A., Lillo, D., Spek, L., Bernard, C. and Jirsa, V.
+(2022). A unified physiological framework of transitions between seizures,
+sustained ictal activity and depolarization block at the single neuron level.
+*Journal of Computational Neuroscience*, 50(1): 33–49.
+
+The `tvb.simulator.models.KIonEx` implementation derives the macroscopic limit
+of an all-to-all coupled population of Hodgkin–Huxley-type neurons with dynamic
+extracellular potassium [@rabuffo2026], building on the single-neuron potassium
+and Na/K-pump framework of Depannemaecker et al. [@depannemaecker2022].
+Conceptually the model sits in the lineage of population-density / mean-field
+reductions of conductance-based neurons (the Ott–Antonsen / Lorentzian reduction
+used by [Montbrió–Pazó–Roxin](montbrio-pazo-roxin.md) and
+[Dumont–Gutkin](dumont-gutkin.md)) extended with slow glia- and bath-mediated
+ion homeostasis. See [neural mass models](../../explanation/neural-mass-models.md)
+for the mean-field idea and [forward models](../../explanation/forward-models.md)
+for how population variables become measurable signals.

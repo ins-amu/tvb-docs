@@ -1,3 +1,7 @@
+---
+bibliography:
+  - ../../references.bib
+---
 # Linear
 
 The Linear model is a single damped state variable driven only by its inputs:
@@ -93,18 +97,26 @@ $x \in [-1, 1]$ and `variables_of_interest = ("x",)`.
 
 ## Paper Reference
 
-Unlike the other model cards, this one has no single founding publication: the
-Linear model is the linearisation of the Stuart–Landau / supercritical Hopf
-normal form documented in the [SupHopf](suphopf.md) card, with the quadratic
-saturation and the rotational term discarded. The normal-form machinery it is
-derived from is set out in Kuznetsov, Y.A. *Elements of Applied Bifurcation
-Theory*, 3rd edition, Springer, *Applied Mathematical Sciences* vol. 112, 2013,
-and the same linear amplitude dynamics is what neural-mass models reduce to near
-their resting state — see [neural mass models](../../explanation/neural-mass-models.md).
+Primary reference: [@sanzleon2013; @kuznetsov2004].
 
-In TVB it is used as a passive node: a convenient way to let a region transmit
-or integrate activity from the connectome without committing to a specific local
-dynamics. The [getting-started tutorial](../../tutorials/getting-started.md)
-pairs models with `coupling.Linear`; note that `coupling.Linear` (a linear
-*coupling function*) and `models.Linear` (a linear *local dynamics*) are
-independent choices.
+Sanz Leon, P., Knock, S.A., Woodman, M.M., Domide, L., Mersmann, J., McIntosh,
+A.R. and Jirsa, V. (2013). The Virtual Brain: a simulator of primate brain
+network dynamics. *Frontiers in Neuroinformatics*, 7: 10.
+
+Kuznetsov, Y.A. (2004). *Elements of Applied Bifurcation Theory* (3rd ed.).
+Springer, *Applied Mathematical Sciences*, vol. 112.
+
+Unlike the other model cards, this one has no single founding biophysical
+publication: the Linear model is the linearisation of the Stuart–Landau /
+supercritical Hopf normal form documented in the [SupHopf](suphopf.md) card,
+with the cubic saturation and the rotational term discarded [@kuznetsov2004],
+and the same linear relaxation dynamics is what neural-mass models reduce to
+near a stable resting fixed point — see
+[neural mass models](../../explanation/neural-mass-models.md).
+
+In TVB [@sanzleon2013] it is used as a passive node: a convenient way to let a
+region transmit or integrate activity from the connectome without committing to
+a specific nonlinear local dynamics. The
+[getting-started tutorial](../../tutorials/getting-started.md) pairs models with
+`coupling.Linear`; note that `coupling.Linear` (a linear *coupling function*)
+and `models.Linear` (a linear *local dynamics*) are independent choices.

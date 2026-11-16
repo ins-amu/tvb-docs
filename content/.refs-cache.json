@@ -1,4 +1,11 @@
 {
+  "10.1007/978-1-4757-3978-7": {
+    "authors": [
+      "Kuznetsov"
+    ],
+    "title": "Elements of Applied Bifurcation Theory",
+    "year": 2004
+  },
   "10.1007/978-3-319-71048-8_1": {
     "authors": [
       "Byrne",
@@ -31,6 +38,18 @@
     "title": "Self-entrainment of a population of coupled non-linear oscillators",
     "year": null
   },
+  "10.1007/s10827-022-00811-1": {
+    "authors": [
+      "Bernard",
+      "Depannemaecker",
+      "Ivanov",
+      "Jirsa",
+      "Lillo",
+      "Spek"
+    ],
+    "title": "A unified physiological framework of transitions between seizures, sustained ictal activity and depolarization block at the single neuron level",
+    "year": 2022
+  },
   "10.1016/S0006-3495(61)86902-6": {
     "authors": [
       "FitzHugh"
@@ -61,6 +80,16 @@
     ],
     "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a nonlinear model of neuronal dynamics",
     "year": 2003
+  },
+  "10.1038/s41598-017-03073-5": {
+    "authors": [
+      "Deco",
+      "Jirsa",
+      "Kringelbach",
+      "Ritter"
+    ],
+    "title": "The dynamics of resting fluctuations in the brain: metastability and its dynamical cortical core",
+    "year": 2017
   },
   "10.1063/1.166453": {
     "authors": [
@@ -209,5 +238,25 @@
     ],
     "title": "The Virtual Brain: a simulator of primate brain network dynamics",
     "year": 2013
+  },
+  "10.7554/eLife.104249": {
+    "authors": [
+      "Bandyopadhyay",
+      "Bernard",
+      "Calabrese",
+      "Chatterjee",
+      "Depannemaecker",
+      "Desroches",
+      "Gudibanda",
+      "Ivanov",
+      "Jirsa",
+      "Linne",
+      "Petkoski",
+      "Rabuffo",
+      "Saggio",
+      "Takarabe"
+    ],
+    "title": "Biophysically inspired mean-field model of neuronal populations driven by ion-exchange mechanisms",
+    "year": 2026
   }
 }

@@ -25,6 +25,7 @@ refs: ## Validate BibTeX citations against Crossref API
 
 docs: ## Build MyST HTML docs with execution and stage JupyterLite contents
 	uv run myst build --execute --html
+	node tools/build_glossary.mjs
 	uv run python tools/stage_lite.py
 
 test: ## Run unit tests and reference checks

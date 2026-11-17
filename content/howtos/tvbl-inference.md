@@ -29,7 +29,7 @@ import tvbl_docs as td
 
 ## 1. Sample the prior and simulate
 
-Draw parameters from the prior box and simulate each draw:
+Draw parameters from the uniform {term}`prior <Prior>` and simulate each draw:
 
 ```{code-cell} ipython3
 params, feats = td.sbi_dataset(num_batch=4, num_item=8)
@@ -54,6 +54,8 @@ print(f"Trained a MAF on {params.shape[1]} simulations.")
 ```
 
 ## 3. Sample the posterior for one observation
+
+Use the trained flow to draw from the estimated {term}`posterior <Posterior>`.
 
 ```{code-cell} ipython3
 import numpy as np

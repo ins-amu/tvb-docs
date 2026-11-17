@@ -8,15 +8,12 @@ bibliography:
 *Explanation — what a neural mass model is, why regional brain dynamics are
 written this way, and what the equations are made of.*
 
-A **neural mass model** (NMM) describes the average activity of a large
-population of neurons — tens of thousands to millions of them — with a handful
-of differential equations. It is the unit of dynamics in a TVB simulation:
-every region of the connectome runs one such model, and the connectome feeds
-each region's output into the inputs of the others [@sanzleon2013]. This page
-explains where that reduction comes from, what the equations are built from,
-and what behaviour they produce. For exact equations and parameter tables of
-individual models see the [Wilson–Cowan model card](../reference/model-cards/wilson-cowan.md);
-for the geometry of the resulting dynamics see the
+In a regional TVB simulation, each region runs a neural mass model. The
+connectome feeds each region’s output into the inputs of the others
+[@sanzleon2013]. This page follows the modelling choices behind that reduction,
+from how populations respond to input to how oscillations emerge. For equations
+and parameter tables, see the [Wilson–Cowan model card](../reference/model-cards/wilson-cowan.md).
+For a geometric view of the dynamics, see the
 [phase-plane explanation](phase-plane-explanation.md).
 
 ## From spiking neurons to population averages

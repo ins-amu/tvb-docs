@@ -132,6 +132,10 @@ parts:
           - file: content/demos/adex_meanfied/adex_meanfield.ipynb
           - file: content/demos/adex_meanfied/goldman_2020_spontaneous_activity.ipynb
 
+  - caption: Glossary
+    chapters:
+      - file: content/glossary.md
+
   - caption: Demos & Sandbox
     chapters:
       - file: content/demos/index.md

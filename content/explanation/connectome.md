@@ -8,21 +8,15 @@ bibliography:
 *Explanation — what a structural connectome is, where it comes from, and what
 job it does in a TVB simulation.*
 
-At the scale TVB works at, a **connectome** is a network description of the
-brain's long-range wiring: a set of brain regions as **nodes**, and the
-white-matter fibre tracts linking them as **edges**. It is the anatomical
-scaffold of a whole-brain simulation — the object that decides which neural mass
-models talk to which, how strongly, and with what delay [@sanzleon2013]. The
-dynamics live in the models; the connectome decides how those dynamics are
-allowed to mix.
+The connectome is the anatomical scaffold of a TVB simulation. The dynamics
+live in the local models. The connectome determines which regions can influence
+each other, how strongly, and with what delay [@sanzleon2013].
 
 ## Nodes come from a parcellation
 
-A connectome is not measured region-by-region; it is built by cutting the brain
-into regions first. A **parcellation** partitions cortex and subcortex into
-anatomically or functionally defined areas — 76 regions in the dataset these
-tutorials use, up to a few hundred in other atlases — and each region becomes one
-node, i.e. one neural mass model in the simulation.
+To build a regional connectome, first choose a parcellation. The dataset used
+in these tutorials has 76 regions, while other atlases have a few hundred. Each
+region becomes one {term}`node <Node>` with its own neural mass model.
 
 That choice is a modelling decision, not a fact read off the image. Two atlases
 of the same brain give different node sets, different edge weights, and different

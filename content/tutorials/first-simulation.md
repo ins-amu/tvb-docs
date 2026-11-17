@@ -15,7 +15,7 @@ Run this simulation interactively in your browser with zero installation:
 This page builds and runs a complete TVB simulation: a **model** of local
 dynamics on a **connectivity** of brain regions, joined by **coupling**,
 stepped forward by a deterministic **integrator**, and recorded by two
-**monitors**. Every code cell below is executed when this book is built, and
+{term}`monitors <Monitor>`. Every code cell below is executed when this book is built, and
 the figures you see are the outputs of that run.
 
 ## Imports

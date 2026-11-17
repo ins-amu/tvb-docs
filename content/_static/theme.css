@@ -254,3 +254,62 @@ a[title="Link to this Section"]:hover::after {
 .myst-code-copy-icon:active {
   opacity: 1 !important;
 }
+
+/* Glossary links use green text to distinguish definition previews. */
+:root {
+  --glossary-link-text: #287047;
+}
+
+html.dark {
+  --glossary-link-text: #a1d5ab;
+}
+
+a[href*="#term-"]:not([title="Link to this Section"]) {
+  color: var(--glossary-link-text);
+  text-decoration: none;
+  text-underline-offset: 0.18em;
+}
+
+a[href*="#term-"]:not([title="Link to this Section"]):is(:hover, :focus-visible) {
+  text-decoration: underline;
+}
+
+dt[id^="term-"] {
+  scroll-margin-top: 5rem;
+}
+
+dt[id^="term-"]:target {
+  background: var(--myst-color-accent-surface);
+}
+
+#glossary-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.65rem;
+  margin: 1rem 0;
+}
+
+#glossary-search label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+#glossary-query {
+  width: min(15rem, 100%);
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--myst-color-text-secondary);
+  border-radius: 0.35rem;
+  background: var(--myst-color-surface-header);
+  color: var(--myst-color-text);
+}
+
+#glossary-query:focus-visible {
+  outline: 2px solid var(--myst-color-focus-ring);
+  outline-offset: 2px;
+}
+
+#glossary-search [role="status"] {
+  font-size: 0.85rem;
+  color: var(--myst-color-text-secondary);
+}

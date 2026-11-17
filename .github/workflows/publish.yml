@@ -51,6 +51,9 @@ jobs:
       - name: Build MyST HTML
         run: uv run myst build --execute --html
 
+      - name: Check glossary links and add glossary search
+        run: node tools/build_glossary.mjs
+
       - name: Stage JupyterLite contents
         run: uv run python tools/stage_lite.py
 

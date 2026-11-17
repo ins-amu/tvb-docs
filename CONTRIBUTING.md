@@ -68,6 +68,28 @@ Do not mix modes on one page. If a tutorial needs deep theory or mathematical de
 
 ---
 
+## Glossary
+
+Add shared technical vocabulary to `content/glossary.md` in alphabetical order.
+Keep each definition on a single source line of 25 words or fewer. Use native
+`{term}` links for related definitions and a separate paragraph to link to an
+Explanation page. Keep the rationale, assumptions, and examples in Explanation.
+
+The MyST build links matching terms in rendered prose, including notebook
+Markdown cells. The spelling variants and terms that require a deliberate link
+are in `plugins/glossary-links.mjs`. To link an ambiguous term in its technical
+sense, use `` {term}`monitors <Monitor>` ``. Check the rendered paragraph when
+adding an alias since it can introduce links throughout the docs.
+
+CI checks the built pages for broken glossary references and fails if any
+are found. Known terms and aliases left unlinked in eligible prose produce
+warnings with the source page and term names. Code, headings, and existing
+links are outside this check. When reviewing a new concept, decide whether
+it needs a definition, an alias, or an explicit link.
+
+`make docs` runs the same check and adds the glossary search field. After a
+manual MyST HTML build, run `node tools/build_glossary.mjs` to do both.
+
 ## How to Contribute Content
 
 There are two primary ways to contribute:

@@ -17,3 +17,11 @@ marimo
 jupyter-book-marimo
 tqdm
 plotly
+# additional scientific / visualization packages shared with the WASM lab env
+seaborn
+bctpy
+xarray
+pywavelets
+specparam
+sympy
+emcee

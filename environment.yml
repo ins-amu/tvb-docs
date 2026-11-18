@@ -34,9 +34,18 @@ dependencies:
   - autopep8
   - six
   - h5py
+  - seaborn
+  - plotly
+  - nbformat
+  - bctpy
+  - xarray
+  - pywavelets
+  - sympy
+  - emcee
   - pip
   - pip:
     - mne
+    - specparam
     - ebrains-drive
     - pyunicore
     - tslearn

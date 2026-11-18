@@ -1,4 +1,4 @@
-import type { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { ILabShell, type JupyterFrontEnd, type JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ICommandPalette, ISessionContextDialogs } from '@jupyterlab/apputils';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -32,7 +32,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   description: 'Expose this JupyterLite tab to an MCP hub so chat clients can drive the notebook.',
   autoStart: true,
   requires: [INotebookTracker, IDocumentManager, ITranslator],
-  optional: [ISettingRegistry, ICommandPalette, IStatusBar, ISessionContextDialogs],
+  optional: [ISettingRegistry, ICommandPalette, IStatusBar, ISessionContextDialogs, ILabShell],
   activate: async (
     app: JupyterFrontEnd,
     tracker: INotebookTracker,
@@ -42,6 +42,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette | null,
     statusBar: IStatusBar | null,
     sessionDialogs: ISessionContextDialogs | null,
+    labShell: ILabShell | null,
   ): Promise<void> => {
     if (!settingRegistry) {
       console.warn('mcp-hub: settings registry unavailable; plugin disabled');
@@ -202,8 +203,33 @@ const plugin: JupyterFrontEndPlugin<void> = {
       panel.setState('offline', 'not paired');
     }
 
-    void app.restored.then(() => {
-      app.shell.activateById(panel.id);
+    void app.restored.then(async () => {
+      // Keep the MCP Hub sidebar collapsed by default on startup unless paired.
+      if (!(cfg.pairId && cfg.pairToken)) {
+        labShell?.collapseRight();
+      }
+
+      // On a bare Lab launch (no ?path=... and nothing besides Launcher open),
+      // land on the README.ipynb orientation notebook instead of the Launcher.
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('path')) {
+        return;
+      }
+      const isLauncher = (w: Widget): boolean => w.id.startsWith('launcher-');
+      const mainWidgets = Array.from(app.shell.widgets('main'));
+      if (mainWidgets.length > 0 && !mainWidgets.every(isLauncher)) {
+        return;
+      }
+      try {
+        await docManager.openOrReveal('README.ipynb');
+        for (const w of Array.from(app.shell.widgets('main'))) {
+          if (isLauncher(w)) {
+            w.close();
+          }
+        }
+      } catch (err) {
+        console.warn('mcp-hub: could not open default README.ipynb', err);
+      }
     });
   },
 };

@@ -68,22 +68,28 @@ try:
     """)
     _np_cfun = cfun
     def cfun(t, buffer, csr_weights, idelays2, horizon, validate=True):
-        cx_np = _np_cfun(t, buffer, csr_weights, idelays2, horizon)
-        cx = np.zeros(cx_np.shape, 'f')
+        cx = np.zeros((2, csr_weights.shape[0], buffer.shape[2]), "f")
         # pyjs' buffer_to_js_typed_array only accepts 1-D buffers (it calls
-        # py_1d_buffer_to_typed_array), so hand it flat views.  All arrays
-        # here are C-contiguous, so reshape(-1) is a view and the JS writes
-        # to j_cx still land in cx; the index arithmetic in the JS above
-        # matches C-order flattening of (2, num_node, num_item),
-        # (num_node, horizon, num_item) and (2, nnz) respectively.
-        j_cx = pyjs.buffer_to_js_typed_array(cx.reshape(-1), view=True)
-        j_buffer = pyjs.buffer_to_js_typed_array(buffer.reshape(-1), view=True)
-        j_indices = pyjs.buffer_to_js_typed_array(csr_weights.indices.reshape(-1), view=True)
-        j_weights = pyjs.buffer_to_js_typed_array(csr_weights.data.reshape(-1), view=True)
-        j_indptr = pyjs.buffer_to_js_typed_array(csr_weights.indptr.reshape(-1), view=True)
-        j_idelays2 = pyjs.buffer_to_js_typed_array(idelays2.reshape(-1), view=True)
+        # py_1d_buffer_to_typed_array) and returns views into WASM heap
+        # memory. Ensure each array is C-contiguous and keep the 1-D Python
+        # references alive until _js_cfun returns so temporary copies are not
+        # freed while JS holds typed-array views.
+        cx_1d = cx.reshape(-1)
+        buffer_1d = np.ascontiguousarray(buffer).reshape(-1)
+        indices_1d = np.ascontiguousarray(csr_weights.indices, dtype=np.int32).reshape(-1)
+        weights_1d = np.ascontiguousarray(csr_weights.data).reshape(-1)
+        indptr_1d = np.ascontiguousarray(csr_weights.indptr, dtype=np.int32).reshape(-1)
+        idelays2_1d = np.ascontiguousarray(idelays2, dtype=np.int32).reshape(-1)
+        j_cx = pyjs.buffer_to_js_typed_array(cx_1d, view=True)
+        j_buffer = pyjs.buffer_to_js_typed_array(buffer_1d, view=True)
+        j_indices = pyjs.buffer_to_js_typed_array(indices_1d, view=True)
+        j_weights = pyjs.buffer_to_js_typed_array(weights_1d, view=True)
+        j_indptr = pyjs.buffer_to_js_typed_array(indptr_1d, view=True)
+        j_idelays2 = pyjs.buffer_to_js_typed_array(idelays2_1d, view=True)
         _js_cfun(j_cx, t, j_buffer, j_indices, j_weights, j_indptr, j_idelays2, horizon)
-        assert np.allclose(cx, cx_np, atol=1e-5)
+        if validate:
+            cx_np = _np_cfun(t, buffer, csr_weights, idelays2, horizon)
+            assert np.allclose(cx, cx_np, atol=1e-5)
         return cx
 except ImportError:
     print("pyjs not found, using pure python implementation")
@@ -124,7 +130,7 @@ def run(
     trace_shape = num_time // num_skip + 1, num_svar, num_node, num_item
     trace = np.zeros(trace_shape, 'f')
     assert idelays.max() < horizon-2
-    idelays2 = -horizon + np.c_[idelays, idelays-1].T
+    idelays2 = np.ascontiguousarray(-horizon + np.c_[idelays, idelays - 1].T, dtype=np.int32)
     assert idelays2.shape == (2, csr_weights.nnz)
     buffer = np.zeros((num_node, horizon, num_item))
 

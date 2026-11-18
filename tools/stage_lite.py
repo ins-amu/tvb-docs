@@ -53,10 +53,10 @@ SYS_PATH_REPLACEMENT = (
     '    _root = _root.parent\n'
     'if (_root / "tvbl_docs.py").exists():\n'
     '    if str(_root) not in sys.path:\n'
-    '        sys.path.insert(0, str(_root))\n'
+    '        sys.path.append(str(_root))\n'
     'elif (_root / "content" / "_code").exists():\n'
     '    if str(_root / "content" / "_code") not in sys.path:\n'
-    '        sys.path.insert(0, str(_root / "content" / "_code"))'
+    '        sys.path.append(str(_root / "content" / "_code"))'
 )
 
 

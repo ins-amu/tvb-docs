@@ -32,6 +32,10 @@ Create the virtual environment and install pinned dependencies:
 ```bash
 make setup
 ```
+To ensure dependencies are up to date, you may need to
+```bash
+uv pip sync requirements/uv.lock
+```
 
 ### 2. Verify and Build Docs
 Run the reference validation and MyST build with code execution:

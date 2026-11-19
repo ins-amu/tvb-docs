@@ -27,10 +27,15 @@ content/
 
 You will need Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
 
+All build tasks live in [`make.py`](make.py), a stdlib-only Python script, so
+`make` is optional. On macOS/Linux use `python3 make.py <task>`; on Windows use
+`py -3 make.py <task>`. If you do have `make`, `make <task>` works too and is
+equivalent.
+
 ### 1. Setup
 Create the virtual environment and install pinned dependencies:
 ```bash
-make setup
+python3 make.py setup
 ```
 To ensure dependencies are up to date, you may need to
 ```bash
@@ -40,20 +45,20 @@ uv pip sync requirements/uv.lock
 ### 2. Verify and Build Docs
 Run the reference validation and MyST build with code execution:
 ```bash
-make check
+python3 make.py check
 ```
-*(This runs `make refs` followed by `make docs`—the exact checks CI executes on pull requests).*
+*(This runs `make.py refs` followed by `make.py docs`—the exact checks CI executes on pull requests).*
 
 ### 3. Preview the Unified Site
 Start a local web server to inspect both the documentation and the lab:
 ```bash
-make serve
+python3 make.py serve
 ```
 Visit:
 - **MyST Documentation:** [http://localhost:8000](http://localhost:8000)
 - **Interactive JupyterLite Lab:** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
 
-*(Optional)* To build the WebAssembly kernel and JupyterLite distribution locally, run `make lite-setup` followed by `make lite`.
+*(Optional)* To build the WebAssembly kernel and JupyterLite distribution locally, run `python3 make.py lite-setup` followed by `python3 make.py lite`.
 
 ---
 
@@ -91,7 +96,7 @@ warnings with the source page and term names. Code, headings, and existing
 links are outside this check. When reviewing a new concept, decide whether
 it needs a definition, an alias, or an explicit link.
 
-`make docs` runs the same check and adds the glossary search field. After a
+`python3 make.py docs` runs the same check and adds the glossary search field. After a
 manual MyST HTML build, run `node tools/build_glossary.mjs` to do both.
 
 ## How to Contribute Content
@@ -118,7 +123,7 @@ Page templates with pre-configured frontmatter, Diátaxis structure, and interac
    - Ensure simulations are fast and deterministic (execution time < 10 seconds per page) so the build completes quickly.
 3. **Automatic JupyterLite notebook generation:**
    - You do **not** need to manually create or sync a `.ipynb` notebook.
-   - When `tools/stage_lite.py` runs (part of `make docs` / `make check`), it detects markdown pages with code cells and automatically generates:
+   - When `tools/stage_lite.py` runs (part of `make.py docs` / `make.py check`), it detects markdown pages with code cells and automatically generates:
      - Interactive notebook: `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
      - Downloadable notebook: `_build/html/notebooks/<quadrant>/<slug>.ipynb`.
 4. **Register in `_toc.yml`:**
@@ -130,7 +135,7 @@ Page templates with pre-configured frontmatter, Diátaxis structure, and interac
        - file: content/tutorials/my-new-tutorial.md
    ```
 5. **Verify:**
-   Run `make check` to ensure your code executes without errors and references resolve.
+   Run `python3 make.py check` to ensure your code executes without errors and references resolve.
 
 ---
 
@@ -157,7 +162,7 @@ All academic citations live in `content/references.bib`.
 - Relative bibliography path in frontmatter:
   - For pages in `content/<quadrant>/`: `bibliography: [../references.bib]`
   - For model cards in `content/reference/model-cards/`: `bibliography: [../../references.bib]`
-- **Validate citations:** Run `make refs`. This script checks every DOI in `references.bib` against the official Crossref API to detect dead DOIs, author mismatches, or title hallucinations.
+- **Validate citations:** Run `python3 make.py refs`. This script checks every DOI in `references.bib` against the official Crossref API to detect dead DOIs, author mismatches, or title hallucinations.
 - **Cache:** Crossref verification results are cached in `content/.refs-cache.json`. Commit any updates to this cache file alongside your changes in `content/references.bib`.
 
 ---
@@ -168,10 +173,10 @@ All academic citations live in `content/references.bib`.
    ```bash
    git checkout -b docs/<feature-or-topic>
    ```
-2. **Local check:** Run `make check`. This must pass with zero errors:
+2. **Local check:** Run `python3 make.py check`. This must pass with zero errors:
    - All Crossref references validate.
    - All code cells in all notebooks and executable markdown pages execute successfully.
    - Table of contents links and MyST syntax are valid.
 3. **Commit & PR:** Open a Pull Request against `main`.
-   - CI will run `make check` (fast PR verification).
+   - CI will run `python make.py check` (fast PR verification).
    - Once merged into `main`, GitHub Actions will build the complete unified MyST + JupyterLite artifact and deploy to GitHub Pages.

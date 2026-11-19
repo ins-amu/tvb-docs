@@ -39,23 +39,15 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install pinned dependencies
-        run: |
-          uv venv
-          uv pip install -r requirements/uv.lock
+        run: python make.py setup
 
       - name: Check references against Crossref
         env:
           CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
-        run: python3 tools/check_refs.py content/references.bib
+        run: python make.py refs
 
-      - name: Build MyST HTML
-        run: uv run myst build --execute --html
-
-      - name: Check glossary links and add glossary search
-        run: node tools/build_glossary.mjs
-
-      - name: Stage JupyterLite contents
-        run: uv run python tools/stage_lite.py
+      - name: Build MyST HTML, check glossary, and stage JupyterLite contents
+        run: python make.py docs
 
       - name: Install mamba
         if: github.event_name != 'pull_request'
@@ -111,18 +103,10 @@ jobs:
           jlpm build
           ls -R ../extensions/@tvbl/jupyterlite-mcp-hub | head -20
 
-      - name: Build the JupyterLite site
+      - name: Build the JupyterLite site and apply runtime patches
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
-        run: |
-          jupyter lite build --contents _build/lite_contents --output-dir _build/html/lite \
-            --XeusAddon.environment_file=environment.ci.yml
-          cp -rv _build/html/lite/extensions/catppuccin_jupyterlab/themes/catppuccin_jupyterlab _build/html/lite/build/themes/
-          cp .nojekyll _build/html/.nojekyll
-
-      - name: Patch xpython/pyjs RTLD_GLOBAL for Numba
-        if: github.event_name != 'pull_request'
-        run: python3 tools/patch_lite_runtime.py _build/html/lite
+        run: python make.py lite
 
       - name: Setup Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

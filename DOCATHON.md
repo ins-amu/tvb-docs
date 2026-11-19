@@ -13,7 +13,7 @@ This document prepares Marmaduke and the TVB documentation team for the contribu
 | Time | Segment | Goal |
 |---|---|---|
 | **00:00 – 02:30** | **Step 1: Tour of the Unified Repo** | Explain the single-source architecture (`content/` $\to$ MyST + JupyterLite). |
-| **02:30 – 06:30** | **Step 2: Live Demo (3-Minute Edit)** | Copy template, add code, run `make check`, preview in browser. |
+| **02:30 – 06:30** | **Step 2: Live Demo (3-Minute Edit)** | Copy template, add code, run `python3 make.py check`, preview in browser. |
 | **06:30 – 08:30** | **Step 3: PR & CI Workflow** | Explain fast PR checks vs. automated GitHub Pages publishing. |
 | **08:30 – 10:00** | **Step 4: Claiming Backlog Items** | Direct contributors to the backlog table below and kickoff hacking. |
 
@@ -64,12 +64,12 @@ This document prepares Marmaduke and the TVB documentation team for the contribu
    - Add a fast code cell using `tvb.simulator.lab.connectivity`.
 4. **Run local verification:**
    ```bash
-   make check
+   python3 make.py check
    ```
-   *Explain that `make check` executes `make refs` (verifying DOIs) and `make docs` (compiling MyST, executing all code cells, and staging JupyterLite notebooks).*
+   *Explain that `make.py check` executes `make.py refs` (verifying DOIs) and `make.py docs` (compiling MyST, executing all code cells, and staging JupyterLite notebooks).*
 5. **Serve and inspect:**
    ```bash
-   make serve
+   python3 make.py serve
    ```
    Open `http://localhost:8000/howtos/inspect-connectome.html`:
    - Point out the rendered text and freshly computed figures.
@@ -83,11 +83,11 @@ This document prepares Marmaduke and the TVB documentation team for the contribu
 > *"How do we guarantee that our documentation never breaks and our references stay accurate?"*
 
 1. **Local Pre-Flight:**
-   - Run `make check`. If it exits `0`, your code executes cleanly, all imports resolve, and references are valid.
-2. **Automated Crossref Verification (`make refs`):**
+   - Run `python3 make.py check`. If it exits `0`, your code executes cleanly, all imports resolve, and references are valid.
+2. **Automated Crossref Verification (`make.py refs`):**
    - Every citation in `content/references.bib` is verified against Crossref's API to ensure no hallucinated papers or broken DOIs are committed. Results are cached in `content/.refs-cache.json`.
 3. **CI on Pull Requests:**
-   - GitHub Actions runs `make check` on every PR. Builds complete rapidly without needing to rebuild heavy WASM binary packages.
+   - GitHub Actions runs `python make.py check` on every PR. Builds complete rapidly without needing to rebuild heavy WASM binary packages.
 4. **Automated CD on `main`:**
    - Once merged to `main`, the CI builds the complete static documentation and JupyterLite WASM bundle and deploys immediately to GitHub Pages.
 
@@ -132,6 +132,6 @@ Before opening your pull request, verify the following checklist:
    - Is your new file registered in `_toc.yml` under the appropriate caption?
 4. **Citations:**
    - Are all references registered in `content/references.bib` with valid DOIs?
-   - Did `make refs` pass and update `content/.refs-cache.json`?
+   - Did `make.py refs` pass and update `content/.refs-cache.json`?
 5. **Local CI Verification:**
-   - Does `make check` pass with zero errors on your branch?
+   - Does `make.py check` pass with zero errors on your branch?

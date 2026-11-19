@@ -40,6 +40,17 @@ The build uses a pinned Python environment (created with
 ```bash
 # Prerequisites: Python 3.10+ and Node.js >= 20 on PATH
 # (the mystmd pip package auto-installs a private Node >= 20 if missing)
+python3 make.py setup                     # uv venv + uv pip sync requirements/uv.lock
+python3 make.py docs                      # myst build --execute --html, glossary, stage_lite
+python3 make.py serve                     # serve _build/html at http://localhost:8000
+```
+
+`make.py` is a stdlib-only task runner; `make <task>` is an equivalent wrapper
+for contributors who have `make`. On Windows use `py -3 make.py <task>`.
+
+The underlying commands are:
+
+```bash
 uv venv                                   # create .venv/ (gitignored)
 uv pip install -r requirements/base.txt   # pinned top-level dependencies
 # or install the fully pinned transitive environment:

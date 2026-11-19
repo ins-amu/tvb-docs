@@ -61,6 +61,7 @@ jobs:
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
         run: |
+          mkdir -p "$GITHUB_WORKSPACE/local-channel"
           rattler-build build \
             --recipe wasm-tests/recipes/tvb-gdist \
             --target-platform emscripten-wasm32 \
@@ -72,7 +73,35 @@ jobs:
             -c microsoft \
             -m wasm-tests/recipes/variant.yaml
 
-      - name: Add tvb-gdist to the kernel environment
+      - name: Build the tvb-cpp-hybrid wasm package
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/local-channel"
+          eval "$(python - <<'PY'
+          import re
+          import shlex
+          from pathlib import Path
+
+          text = Path("environment.yml").read_text()
+          m = re.search(r"tvb-library\s*@\s*git\+(https://[^\s@\"]+)@([^\s#\"]+)", text)
+          if m:
+              print(f"export TVB_ROOT_GIT_URL={shlex.quote(m.group(1))}")
+              print(f"export TVB_ROOT_GIT_REV={shlex.quote(m.group(2))}")
+          PY
+          )"
+          rattler-build build \
+            --recipe wasm-tests/recipes/tvb-cpp-hybrid \
+            --target-platform emscripten-wasm32 \
+            --test skip \
+            --output-dir "$GITHUB_WORKSPACE/local-channel" \
+            -c https://repo.prefix.dev/emscripten-forge-4x \
+            -c https://repo.prefix.dev/emscripten-forge-dev \
+            -c https://repo.prefix.dev/conda-forge \
+            -c microsoft \
+            -m wasm-tests/recipes/variant.yaml
+
+      - name: Add tvb-gdist and tvb-cpp-hybrid to the kernel environment
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
         run: |
@@ -91,6 +120,7 @@ jobs:
               out.append(line)
               if line.strip() == "dependencies:":
                   out.append("  - tvb-gdist")
+                  out.append("  - tvb-cpp-hybrid")
           Path("environment.ci.yml").write_text("\n".join(out) + "\n")
           PY
 
@@ -106,6 +136,8 @@ jobs:
       - name: Build the JupyterLite site and apply runtime patches
         if: github.event_name != 'pull_request'
         shell: bash -l {0}
+        env:
+          CMAKE_ARGS: -DTVB_CPP_BUILD_EXTENSION=OFF
         run: python make.py lite
 
       - name: Setup Pages

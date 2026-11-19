@@ -10,6 +10,8 @@
 #   TVBL_WASM_ENV       existing emscripten env prefix (default: $MAMBA_ROOT_PREFIX/envs/tvbl-wasm)
 #   TVB_LIBRARY_SRC     local tvb_library checkout (default: ../tvb/tvb_library)
 #   TVB_LIBRARY_SPEC    pip requirement to use when TVB_LIBRARY_SRC is absent
+#   TVB_CPP_WASM_SO     prebuilt _cpp_hybrid*.so to stage into site-packages
+#   TVB_CPP_WASM_CONDA  prebuilt tvb-cpp-hybrid-*.conda to extract _cpp_hybrid*.so from
 #   PYJS_RUNNER         pyjs_code_runner binary
 #   HOST_PYTHON         host Python used only to build/copy pure-Python wheels
 #   TVBL_SKIP_ENV=1     do not create/recreate the wasm env
@@ -25,7 +27,16 @@ PYJS_RUNNER="${PYJS_RUNNER:-$HOME/.venvs/pyjs-runner/bin/pyjs_code_runner}"
 HOST_PYTHON="${HOST_PYTHON:-python3}"
 CACHE_DIR="${PYJS_CACHE_DIR:-$ROOT/wasm-tests/.cache}"
 PATCHED_PYJS="${PYJS_PATCH_DIR:-$ROOT/wasm-tests/.pyjs-patched}"
-TVB_LIBRARY_SPEC="${TVB_LIBRARY_SPEC:-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@3.0.0a1#subdirectory=tvb_library}"
+TVB_LIBRARY_SPEC="${TVB_LIBRARY_SPEC:-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@9e4b050079154277934004f19d2380cf4bfab0e2#subdirectory=tvb_library}"
+
+if [ -z "${LD_LIBRARY_PATH:-}" ] && [ -d /tmp/marmaduke-tvb/micromamba/envs/rattler-build/lib ]; then
+    export LD_LIBRARY_PATH="/tmp/marmaduke-tvb/micromamba/envs/rattler-build/lib"
+fi
+if [ -n "${PLAYWRIGHT_BROWSERS_PATH:-}" ]; then
+    export PLAYWRIGHT_BROWSERS_PATH
+elif [ -d /tmp/marmaduke-tvb/browsers ]; then
+    export PLAYWRIGHT_BROWSERS_PATH="/tmp/marmaduke-tvb/browsers"
+fi
 
 if [ -d "${TVB_LIBRARY_SRC:-$ROOT/../tvb/tvb_library}" ]; then
     TVB_LIBRARY_SRC="${TVB_LIBRARY_SRC:-$ROOT/../tvb/tvb_library}"
@@ -71,16 +82,55 @@ if [ "${TVBL_SKIP_INSTALL:-0}" != 1 ]; then
         PIP=("$HOST_PYTHON" -m pip install --no-deps)
     fi
     if [ -n "$TVB_LIBRARY_SRC" ]; then
-        "${PIP[@]}" --target "$TMP/tvb" "$TVB_LIBRARY_SRC"
+        CMAKE_ARGS="-DTVB_CPP_BUILD_EXTENSION=OFF" \
+            "${PIP[@]}" -Ccmake.args=-DTVB_CPP_BUILD_EXTENSION=OFF \
+            --target "$TMP/tvb" "$TVB_LIBRARY_SRC"
     else
-        "${PIP[@]}" --target "$TMP/tvb" "$TVB_LIBRARY_SPEC"
+        CMAKE_ARGS="-DTVB_CPP_BUILD_EXTENSION=OFF" \
+            "${PIP[@]}" -Ccmake.args=-DTVB_CPP_BUILD_EXTENSION=OFF \
+            --target "$TMP/tvb" "$TVB_LIBRARY_SPEC"
     fi
+    rm -f "$TMP/tvb/tvb/simulator/backend/cpp_hybrid"/*.abi3.so
     "${PIP[@]}" --target "$TMP/tvb-data" tvb-data
 
     rm -rf "$SITE_PACKAGES/tvb" "$SITE_PACKAGES/tvb_data" \
         "$SITE_PACKAGES"/tvb_library-*.dist-info "$SITE_PACKAGES"/tvb_data-*.dist-info
     cp -R "$TMP/tvb/." "$SITE_PACKAGES/"
     cp -R "$TMP/tvb-data/." "$SITE_PACKAGES/"
+
+    # Stage prebuilt emscripten _cpp_hybrid*.so if provided via TVB_CPP_WASM_SO,
+    # TVB_CPP_WASM_CONDA, or the recipe output directory.
+    CPH_SO_STAGE=""
+    if [ -n "${TVB_CPP_WASM_SO:-}" ] && [ -f "$TVB_CPP_WASM_SO" ]; then
+        CPH_SO_STAGE="$TVB_CPP_WASM_SO"
+    else
+        CPH_CONDA="${TVB_CPP_WASM_CONDA:-}"
+        if [ -z "$CPH_CONDA" ]; then
+            for cand in "$ROOT/wasm-tests/recipes/tvb-cpp-hybrid/output/emscripten-wasm32"/tvb-cpp-hybrid-*.conda; do
+                if [ -f "$cand" ]; then
+                    CPH_CONDA="$cand"
+                fi
+            done
+        fi
+        if [ -n "$CPH_CONDA" ] && [ -f "$CPH_CONDA" ]; then
+            echo "extracting _cpp_hybrid from $CPH_CONDA" >&2
+            rm -rf "$TMP/cph-pkg"
+            micromamba package extract "$CPH_CONDA" "$TMP/cph-pkg"
+            CPH_SO_STAGE="$(find "$TMP/cph-pkg" -type f -name '_cpp_hybrid*.so' | head -n 1)"
+        fi
+    fi
+    if [ -n "$CPH_SO_STAGE" ] && [ -f "$CPH_SO_STAGE" ]; then
+        SO_NAME="$(basename "$CPH_SO_STAGE")"
+        rm -f "$SITE_PACKAGES/tvb/simulator/backend/cpp_hybrid"/*.abi3.so
+        install -m 755 "$CPH_SO_STAGE" "$SITE_PACKAGES/tvb/simulator/backend/cpp_hybrid/$SO_NAME"
+        for dist in "$SITE_PACKAGES"/tvb_library-*.dist-info; do
+            if [ -f "$dist/RECORD" ]; then
+                printf 'tvb/simulator/backend/cpp_hybrid/%s,,\n' "$SO_NAME" >> "$dist/RECORD"
+            fi
+        done
+        echo "staged WASM extension: $SO_NAME" >&2
+    fi
+
     # empack only sees pip packages when INSTALLER says "pip".
     for dist in "$SITE_PACKAGES"/tvb_library-*.dist-info "$SITE_PACKAGES"/tvb_data-*.dist-info; do
         printf 'pip\n' > "$dist/INSTALLER"
@@ -136,13 +186,47 @@ run_chunk() {
     fi
 }
 
-run_chunk basic basic
-run_chunk datatypes datatypes
-run_chunk "simulator (top-level)" \
-    simulator \
-    --ignore=simulator/backend \
-    --ignore=simulator/hybrid
-run_chunk "simulator/backend" simulator/backend
-run_chunk "simulator/hybrid" simulator/hybrid
+should_run_chunk() {
+    local target="$1"
+    if [ "$#" -eq 1 ]; then
+        return 0
+    fi
+    shift
+    for wanted in "$@"; do
+        if [ "$wanted" = "$target" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if should_run_chunk basic "$@"; then
+    run_chunk basic basic
+fi
+if should_run_chunk datatypes "$@"; then
+    run_chunk datatypes datatypes
+fi
+if should_run_chunk simulator "$@"; then
+    run_chunk "simulator (top-level)" \
+        simulator \
+        --ignore=simulator/backend \
+        --ignore=simulator/hybrid
+fi
+if should_run_chunk simulator/backend "$@"; then
+    run_chunk "simulator/backend (nb)" \
+        simulator/backend \
+        --ignore-glob=simulator/backend/test_cpp_hybrid_*.py
+    run_chunk "simulator/backend (cpp_hybrid battery)" \
+        simulator/backend/test_cpp_hybrid_battery.py
+    run_chunk "simulator/backend (cpp_hybrid models)" \
+        simulator/backend/test_cpp_hybrid_models.py
+    run_chunk "simulator/backend (cpp_hybrid)" \
+        "simulator/backend/test_cpp_hybrid_*.py" \
+        --ignore=simulator/backend/test_cpp_hybrid_battery.py \
+        --ignore=simulator/backend/test_cpp_hybrid_models.py
+fi
+if should_run_chunk simulator/hybrid "$@"; then
+    run_chunk "simulator/hybrid" simulator/hybrid
+fi
 
 exit "$STATUS"

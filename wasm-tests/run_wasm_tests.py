@@ -6,6 +6,7 @@ installed in the packed wasm environment, so we only need to locate the
 upstream tests that ship inside the wheel.
 """
 
+import glob
 import os
 import sys
 
@@ -77,6 +78,32 @@ WASM_SKIPS = [
         "test_unified_sweep.py::TestBenchmark::test_throughput_kiter",
         "benchmark exceeds the 2 GiB wasm memory limit",
     ),
+    # Emscripten cannot spawn a runtime g++ subprocess (dfungen.generate_lib);
+    # stock generic models run from the build-time compiled table instead.
+    (
+        "test_cpp_hybrid_buildgen.py::test_user_model_ids_are_disjoint_from_builtin_range",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
+    (
+        "test_cpp_hybrid_buildgen.py::test_runtime_range_starts_at_100_without_builtin_kernels",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
+    (
+        "test_cpp_hybrid_buildgen.py::test_runtime_fallback_model_matches_numba",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
+    (
+        "test_cpp_hybrid_buildgen.py::test_runtime_library_has_no_builtin_kernels",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
+    (
+        "test_cpp_hybrid_buildgen.py::test_generate_lib_exclude_filters_discovered_models",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
+    (
+        "test_cpp_hybrid_buildgen.py::test_unsupported_stock_model_still_runs_via_runtime_fallback",
+        "requires runtime g++ compilation via dfungen.generate_lib",
+    ),
 ]
 
 
@@ -94,27 +121,40 @@ def main():
     if not os.path.isdir(tests):
         raise SystemExit(f"tvb_library tests not found at {tests}")
 
-    path = tests
+    paths = [tests]
     extra = []
 
     # run.sh runs the suite in chunks (a fresh browser per chunk keeps the
-    # wasm memory ceiling out of the way).  The first line is a path relative
-    # to the tests directory, remaining lines are extra pytest arguments.
+    # wasm memory ceiling out of the way).  Non-option lines are paths or
+    # globs relative to the tests directory; option lines are pytest arguments.
     chunk_file = "/work/chunk.txt"
     if os.path.exists(chunk_file):
         with open(chunk_file) as handle:
             lines = [line.strip() for line in handle if line.strip()]
         if lines:
-            path = lines[0]
-            if not os.path.isabs(path):
-                path = os.path.join(tests, path)
-            extra = lines[1:]
-            extra = [
-                "--ignore=" + os.path.join(tests, arg.split("=", 1)[1])
-                if arg.startswith("--ignore=") and not os.path.isabs(arg.split("=", 1)[1])
-                else arg
-                for arg in extra
-            ]
+            paths = []
+            ignored = set()
+            for line in lines:
+                if line.startswith("-"):
+                    if line.startswith(("--ignore=", "--ignore-glob=")):
+                        flag, val = line.split("=", 1)
+                        if not os.path.isabs(val):
+                            val = os.path.join(tests, val)
+                        if flag == "--ignore":
+                            ignored.add(os.path.normpath(val))
+                        else:
+                            ignored.update(os.path.normpath(p) for p in glob.glob(val))
+                        extra.append(f"{flag}={val}")
+                    else:
+                        extra.append(line)
+                else:
+                    target = line if os.path.isabs(line) else os.path.join(tests, line)
+                    matched = sorted(glob.glob(target))
+                    paths.extend(matched if matched else [target])
+            if ignored:
+                paths = [p for p in paths if os.path.normpath(p) not in ignored]
+            if not paths:
+                paths = [tests]
 
     args = [
         "-q",
@@ -124,7 +164,7 @@ def main():
         "--tb=short",
         "-rf",
         *extra,
-        path,
+        *paths,
     ]
 
     print("pytest", " ".join(args), flush=True)

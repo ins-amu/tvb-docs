@@ -7,7 +7,7 @@ ipykernel==7.4.0
 ipywidgets==8.1.9
 anywidget==0.11.0
 jupytext==1.19.6
-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@3.0.0a1#subdirectory=tvb_library
+tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@9e4b050079154277934004f19d2380cf4bfab0e2#subdirectory=tvb_library
 tvb-data
 tvb-phaseplane==0.1.0
 matplotlib==3.11.2

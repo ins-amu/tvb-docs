@@ -1,0 +1,58 @@
+context:
+  version: 3.0.0a1
+  name: tvb-cpp-hybrid
+  local_src: ${{ env.get("TVB_LIBRARY_SRC", default="") }}
+  git_url: ${{ env.get("TVB_ROOT_GIT_URL", default="https://github.com/the-virtual-brain/tvb-root.git") }}
+  git_rev: ${{ env.get("TVB_ROOT_GIT_REV", default="9e4b050079154277934004f19d2380cf4bfab0e2") }}
+  pregen_dir: ${{ env.get("TVB_CPP_PREGENERATED_DIR", default="") }}
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  - if: local_src
+    then:
+      path: ${{ local_src }}
+      target_directory: tvb_library
+    else:
+      git: ${{ git_url }}
+      rev: ${{ git_rev }}
+      depth: 1
+
+build:
+  number: 0
+  script:
+    file: build.sh
+    env:
+      TVB_CPP_PREGENERATED_DIR: ${{ pregen_dir }}
+
+requirements:
+  build:
+    - ${{ compiler("cxx") }}
+    - cross-python_${{ target_platform }}
+    - python
+    - cmake
+    - ninja
+    - nanobind
+    - numpy
+    - scipy
+    - numba
+    - six
+  host:
+    - python
+  run:
+    - python
+
+tests:
+  - package_contents:
+      files:
+        - lib/python*/site-packages/tvb/simulator/backend/cpp_hybrid/_cpp_hybrid*.so
+        - lib/python*/site-packages/tvb_cpp_hybrid-*.dist-info/METADATA
+        - lib/python*/site-packages/tvb_cpp_hybrid-*.dist-info/INSTALLER
+        - lib/python*/site-packages/tvb_cpp_hybrid-*.dist-info/RECORD
+
+about:
+  homepage: https://github.com/the-virtual-brain/tvb-root
+  license: GPL-3.0-or-later
+  summary: Prebuilt WebAssembly C++ hybrid simulator extension (_cpp_hybrid) for tvb-library

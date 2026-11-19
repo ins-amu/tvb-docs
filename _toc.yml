@@ -49,6 +49,8 @@ parts:
           - file: content/demos/simulate_hybrid_parameter_sweeps.ipynb
           - file: content/demos/simulate_hybrid_stimuli_and_advanced.ipynb
           - file: content/demos/simulate_hybrid_stochastic_and_bold.ipynb
+          - file: content/demos/simulate_hybrid_multi_dt.ipynb
+          - file: content/demos/cpp_hybrid_sweep.ipynb
           - file: content/demos/gpu_parallel_parameter_sweeps.ipynb
           - file: content/demos/model_generation_using_dsl.ipynb
           - file: content/demos/RateML_Python_TVB.ipynb

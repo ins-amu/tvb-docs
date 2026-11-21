@@ -27,7 +27,7 @@ PYJS_RUNNER="${PYJS_RUNNER:-$HOME/.venvs/pyjs-runner/bin/pyjs_code_runner}"
 HOST_PYTHON="${HOST_PYTHON:-python3}"
 CACHE_DIR="${PYJS_CACHE_DIR:-$ROOT/wasm-tests/.cache}"
 PATCHED_PYJS="${PYJS_PATCH_DIR:-$ROOT/wasm-tests/.pyjs-patched}"
-TVB_LIBRARY_SPEC="${TVB_LIBRARY_SPEC:-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@1813bdea1c33fe8ef0405e2189d2fb25825dc9ba#subdirectory=tvb_library}"
+TVB_LIBRARY_SPEC="${TVB_LIBRARY_SPEC:-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@8241da2b95eb28f1b6224e6e1fe38bbf10231e1d#subdirectory=tvb_library}"
 
 if [ -z "${LD_LIBRARY_PATH:-}" ] && [ -d /tmp/marmaduke-tvb/micromamba/envs/rattler-build/lib ]; then
     export LD_LIBRARY_PATH="/tmp/marmaduke-tvb/micromamba/envs/rattler-build/lib"

@@ -58,7 +58,7 @@ dependencies:
     # Pin the ref to a commit for reproducible deploys, e.g.
     #   git ls-remote https://github.com/the-virtual-brain/tvb-root.git refs/heads/master
     # and append @<sha> before the "#".
-    - "tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@1813bdea1c33fe8ef0405e2189d2fb25825dc9ba#subdirectory=tvb_library"
+    - "tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@8241da2b95eb28f1b6224e6e1fe38bbf10231e1d#subdirectory=tvb_library"
     - tvb-data
     # the demos use %matplotlib widget
     - ipympl

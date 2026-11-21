@@ -3,7 +3,7 @@ context:
   name: tvb-cpp-hybrid
   local_src: ${{ env.get("TVB_LIBRARY_SRC", default="") }}
   git_url: ${{ env.get("TVB_ROOT_GIT_URL", default="https://github.com/the-virtual-brain/tvb-root.git") }}
-  git_rev: ${{ env.get("TVB_ROOT_GIT_REV", default="1813bdea1c33fe8ef0405e2189d2fb25825dc9ba") }}
+  git_rev: ${{ env.get("TVB_ROOT_GIT_REV", default="8241da2b95eb28f1b6224e6e1fe38bbf10231e1d") }}
   pregen_dir: ${{ env.get("TVB_CPP_PREGENERATED_DIR", default="") }}
 
 package:

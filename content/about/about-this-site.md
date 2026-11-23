@@ -4,6 +4,7 @@
 - Charlotte Maschke
 - Marmaduke Woodman
 - Christos Liontas
+- Ján Repka
 
 
 *Reference — how this documentation site itself is built and organised.*

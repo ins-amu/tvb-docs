@@ -2,6 +2,7 @@
 
 ## Contributors
 - Charlotte Maschke
+- Marmaduke Woodman
 
 
 *Reference — how this documentation site itself is built and organised.*

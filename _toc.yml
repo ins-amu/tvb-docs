@@ -1,7 +1,95 @@
 format: jb-book
 root: README.md
 parts:
-  - caption: Tutorials
+
+  # https://md.ins-amu.fr/tvb-docathon#Table-of-Content
+  - caption: Getting started
+    chapters:
+      - file: content/getting-started/what-is-tvb.md
+      - file: content/getting-started/installation.md
+      - file: content/getting-started/quickstart-guide.md
+      
+  - caption: User Guide
+    chapters:
+      - title: Mathematical Framework
+        sections:
+          - file: content/user-guide/mathematical-framework.md
+      
+      - title: Building Blocks
+        sections:
+          - file: content/user-guide/bb-connectivity.md
+          - file: content/user-guide/bb-local-connectivity.md
+          - file: content/user-guide/bb-model.md
+          - file: content/user-guide/bb-coupling.md
+          - file: content/user-guide/bb-integrators.md
+          - file: content/user-guide/bb-monitors.md
+          - file: content/user-guide/bb-stimulus.md
+          - file: content/user-guide/bb-simulator.md
+          - file: content/user-guide/bb-initial-conditions.md
+      
+      - title: Preparing Data
+        sections:
+          - file: content/user-guide/data/requirements.md
+          - file: content/user-guide/data/default-data.md
+          - file: content/user-guide/data/preprocessing.md
+          - file: content/user-guide/data/dwi.md
+          - file: content/user-guide/data/qaqc.md
+      
+      - title: Understanding Output
+        # data structures, time scales, state variables,
+        # graph theory, into-mne
+        sections:
+          - file: content/user-guide/outward/data-structures.md
+          - file: content/user-guide/outward/timescales.md
+          - file: content/user-guide/outward/states-observables.md
+          - file: content/user-guide/outward/tvb-to-mne.md
+          - file: content/user-guide/outward/data-features.md
+          - file: content/user-guide/outward/fc-sc.md
+          - file: content/user-guide/outward/avalanches.md
+      
+      - title: Parameter Sweeps
+        sections:
+          - file: content/user-guide/sweep/theory.md
+          - file: content/user-guide/sweep/bifurcation.md
+          - file: content/user-guide/sweep/mc-sampling.md
+          - file: content/user-guide/sweep/parameter-types.md
+          - file: content/user-guide/sweep/backends.md
+
+      - title: Inference
+        sections:
+          - file: content/user-guide/inference.md
+
+      - title: HPC
+        sections:
+          - file: content/user-guide/hpc/general.md
+          # vbi, 
+          - file: content/user-guide/hpc/tvb-implementations.md
+          - file: content/user-guide/hpc/ebrains.md
+
+      - title: High Resolution
+        sections:
+          - file: content/user-guide/hr/classic.md
+          - file: content/user-guide/hr/hybrid.md
+          - file: content/user-guide/hr/re-entry.md
+
+  - caption: Model Zoo
+    chapters:
+      - title: Intro
+        sections:
+          - file: content/model-zoo/intro.md
+          - file: content/model-zoo/intro-biophysical.md
+          - file: content/model-zoo/intro-phenomenological.md
+      - title: Model cards
+        sections:
+          - file: content/model-zoo/cards/foo-bar.md
+          # add others
+      - title: Adding a new model
+        sections:
+          - file: content/model-zoo/new-model-subclass.md
+          - file: content/model-zoo/new-model-testing.md
+          - file: content/model-zoo/new-model-notebook-phaseplane.md
+
+  - caption: Old Tutorials
     chapters:
       - file: content/tutorials/index.md
       - file: content/tutorials/getting-started.md
@@ -22,7 +110,7 @@ parts:
           - file: content/demos/sandbox/tutorial_s8_ModelingTheImpactOfStructuralLesionsPart2.ipynb
           - file: content/demos/sandbox/tutorial_s9_ModelingTheImpactOfStructuralLesionsPart3.ipynb
 
-  - caption: How-to guides
+  - caption: Old How-to guides
     chapters:
       - file: content/howtos/index.md
       - file: content/howtos/custom-stimulus.md
@@ -68,7 +156,7 @@ parts:
           - file: content/demos/encrypt_data.ipynb
           - file: content/demos/export_encrypt_decrypt_data.ipynb
 
-  - caption: Reference
+  - caption: Old Reference
     chapters:
       - file: content/reference/index.md
       - title: Model cards
@@ -105,9 +193,8 @@ parts:
           - file: content/demos/exploring_phase_plane_interactive.ipynb
           - file: content/demos/exploring_power_spectra_interactive.ipynb
           - file: content/demos/exploring_time_series_interactive.ipynb
-      - file: content/reference/about-this-site.md
 
-  - caption: Explanation
+  - caption: Old Explanation
     chapters:
       - file: content/explanation/index.md
       - file: content/explanation/connectome.md
@@ -134,11 +221,7 @@ parts:
           - file: content/demos/adex_meanfied/adex_meanfield.ipynb
           - file: content/demos/adex_meanfied/goldman_2020_spontaneous_activity.ipynb
 
-  - caption: Glossary
-    chapters:
-      - file: content/glossary.md
-
-  - caption: Demos & Sandbox
+  - caption: Old Demos & Sandbox
     chapters:
       - file: content/demos/index.md
       - title: TVB-Lite Demos
@@ -161,6 +244,10 @@ parts:
           - file: content/demos/sandbox/surface_deterministic_custom_local_connectivity.ipynb
           - file: content/demos/sandbox/surface_stimuli.ipynb
           - file: content/demos/sandbox/surface_stochastic.ipynb
+
+  - caption: Glossary
+    chapters:
+      - file: content/glossary.md
 
   - caption: About
     chapters:

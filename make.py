@@ -221,11 +221,8 @@ def task_serve() -> None:
     print("Serving http://localhost:8000 - watching sources (Ctrl+C to stop)", flush=True)
     try:
         state = watch_state()
-        while True:
+        while server.poll() is None:
             time.sleep(WATCH_POLL_S)
-            if server.poll() is not None:
-                print(f"! http.server exited (code {server.returncode})", flush=True)
-                return
             latest = watch_state()
             if latest == state:
                 continue
@@ -238,6 +235,7 @@ def task_serve() -> None:
     finally:
         server.terminate()
         server.wait()
+    print(f"! http.server exited (code {server.returncode})", flush=True)
 
 
 def task_clean() -> None:

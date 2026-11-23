@@ -3,6 +3,7 @@
 ## Contributors
 - Charlotte Maschke
 - Marmaduke Woodman
+- Ján Repka
 
 
 *Reference — how this documentation site itself is built and organised.*

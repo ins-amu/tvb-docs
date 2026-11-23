@@ -3,6 +3,7 @@
 ## Contributors
 - Charlotte Maschke
 - Marmaduke Woodman
+- Christos Liontas
 
 
 *Reference — how this documentation site itself is built and organised.*

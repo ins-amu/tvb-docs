@@ -209,21 +209,30 @@ def task_serve() -> None:
     """Serve the built site, rebuilding the docs whenever a source changes."""
     task_docs()
 
-    run([python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"])
-
+    server = subprocess.Popen(
+        [python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"],
+        cwd=ROOT,
+        env=build_env(),
+    )
     # Without this, `kill <pid>` would skip the cleanup below and leave
     # http.server orphaned on port 8000. Ctrl+C is handled by main().
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
-    state = watch_state()
-    while True:
-        time.sleep(WATCH_POLL_S)
-        latest = watch_state()
-        if latest == state:
-            print("It's fine")
-            continue
-        # No debounce needed: the rebuild blocks, so save bursts coalesce.
-        state = latest
-        task_docs()
+    try:
+        state = watch_state()
+        while server.poll() is None:
+            time.sleep(WATCH_POLL_S)
+            latest = watch_state()
+            if latest == state:
+                continue
+            # No debounce needed: the rebuild blocks, so save bursts coalesce.
+            state = latest
+            try:
+                task_docs()
+            except subprocess.CalledProcessError as exc:
+                print(f"! rebuild failed (exit {exc.returncode}); still watching", flush=True)
+    finally:
+        server.terminate()
+        server.wait()
 
 
 def task_clean() -> None:

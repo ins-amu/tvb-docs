@@ -161,3 +161,7 @@ parts:
           - file: content/demos/sandbox/surface_deterministic_custom_local_connectivity.ipynb
           - file: content/demos/sandbox/surface_stimuli.ipynb
           - file: content/demos/sandbox/surface_stochastic.ipynb
+
+  - caption: About
+    chapters:
+      - file: content/about/about-this-site.md

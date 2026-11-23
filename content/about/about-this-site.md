@@ -1,5 +1,9 @@
 # About this documentation
 
+## Contributors
+- Charlotte Maschke
+
+
 *Reference — how this documentation site itself is built and organised.*
 
 This page describes the toolchain, structure, and build of the TVB Simulation

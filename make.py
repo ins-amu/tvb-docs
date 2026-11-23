@@ -218,10 +218,14 @@ def task_serve() -> None:
     # Without this, `kill <pid>` would skip the cleanup below and leave
     # http.server orphaned on port 8000. Ctrl+C is handled by main().
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    print("Serving http://localhost:8000 - watching sources (Ctrl+C to stop)", flush=True)
     try:
         state = watch_state()
-        while server.poll() is None:
+        while True:
             time.sleep(WATCH_POLL_S)
+            if server.poll() is not None:
+                print(f"! http.server exited (code {server.returncode})", flush=True)
+                return
             latest = watch_state()
             if latest == state:
                 continue

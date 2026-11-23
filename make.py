@@ -191,24 +191,18 @@ def task_all() -> None:
     task_lite()
 
 
-def watch_state() -> dict[str, int]:
+def watch_state() -> dict[Path, int]:
     """Snapshot {path: mtime_ns} of the source files `serve` watches."""
-    state: dict[str, int] = {}
+    state: dict[Path, int] = {}
     for rel in WATCH_PATHS:
-        path = ROOT / rel
-        if path.is_dir():
-            files = [f for f in path.rglob("*") if f.is_file()]
-        elif path.is_file():
-            files = [path]
-        else:
-            continue
-        for file in files:
-            if file.suffix not in WATCH_SUFFIXES:
+        root = ROOT / rel
+        for file in root.rglob("*") if root.is_dir() else [root]:
+            if file.suffix not in WATCH_SUFFIXES or not file.is_file():
                 continue
             # Skips .ipynb_checkpoints and other editor droppings.
-            if any(p.startswith(".") for p in file.relative_to(ROOT).parts):
+            if any(p.startswith(".") for p in file.relative_to(root).parts):
                 continue
-            state[str(file)] = file.stat().st_mtime_ns
+            state[file] = file.stat().st_mtime_ns
     return state
 
 
@@ -231,11 +225,8 @@ def task_serve() -> None:
     print("Serving http://localhost:8000 - watching sources (Ctrl+C to stop)", flush=True)
     try:
         state = watch_state()
-        while True:
+        while server.poll() is None:
             time.sleep(WATCH_POLL_S)
-            if server.poll() is not None:
-                print(f"! http.server exited (code {server.returncode})", flush=True)
-                return
             latest = watch_state()
             if latest == state:
                 continue
@@ -249,6 +240,7 @@ def task_serve() -> None:
     finally:
         server.terminate()
         server.wait()
+    print(f"! http.server exited (code {server.returncode})", flush=True)
 
 
 def task_clean() -> None:

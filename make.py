@@ -53,7 +53,7 @@ THEME_DST = "_build/html/lite/build/themes"
 # content/, and watching them would trigger a pointless second rebuild.
 WATCH_PATHS = ("content", "_static", "plugins", "_toc.yml", "myst.yml", "README.md")
 WATCH_SUFFIXES = {".md", ".ipynb", ".py", ".yml", ".bib", ".js", ".mjs", ".css"}
-WATCH_POLL_S = 1.0
+WATCH_POLL_S = 5.0
 
 
 def python_cmd() -> str:

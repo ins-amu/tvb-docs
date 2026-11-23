@@ -3,6 +3,7 @@
 ## Contributors
 - Charlotte Maschke
 - Marmaduke Woodman
+- Jan Fousek
 - Christos Liontas
 - Ján Repka
 

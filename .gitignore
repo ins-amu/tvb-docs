@@ -30,7 +30,6 @@ mcp-hub-extension/.yarn/
 mcp-hub-extension/lib/
 mcp-hub-extension/tsconfig.tsbuildinfo
 
-#notebook stuff
+# notebook stuff
 content/demos/*.png
 content/demos/_widget_assets
-

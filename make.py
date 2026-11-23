@@ -9,6 +9,7 @@ Equivalent to the Makefile, for contributors who do not have `make`
 
 Run `python make.py` or `python make.py help` for the task list.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -66,9 +67,7 @@ def python_cmd() -> str:
 def build_env(extra: dict[str, str] | None = None) -> dict[str, str]:
     env = os.environ.copy()
     if sys.platform != "win32":
-        env["PATH"] = os.pathsep.join(
-            [str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin", env.get("PATH", "")]
-        )
+        env["PATH"] = os.pathsep.join([str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin", env.get("PATH", "")])
     if extra:
         env.update(extra)
     return env
@@ -208,12 +207,6 @@ def watch_state() -> dict[Path, int]:
 
 def task_serve() -> None:
     """Serve the built site, rebuilding the docs whenever a source changes."""
-    if DRY_RUN:
-        print("+ serve http://localhost:8000 (watching sources for docs rebuilds)")
-        return
-    if not any((ROOT / "_build/html").glob("*.html")):
-        sys.exit("_build/html holds no pages yet - run `python make.py all` first")
-
     server = subprocess.Popen(
         [python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"],
         cwd=ROOT,
@@ -263,9 +256,7 @@ def main(argv: list[str] | None = None) -> int:
         add_help=False,
     )
     parser.add_argument("task", nargs="?", default="help", choices=[*TASKS, "help"])
-    parser.add_argument(
-        "-n", "--dry-run", action="store_true", help="print commands without running them"
-    )
+    parser.add_argument("-n", "--dry-run", action="store_true", help="print commands without running them")
     parser.add_argument("-h", "--help", action="store_true", help="show this help message")
     args = parser.parse_args(argv)
 

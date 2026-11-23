@@ -14,8 +14,10 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -30,7 +32,7 @@ TASKS = {
     "lite-setup": "Create ~/.micromamba/envs/build-tvbl from build-environment.yml",
     "lite": "Build JupyterLite site into _build/html/lite and apply runtime patches",
     "all": "Build complete unified static site (_build/html with MyST docs and JupyterLite)",
-    "serve": "Serve unified static site locally at http://localhost:8000",
+    "serve": "Serve unified static site at http://localhost:8000, rebuilding docs on changes",
     "clean": "Remove build artifacts and temporary databases",
 }
 
@@ -45,6 +47,13 @@ CLEAN_PATHS = (
 
 THEME_SRC = "_build/html/lite/extensions/catppuccin_jupyterlab/themes/catppuccin_jupyterlab"
 THEME_DST = "_build/html/lite/build/themes"
+
+# Sources watched by `serve`; docs rebuild when one of these changes. Images are
+# left out on purpose: `myst build --execute` writes its own figures back into
+# content/, and watching them would trigger a pointless second rebuild.
+WATCH_PATHS = ("content", "_static", "plugins", "_toc.yml", "myst.yml", "README.md")
+WATCH_SUFFIXES = {".md", ".ipynb", ".py", ".yml", ".bib", ".js", ".mjs", ".css"}
+WATCH_POLL_S = 1.0
 
 
 def python_cmd() -> str:
@@ -182,8 +191,64 @@ def task_all() -> None:
     task_lite()
 
 
+def watch_state() -> dict[str, int]:
+    """Snapshot {path: mtime_ns} of the source files `serve` watches."""
+    state: dict[str, int] = {}
+    for rel in WATCH_PATHS:
+        path = ROOT / rel
+        if path.is_dir():
+            files = [f for f in path.rglob("*") if f.is_file()]
+        elif path.is_file():
+            files = [path]
+        else:
+            continue
+        for file in files:
+            if file.suffix not in WATCH_SUFFIXES:
+                continue
+            # Skips .ipynb_checkpoints and other editor droppings.
+            if any(p.startswith(".") for p in file.relative_to(ROOT).parts):
+                continue
+            state[str(file)] = file.stat().st_mtime_ns
+    return state
+
+
 def task_serve() -> None:
-    run([python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"])
+    """Serve the built site, rebuilding the docs whenever a source changes."""
+    if DRY_RUN:
+        print("+ serve http://localhost:8000 (watching sources for docs rebuilds)")
+        return
+    if not any((ROOT / "_build/html").glob("*.html")):
+        sys.exit("_build/html holds no pages yet - run `python make.py all` first")
+
+    server = subprocess.Popen(
+        [python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"],
+        cwd=ROOT,
+        env=build_env(),
+    )
+    # Without this, `kill <pid>` would skip the cleanup below and leave
+    # http.server orphaned on port 8000. Ctrl+C is handled by main().
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    print("Serving http://localhost:8000 - watching sources (Ctrl+C to stop)", flush=True)
+    try:
+        state = watch_state()
+        while True:
+            time.sleep(WATCH_POLL_S)
+            if server.poll() is not None:
+                print(f"! http.server exited (code {server.returncode})", flush=True)
+                return
+            latest = watch_state()
+            if latest == state:
+                continue
+            # No debounce needed: the rebuild blocks, so save bursts coalesce.
+            state = latest
+            print("+ source changed - rebuilding docs (reload the browser when done)", flush=True)
+            try:
+                task_docs()
+            except subprocess.CalledProcessError as exc:
+                print(f"! rebuild failed (exit {exc.returncode}); still watching", flush=True)
+    finally:
+        server.terminate()
+        server.wait()
 
 
 def task_clean() -> None:

@@ -8,6 +8,7 @@ project:
   # static widgets in the HTML build (requires Node >= 22 and uv).
   plugins:
     - plugins/glossary-links.mjs
+    - plugins/py-xref.mjs
     - https://github.com/developmentseed/myst-anywidget-static-export/releases/latest/download/plugin.mjs
     # marimo islands: reactive {marimo} cells in MyST pages (see content/_code/tvbl_docs.py)
     - type: executable
@@ -56,10 +57,10 @@ site:
     - title: Reference
       url: /index-2
     - title: Explanation
-      url: /index-3
+      url: /index-4
     - title: Glossary
       url: /glossary
     - title: Demos
-      url: /index-4
+      url: /index-5
     - title: Launch Lab
       url: /lite/lab/index.html

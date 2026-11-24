@@ -159,6 +159,7 @@ parts:
   - caption: Old Reference
     chapters:
       - file: content/reference/index.md
+      - file: content/reference/api/index.md
       - title: Model cards
         sections:
           - file: content/reference/model-cards/wilson-cowan.md

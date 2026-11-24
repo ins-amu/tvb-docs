@@ -30,32 +30,27 @@ $$
 The term $L$ describes the local population dynamics. Input from the nearby
 cortical domain $\Gamma_l$ is weighted by $g_{ij}$, while input carried by
 long-range white-matter pathways is weighted by $W_{ij}$ and scaled by the
-global coupling constant $G$. Each contribution reaches the receiving
-population after a delay $\tau_{ij}$ and passes through the nonlinear response
+global coupling constant $G$. Activity from one region reaches the receiving
+population after a delay $\tau_{ij}$ and get transformed through the nonlinear response
 $S$. The term $w(t)$ denotes {term}`dynamical noise <Dynamical noise>`
 [@wang2024].
 
 ## Neural mass models
 
-A neural mass describes a population with a small set of state variables, such
-as mean firing rate or mean membrane potential. Its equations define $L$. At
-regional resolution, each brain region is assigned a neural mass, with local
-cortical interactions included in its dynamics. The explicit local coupling
-term is then set to $g_{ij}=0$, and interregional input enters through
-$W_{ij}$ [@wang2024].
+A neural mass describes a neural population with a small set of state variables, such as mean firing rate or mean membrane potential. Statistical methods like mean-field averaging is generally used in this process. Its equations define $L$. At regional resolution, each brain region is assigned a neural mass, with local cortical interactions included in its dynamics. The explicit local coupling term is then set to $g_{ij}=0$, and interregional input enters through $W_{ij}$.
 
 At finer spatial resolution, a {term}`neural field <Neural field model>` assigns
 activity to cortical surface vertices and retains the local interaction term
 [@wang2024]. The [model cards](../reference/index.md) give the equations for
 individual TVB models.
 
-In the Jansen–Rit neural mass, the
-{term}`wave-to-pulse transform <Wave-to-pulse transform>` maps mean
-postsynaptic potential to mean firing rate. Synaptic dynamics map incoming
-firing rate back to postsynaptic potential through the
-{term}`pulse-to-wave transform <Pulse-to-wave transform>`
-[@jansenRit1995; @sanzleon2015]. The equations are given in the
-[Jansen–Rit model card](../reference/model-cards/jansen-rit.md).
+Neural mass formulations often relate mean postsynaptic potential and
+population firing rate through two transformations. The
+{term}`wave-to-pulse transform <Wave-to-pulse transform>` gives the firing
+response to a mean postsynaptic potential, commonly through a sigmoid. The
+{term}`pulse-to-wave transform <Pulse-to-wave transform>` describes the
+synaptic filtering of incoming firing activity into a postsynaptic potential
+[@sanzleon2015].
 
 ## Neuroscientific basis
 
@@ -63,7 +58,7 @@ At the cortical surface, local connectivity $g_{ij}$ describes interactions
 along the folded cortical sheet. At regional resolution, the anatomical
 parcellation defines the nodes, and white-matter pathways inform $W_{ij}$.
 Pathway length and conduction speed determine the propagation delay
-$\tau_{ij}$ [@wang2024]. These anatomical inputs are described in
+$\tau_{ij}$. These anatomical inputs are described in
 [the connectome](../explanation/connectome.md). The global coupling constant
 $G$ sets the strength of interregional input [@sanzleon2015]. A
 [forward model](../explanation/forward-models.md) projects simulated neural

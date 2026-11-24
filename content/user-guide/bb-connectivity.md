@@ -105,10 +105,6 @@ by hand.
 The matrix is directed by default unless it happens to be symmetric. `configure()` sets
 `undirected` to `True` when it finds an exactly symmetric matrix.
 
-<!-- Values are non-negative and arbitrary in scale. Raw values of streamline counts are generally not useful, as they are strongly affected by acquisition methods and tractography settings. Normalization of  a connectome fixes this, but it's a complex task. For one subject you might wish to normalize to the largest value, or for a population study you may wish to pick a single normalization constant across all subjects. Log normalization is also an option. -->
-
-?????????? Direction is not measured. Region-level tractography gives an undirected graph. The connectome says two regions are wired together, not which one drives which.
-
 ### The diagonal
 
 Self-connections live on the diagonal, and the library does not remove by default. `transform_remove_self_connections()` returns a copy with
@@ -178,28 +174,6 @@ influence spreads one step at a time. See [local connectivity
 page](bb-local-connectivity.md) for more information.
 
 ---
-<!-- 
-## Centres, labels, hemispheres, cortical flag
-
-`centres` is $(l, 3)$ in millimetres, in whatever coordinate space the atlas
-uses. It is optional for a bare regional simulation, but required if geometry matters: fallback for tract lengths, {term}`lead field`
-projections for EEG/MEG etc.
-
-`region_labels` are labels for the individual regions. Their ordering is the same as every other attribute of connectivity (weights, tract lengths, centres...)
-
-`hemispheres` is a boolean vector with `True` meaning right. If unset, `configure()` infers it from the first letter of each label (`L/R`), and falls
-back to "second half of the indices is right" when labels carry no prefix.
-
-`cortical` marks which regions are cortex. If you wish to add subcortical structures, you need to set these labels yourself.
-`subcortical_indices` is derived from it. `areas` and `orientations` are optional and may be zeros
-where unknown; zeros are the documented convention for "not measured", not a
-physical value.
-
-`number_of_regions` and `number_of_connections` are both computed in
-`configure()`. Note that `number_of_connections` counts non-zero entries, so a
-symmetric matrix counts every edge twice.
-
---- -->
 
 (setup-guide)=
 ## Setup guide
@@ -271,105 +245,3 @@ Do not call `configure()` or `set_idelays()` yourself. `Simulator.configure()` d
 `tvb.datatypes.connectivity.Connectivity`. Until it exists, this section carries
 the guidance.
 :::
-
-<!-- ### Loading and writing
-
-`from_file(source_file="connectivity_76.zip")` reads a zip or an `.h5` file and
-returns a new object; it does **not** call `configure()`. Call it yourself, or
-let the simulator do it. `from_bytes_stream(bytes_stream, content_type='.zip')`
-does the same for uploaded data. Both accept `centres.txt` and `centers.txt`,
-which is why some files in the wild have American spelling.
-
-### Validation and derived quantities
-
-`configure()` is the one method that matters. In order, it:
-
-1. sets `number_of_regions` from the shape of `weights` and counts non-zero
-   entries into `number_of_connections`;
-2. computes `tract_lengths` from `centres` if absent;
-3. generates `region_labels` if absent;
-4. infers `hemispheres` from label prefixes if absent;
-5. warns and sets `speed = 3.0` if unset;
-6. **recomputes `delays = tract_lengths / speed` unconditionally**;
-7. sets `undirected = True` if the weights are exactly symmetric;
-8. validates the result.
-
-Step 6 is worth remembering. `delays` is recomputed every time, so a value you
-assign by hand is overwritten. Set `speed` and `tract_lengths`; never set
-`delays`.
-
-`set_idelays(dt)` converts `delays` into integration steps and prepares what the
-solver needs: `idelays`, `has_delays`, `horizon` (maximum delay in steps, plus
-one), and the flat index arrays `inodes` and `delay_indices`. `horizon` is only
-valid after this call - reading it earlier raises. It is also the buffer length
-the simulation must allocate.
-
-`summary_info()` returns a dictionary of counts and per-array statistics,
-including the non-zero subsets. It is the quickest way to eyeball an unfamiliar
-file.
-
-The `set_*` methods - `set_weights`, `set_tract_lengths`, `set_centres`,
-`set_region_labels`, `set_orientations`, `set_areas`, `set_cortical`,
-`set_hemispheres` - all take an `expected_number_of_nodes` argument and raise
-`ValidationException` on a mismatch, or on fewer than two nodes. Prefer them to
-raw assignment when the data comes from outside your own code.
-
-### Transforms
-
-All of these return a new array and leave `self` alone:
-
-- `transform_remove_self_connections()` - zero the diagonal;
-- `transform_binarize_matrix()` - 1 where weight > 0;
-- `binarized_weights` - the same thing as a property;
-- `scaled_weights(mode='tract')` - see [Scaling](#weights-section).
-
-Assign the result back yourself if that is what you want. This is a feature:
-transforms are cheap, reversible in the sense that the original is still there,
-and safely chainable.
-
-### Reordering and selection
-
-These are read-only views built for plotting and for sub-setting, not for
-changing the model: `hemisphere_order_indices`, `ordered_weights`,
-`ordered_tracts`, `ordered_labels`, `ordered_centres`,
-`get_grouped_space_labels()`, `is_right_hemisphere(idx)`,
-`get_default_selection()`, `subcortical_indices`, `unmapped_indices(region_mapping)`.
-
-`unmapped_indices(region_mapping)` is the one to reach for when a surface
-simulation and a regional connectome disagree: it returns the region indices
-that the mapping never touches. Those regions will contribute nothing and
-receive nothing, which is usually an error rather than an intention.
-
-### Surrogate generators
-
-For testing and for null models: `motif_linear_directed`,
-`motif_linear_undirected`, `motif_chain_directed`, `motif_chain_undirected`,
-`motif_all_to_all`, with `create_region_labels(mode)` (`'numeric'` or
-`'alphabetic'`), and the geometry helpers `centres_spherical`,
-`centres_toroidal`, `centres_annular`, `centres_cubic`. The wrapper is
-`generate_surrogate_connectivity(number_of_regions, motif='chain',
-undirected=True, these_centres='spherical')`.
-
-These **mutate the object in place and overwrite whatever was loaded**. They are
-for building a synthetic network from nothing, or for generating a null model to
-compare against real data - not for editing a real connectome.
-
-### Lesion bookkeeping
-
-`parent_connectivity` records where an edited connectome came from,
-`saved_selection` holds the region indices that survived, and
-`saved_selection_labels` turns those back into names for a report. These fields
-are populated by the framework's lesion tools. Surgical-resection workflows are
-demonstrated in [resting state in epilepsy](../demos/exploring_resting_state_in_epilepsy.ipynb).
-
-### Pitfalls, collected
-
-- Rows are targets; BCT matrices need transposing.
-- The diagonal is not removed for you, and it acts as self-gain.
-- `delays` is derived; setting it by hand does nothing.
-- `idelays` are quantised to $\Delta t$; delays below $\Delta t/2$ vanish.
-- Changing `speed` after `configure()` has no effect until you configure again.
-- Normalising weights and tuning the coupling gain are two knobs for one job.
-- Euclidean tract lengths are a placeholder, and they underestimate delays.
-- `undirected` describes the data; it does not constrain the model.
-- Region order is the identity of every index in the object, everywhere. -->

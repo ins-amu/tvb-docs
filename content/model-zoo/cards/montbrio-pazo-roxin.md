@@ -79,6 +79,15 @@ $\pi^{2}\tau^{2}$ in the $r^{2}$ term); $r$ is additionally bounded below by
 `state_variable_boundaries` at $r \ge 0$, and `state_variable_range` expects
 $r \in [0, 2]$, $V \in [-2, 1.5]$.
 
+## Phase plane
+
+```{iframe} ../mpr.html
+:width: 100%
+:align: center
+:title: Interactive MPR phase plane (tvb-phaseplane widget)
+```
+
+
 ## Typical Dynamics
 
 - **Rest.** For weak or inhibitory coupling ($J \le 0$) and $I$ below threshold,

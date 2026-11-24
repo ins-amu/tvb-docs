@@ -81,7 +81,7 @@ parts:
           - file: content/model-zoo/intro-phenomenological.md
       - title: Model cards
         sections:
-          - file: content/model-zoo/cards/foo-bar.md
+          - file: content/model-zoo/cards/montbrio-pazo-roxin.md
           # add others
       - title: Adding a new model
         sections:
@@ -171,7 +171,6 @@ parts:
           - file: content/reference/model-cards/generic-2d-oscillator.md
           - file: content/reference/model-cards/epileptor.md
           - file: content/reference/model-cards/epileptor-2d.md
-          - file: content/reference/model-cards/montbrio-pazo-roxin.md
           - file: content/reference/model-cards/coombes-byrne.md
           - file: content/reference/model-cards/coombes-byrne-2d.md
           - file: content/reference/model-cards/gast-smidt-knosche-sd.md

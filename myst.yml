@@ -16,6 +16,7 @@ project:
   # The standalone phase-plane widget is embedded via iframe from here.
   static_files:
     - content/_static/phase-plane-standalone.html
+    - content/_static/mpr.html
 
 site:
   title: TVB Simulation Documentation

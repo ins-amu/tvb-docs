@@ -127,6 +127,8 @@ def task_help() -> None:
 def task_setup() -> None:
     run(["uv", "venv", "--python", "3.12"])
     run(["uv", "pip", "sync", "requirements/uv.lock"])
+    if (ROOT / "trajecturtle" / "pyproject.toml").is_file():
+        run(["uv", "pip", "install", "--no-deps", "-e", "./trajecturtle"])
 
 
 def task_refs() -> None:
@@ -136,6 +138,17 @@ def task_refs() -> None:
 def task_docs() -> None:
     run(["uv", "run", "myst", "build", "--execute", "--html"])
     run(["node", "tools/build_glossary.mjs"])
+    run(
+        [
+            "uv",
+            "run",
+            "python",
+            "-c",
+            "from tvb_card_widgets import export_static_assets; export_static_assets('_build/html/trajecturtle')",
+        ],
+        env=build_env({"PYTHONPATH": "content/_code"}),
+    )
+    run(["node", "tools/stage_phaseplane.mjs"])
     run(["uv", "run", "python", "tools/stage_lite.py"])
 
 

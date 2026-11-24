@@ -22,49 +22,32 @@ This page covers three topics. Jump to whichever you need.
 (role)=
 ## What the connectome does in a simulation
 
-The connectome is a mathematical representation of how the individual brain regions are interconnected. It consist of two matrices. One representing connection strengths, and the second one representing the delay (or length) of those connections. These matrices connect **nodes** of  
+The connectome is a mathematical representation of how the individual brain regions are interconnected. It consist of two matrices. One representing connection strengths, and the second one representing the delay (or length) of those connections. While the individual **nodes** hold their state, the connectome holds the information on which nodes and when this state affects.
 
 ### Nodes come from a parcellation
 
-A {term}`parcellation` divides the brain into regions. Each region becomes one
+A {term}`parcellation` or an **atlas** divides the brain into regions. Each region becomes one
 {term}`node` with its own neural mass model, so the number of regions is the
-size of the network.
-
-That choice is a modelling decision, not a fact read off an image. Two atlases
-of the same brain give different node sets, different edges, and different
-simulated dynamics. The parcellation also fixes what a node *means*: a parcel
-that mixes several cytoarchitectonic areas is represented by one mass model
-with one parameter set, which is a simplification worth remembering when
-results are interpreted.
-
-TVB places no constraint on how many regions you use. The number matters for
-what you can claim, not for what the code will run.
+size of the network. TVB places no constraint on how many regions you use.
 
 ### Edges come from tractography
 
 The {term}`edges <Edge>` are inferred from {term}`Diffusion-weighted MRI`.
-That sequence does not image axons; it measures how water diffuses in tissue,
-which is restricted and directionally biased along myelinated fibre bundles. {term}`Tractography` algorithms follow that
-directional bias through the volume, tracing candidate pathways —
-{term}`streamlines <Streamline>` — from one voxel to the next.
+{term}`Tractography` algorithms follow directional bias through the volume, tracing candidate pathways called {term}`streamlines <Streamline>`, from one voxel to the next.
 
-Streamlines are then assigned to the parcels their endpoints fall in. Counting
+Streamlines are then assigned to the parcels their endpoints. Counting
 them gives the edge weight: the number of streamlines between region $k$ and
-region $j$ is the standard proxy for how much wiring connects them. The
+region $j$ is the standard proxy for how much wiring connects them [TODO cite]. The
 streamline path length gives the edge's physical distance, which becomes a
-delay once a {term}`conduction speed` is assumed.
+delay once a {term}`conduction speed`[TODO cite] is assumed.
 
-Two properties of that procedure matter for everything built on top of it:
+#### Notes on tractography
 
-- **Weights are ordinal, not calibrated.** A streamline count is not a synapse
-  count, and it is strongly affected by acquisition and tractography settings.
-  It is a relative measure of connection strength, which is why TVB
-  simulations tune a global gain rather than trusting absolute weights.
-- **Direction is not measured.** Region-level tractography gives an undirected
-  graph. The connectome says two regions are wired together, not which one
-  drives which.
+Raw values of streamline counts are generally not useful, as they are strongly affected by acquisition methods and tractography settings. Normalization of  a connectome fixes this, but it's a complex task. For one subject you might wish to normalize to the largest value, or for a population study you may wish to pick a single normalization constant across all subjects. Log normalization is also an option.
 
-### What the simulator reads out of it
+Direction is not measured. Region-level tractography gives an undirected graph. The connectome says two regions are wired together, not which one drives which.
+
+### What the simulator reads out of it [TODO RENAME]
 
 The connection weights become the coupling term. For region $k$, the delayed
 activity arriving from the rest of the network is
@@ -76,61 +59,39 @@ u_{kj}\,\Gamma\!\left(\Psi_k(t),\,\Psi_j(t-\tau_{kj})\right),
 $$
 
 where $u_{kj}$ is the weight from region $j$ to region $k$, $\ell_{kj}$ is the
-{tract length}, $v$ the {conduction speed}, and $\Gamma$ the coupling function
-— documented on the [coupling page](bb-coupling.md).
+**tract length**, $v$ the **conduction speed**, and $\Gamma$ the coupling function, see [coupling](bb-coupling.md).
 
-The {term}`propagation delay` is not a detail. In a network of oscillators,
-delays largely determine which phases and rhythms the network can sustain.
-Setting the conduction speed is therefore one of the first things a simulation
-configures.
-
-The same object also supplies geometry: where each region sits in space. That
-is what {term}`forward models <Forward model>` need when simulated activity is
-turned into an EEG, MEG, or fMRI-like signal.
-
-### Structural is not functional
-
-The connectome is {term}`structural connectivity`: fixed anatomical wiring,
-stable over the timescale of an experiment. {term}`Functional connectivity` is
-something else — the statistical correlation between signals measured from
-different regions, which changes with task, state, and time. Regions can be
-strongly correlated with no tract between them, and strongly wired with little
-correlation. See [functional connectivity](outward/fc-sc.md).
-
-The relationship between the two is the question whole-brain modelling is built
-to address: structure constrains which dynamics are possible, dynamics produce
-the correlations that functional connectivity measures. A connectome is a
-constraint on the model, not an explanation of the observed network.
-
----
 
 (object)=
-## What the object holds
+## What the object holds [TODO RENAME]
 
 `tvb.datatypes.connectivity.Connectivity` is a collection of arrays, all indexed
 by region. $l$ is the number of regions.
 
-| Field | Shape | Units | Set by | Notes |
-|---|---|---|---|---|
-| `weights` | $(l, l)$ | arbitrary | you | Directed by default. Rows are targets. |
-| `tract_lengths` | $(l, l)$ | mm | you | Fallback: straight-line distance from `centres`. |
-| `speed` | $(1,)$ or $(l, l)$ | mm/ms | you | Default 3.0 if unset. |
-| `delays` | $(l, l)$ | ms | derived | `tract_lengths / speed`, in `configure()`. |
-| `idelays` | $(l, l)$ int | integration steps | `set_idelays(dt)` | What the solver actually uses. |
-| `centres` | $(l, 3)$ | mm | you | Required for surfaces and forward models. |
-| `region_labels` | $(l,)$ str | — | you | Fallback: `region_000`, `region_001`, … |
-| `cortical` | $(l,)$ bool | — | you | Cortex or not. |
-| `hemispheres` | $(l,)$ bool | — | you | `True` is right. Fallback: label prefix. |
-| `orientations` | $(l, 3)$ | unit vector | you | Zeros where unknown. |
-| `areas` | $(l,)$ | mm² | you | Surface area per region. |
-| `number_of_regions` | int | — | derived | $l$, from the shape of `weights`. |
-| `number_of_connections` | int | — | derived | Non-zero entries. Counts both directions. |
-| `undirected` | bool | — | derived | Report, not a constraint. |
-| `parent_connectivity` | str | — | lesion tools | Source of an edited connectome. |
-| `saved_selection` | list of int | — | lesion tools | Regions kept. |
+For a definitive API reference, see [TODO link api reference].
 
-Only `weights` is truly required. Everything else has a fallback, and every
-fallback is a change to your model that you should notice rather than inherit.
+| Field | Required | Shape | Units | Set by | Notes |
+|---|---|---|---|---|---|
+| `weights` | yes | $(l, l)$ | arbitrary | you | Directed by default. Rows are targets. |
+| `tract_lengths` | yes | $(l, l)$ | mm | you | Fallback: straight-line distance from `centres`. |
+| `speed` | yes | $(1,)$ or $(l, l)$ | mm/ms | you | Default 3.0 if unset. Recommended 3.8 by [TODO charlotte paper]. |
+| `delays` | — | $(l, l)$ | ms | derived | `tract_lengths / speed`, in `configure()`. |
+| `idelays` | — | $(l, l)$ int | integration steps | `set_idelays(dt)` | What the solver actually uses. |
+| `centres` | yes | $(l, 3)$ | mm | you | Required for surfaces and forward models. Can be approximated by the `centres_*()` methods. |
+| `region_labels` | yes | $(l,)$ str | — | you | Fallback: `create_region_labels()`, which generates `region_000`, `region_001`, … |
+| `cortical` | no | $(l,)$ bool | — | you | Cortex or not. |
+| `hemispheres` | no | $(l,)$ bool | — | you | `True` is right. Fallback: label prefix. |
+| `orientations` | no | $(l, 3)$ | unit vector | you | Zeros where unknown. |
+| `areas` | no | $(l,)$ | mm² | you | Surface area per region. |
+| `undirected` | — | bool | — | derived | Report, not a constraint. |
+| `number_of_regions` | — | int | — | derived | $l$, from the shape of `weights`. |
+| `number_of_connections` | — | int | — | derived | Non-zero entries. Counts both directions. |
+| `parent_connectivity` | no | str | — | lesion tools | Source of an edited connectome. |
+| `saved_selection` | no | list of int | — | lesion tools | Regions kept. |
+
+Only `weights` has no fallback of any kind. Everything else either has one, a
+default, or is computed — and every fallback is a change to your model that you
+should notice rather than inherit.
 
 :::{warning}
 A fallback that fires silently is not neutral. If `tract_lengths` is missing,

@@ -33,7 +33,7 @@ TASKS = {
     "lite-setup": "Create ~/.micromamba/envs/build-tvbl from build-environment.yml",
     "lite": "Build JupyterLite site into _build/html/lite and apply runtime patches",
     "all": "Build complete unified static site (_build/html with MyST docs and JupyterLite)",
-    "serve": "Serve unified static site at http://localhost:8000, rebuilding docs on changes",
+    "serve": "Serve unified static site locally at http://localhost:8000, rebuilding docs on changes",
     "clean": "Remove build artifacts and temporary databases",
 }
 
@@ -54,7 +54,7 @@ THEME_DST = "_build/html/lite/build/themes"
 # content/, and watching them would trigger a pointless second rebuild.
 WATCH_PATHS = ("content", "_static", "plugins", "_toc.yml", "myst.yml", "README.md")
 WATCH_SUFFIXES = {".md", ".ipynb", ".py", ".yml", ".bib", ".js", ".mjs", ".css"}
-WATCH_POLL_S = 5.0
+WATCH_POLL_S = 3.0
 
 
 def python_cmd() -> str:

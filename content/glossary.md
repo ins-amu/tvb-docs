@@ -350,4 +350,6 @@ Weight normalisation
 White noise
 : Noise with no temporal correlation and a flat power spectrum in the idealised continuous-time limit.
 
+Working zone
+: Area in parameter space which optimizes desired dynamical properties of simulated data
 :::

@@ -7,7 +7,7 @@ parts:
     chapters:
       - file: content/getting-started/what-is-tvb.md
       - file: content/getting-started/installation.md
-      - file: content/getting-started/quickstart-guide.md
+      - file: content/getting-started/quickstart-guide.ipynb
       
   - caption: User Guide
     chapters:

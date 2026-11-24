@@ -266,6 +266,8 @@ def stage_lite(root: Path, content_dir: Path, lite_contents_dir: Path, html_dir:
         # Skip excluded dirs and files
         if parts[0] in ("_code", "_static", "_templates", ".refs-cache.json"):
             continue
+        if parts[:2] == ("reference", "api"):
+            continue
         if any(p.startswith(".") for p in parts):
             continue
         if any(p == "__pycache__" for p in parts):

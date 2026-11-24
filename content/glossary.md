@@ -80,6 +80,9 @@ Diffusion-weighted MRI
 Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
+Dynamical noise
+: Random input to the evolution of neural activity, denoted $w(t)$ in the virtual brain twin standard model.
+
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
 
@@ -194,6 +197,9 @@ Multiplicative noise
 ## N–P
 
 :::{glossary}
+Neural field model
+: A spatially resolved model of population activity on a continuous domain, with interactions between locations.
+
 Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
 
@@ -231,6 +237,9 @@ Phase portrait
 Posterior
 : The probability distribution of parameters after conditioning on observed data or summaries.
 
+Postsynaptic potential
+: A change in membrane potential caused by synaptic input, averaged over a population in a neural mass model.
+
 Power spectral density
 : Signal power per unit frequency, describing how variance is distributed across frequencies.
 
@@ -242,6 +251,12 @@ Projection matrix
 
 Propagation delay
 : The travel time assigned to a network connection, commonly calculated as {term}`tract length <Tract length>` divided by {term}`conduction speed <Conduction speed>`.
+
+Pulse density
+: The average rate of action potentials across a neuronal population.
+
+Pulse-to-wave transform
+: Synaptic filtering that converts incoming {term}`pulse density <Pulse density>` into an average {term}`postsynaptic potential <Postsynaptic potential>`.
 
 :::
 
@@ -343,6 +358,9 @@ Transient
 
 Vector field
 : A function assigning a direction and rate of motion to each state in a continuous-time dynamical system.
+
+Wave-to-pulse transform
+: A nonlinear mapping from mean {term}`postsynaptic potential <Postsynaptic potential>` to population {term}`pulse density <Pulse density>`, commonly a sigmoid.
 
 Weight normalisation
 : Rescaling connection weights according to a rule, such as dividing each row by its sum.

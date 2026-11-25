@@ -34,6 +34,9 @@ Bifurcation
 Bifurcation analysis
 : The study of how equilibria, oscillations, or other solutions appear, disappear, or change stability as parameters vary.
 
+Biophysical model
+: A model whose equations represent specified physiological mechanisms, such as membrane currents or ion exchange.
+
 Bistability
 : Coexistence of two stable {term}`attractors <Attractor>` under the same parameter values.
 
@@ -237,6 +240,9 @@ Parcellation
 
 Perturbation
 : A deliberate or incidental change to a system’s state or input, used to examine its response.
+
+Phenomenological model
+: A model formulated to reproduce observed dynamics without explicitly representing all the physiological mechanisms that generate them.
 
 Phase plane
 : A two-dimensional {term}`state space <State space>` used to visualise dynamics.

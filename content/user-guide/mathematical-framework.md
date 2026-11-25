@@ -91,6 +91,16 @@ $L_i$ at node $i$. In a regional
 simulation, each brain region has a neural mass; the chosen connectivity
 pathways supply coupling between regions.
 
+Neural mass models differ in biophysical detail. The Epileptor captures
+observed seizure dynamics through a
+{term}`phenomenological description <Phenomenological model>` [@jirsa2014].
+Rabuffo and colleagues derive a
+{term}`biophysical mean-field model <Biophysical model>` from a population of
+Hodgkin–Huxley-type neurons while retaining ion-exchange
+mechanisms that shape population activity [@rabuffo2026]. Such physiological
+detail adds state variables and parameters to the model, increasing its
+computational cost.
+
 At [finer cortical resolution](hr/classic.md), TVB places neural masses at the vertices of a
 surface mesh and couples nearby vertices. Their activity still forms a
 discrete system, approximating a continuous {term}`neural field <Neural field model>`

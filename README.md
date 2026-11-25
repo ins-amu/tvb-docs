@@ -4,12 +4,12 @@ bibliography:
 ---
 # The Virtual Brain documentation
 
-The Virtual Brain (TVB) is an open-source platform for simulating whole-brain
+The Virtual Brain (TVB) is an open-source ecosystem for simulating whole-brain
 dynamics. It combines a structural connectome (a map of the connections
 between brain regions, either averaged across a group or based on an
 individual's own brain scans) with neural mass models describing the activity
 of each region. The resulting simulated brain activity can be compared with
-real recordings such as EEG, MEG or fMRI [@sanzleon2013].
+real recordings such as EEG, MEG or fMRI [@sanzleon2013,@schirner2022].
 
 **New to TVB?** Read [What is TVB?](content/getting-started/what-is-tvb.md),
 then follow [Installation](content/getting-started/installation.md) instructions and the

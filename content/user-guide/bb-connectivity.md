@@ -22,7 +22,7 @@ This page covers three topics. Jump to whichever you need.
 (role)=
 ## What the connectome does in a simulation
 
-The connectome is a mathematical representation of how the individual brain regions are interconnected. It consist of two matrices. One representing connection strengths, and the second one representing the delay (or length) of those connections. While the individual **nodes** hold their state, the connectome holds the information on which nodes and when this state affects.
+The connectome is a mathematical representation of how the individual brain regions are interconnected. It consists of two matrices. One representing connection strengths, and the second one representing the delay (or length) of those connections. While the individual nodes hold their state, the connectome holds the information on which nodes this state affects and with how much delay.
 
 ### Nodes come from a parcellation
 
@@ -35,9 +35,7 @@ size of the network. TVB places no constraint on how many regions you use.
 The {term}`edges <Edge>` are inferred from {term}`Diffusion-weighted MRI`.
 {term}`Tractography` algorithms follow directional bias through the volume, tracing candidate pathways called {term}`streamlines <Streamline>`, from one voxel to the next.
 
-Streamlines are then assigned to the parcels their endpoints. Counting
-them gives the edge weight: the number of streamlines between region $k$ and
-region $j$ is the standard proxy for how much wiring connects them [TODO cite]. The
+The endpoints of the streamlines are assigned to parcels. Counting the number of streamlines between region k and region j gives the edge weight, the standard proxy for how much wiring connects them. [TODO cite]. The
 streamline path length gives the edge's physical distance, which becomes a
 delay once a {term}`conduction speed`[TODO cite] is assumed.
 
@@ -62,9 +60,6 @@ where $u_{kj}$ is the weight from region $j$ to region $k$, $\ell_{kj}$ is the
 `tvb.datatypes.connectivity.Connectivity` is a collection of arrays, all indexed
 by region. $l$ is the number of regions.
 
-Only `weights` has no fallback of any kind. Everything else either has a fallback, a
-default, or is derived.
-
 For a definitive API reference, see [TODO link api reference].
 
 | Field | Required | Shape | Units | Set by | Notes |
@@ -85,6 +80,8 @@ For a definitive API reference, see [TODO link api reference].
 | `number_of_connections` | - | int | - | derived | Non-zero entries. Counts both directions. |
 | `parent_connectivity` | no | str | - | lesion tools | Source of an edited connectome. |
 | `saved_selection` | no | list of int | - | lesion tools | Regions kept. |
+
+Only `weights` lacks any form of fallback. All other parameters either have a fallback, a default value, or are derived. A fallback refers to an alternative method for estimating the data when it is missing (e.g., calling `centres_spherical()` instead of loading `centres.txt`). A default, on the other hand, is a predefined value used when no assignment is provided.
 
 ---
 
@@ -107,22 +104,22 @@ The matrix is directed by default unless it happens to be symmetric. `configure(
 
 ### The diagonal
 
-Self-connections live on the diagonal, and the library does not remove by default. `transform_remove_self_connections()` returns a copy with
+Self-connections live on the diagonal, and the library does not remove these by default. `transform_remove_self_connections()` returns a copy with
 the diagonal zeroed.
 
-### Scaling
+### Normalization
 
 `scaled_weights(mode)` returns a scaled copy; it does not modify `self`.
 
-| `mode` | Divisor |
-|---|---|
-| `'tract'` | largest absolute weight |
-| `'region'` | largest absolute row sum (in-strength) |
-| `'none'`, `None` | 1.0 - no change |
+| `mode` | Divisor | Result |
+|---|---|---|
+| `'tract'` | divides the matrix by the largest weight value | weights will be in range 0-1 |
+| `'region'` | largest absolute row sum (in-strength) | row sums will be in range 0-1 |
+| `'none'`, `None` | 1.0 | no change to the original weights |
 
-Normalisation competes with the coupling gain for the same job. If the
-{term}`global coupling` function already rescales input by a parameter $a$,
-normalising the weights as well gives you two knobs for one job. For one subject you might wish to normalize to the largest value, or for a population study you may wish to pick a single normalization constant across all subjects an normalize without the use of the `scaled_weights` method. Log normalization is also an option.
+If these options are insufficient, you may wish to normalize weights matrix outside of the TVB library. For one subject you might wish to normalize to the largest value. Alternatively, for a population study you may wish to pick a single normalization constant across all subjects an normalize without the use of the `scaled_weights` method. Log normalization is also an option.
+
+**Global coupling** 
 
 The [coupling page](bb-coupling.md) covers the gain side.
 

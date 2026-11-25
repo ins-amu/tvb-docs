@@ -84,7 +84,7 @@ Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
 Dynamical noise
-: The formal stochastic forcing $w_i(t)$ added to the state dynamics at node $i$ in the [mathematical framework](user-guide/mathematical-framework.md). During stochastic integration, its increment is applied to the state update.
+: Stochastic forcing $w_i(t)$ added to node $i$'s state dynamics; stochastic integration applies its increment during each update.
 
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
@@ -201,7 +201,7 @@ Multiplicative noise
 
 :::{glossary}
 Neural field model
-: A model of population activity distributed over cortical space. A continuous neural field may be described by a partial differential or spatial integro-differential equation. TVB approximates it with coupled neural masses at a finite set of cortical mesh vertices.
+: A model of population activity over cortical space. TVB approximates a continuous neural field with neural masses at cortical mesh vertices.
 
 Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
@@ -215,7 +215,7 @@ Nullcline
 : A set of states where the time derivative of one {term}`state variable <State variable>` vanishes.
 
 Observer model
-: A model that maps simulated neural activity to an observable signal, such as EEG, MEG, or BOLD. It may include spatial projection, haemodynamic dynamics, or measurement noise.
+: A model mapping simulated neural activity to observable signals such as EEG, MEG, or BOLD, possibly including spatial projection, haemodynamics, and measurement noise.
 
 Ordinary differential equation
 : An equation relating a function of one independent variable, usually time here, to its derivatives.

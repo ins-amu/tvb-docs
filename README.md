@@ -26,8 +26,7 @@ then follow [Installation](content/getting-started/installation.md) instructions
 | **API reference** | Technical reference for TVB's code | TO ADD |
 | **Extended tutorials** | Complete worked examples for specific research applications | TO ADD |
 
-Look up unfamiliar terms in the [Glossary](content/glossary.md). Information
-on contributing to these docs is in
+Look up unfamiliar terms in the [Glossary](content/glossary.md). If you have an issue or want to contribute to these docs, go to [Community & contributing](content/about/about-this-site.md).
 
 The code examples in these docs are run every time the site is built, so they
 stay working as TVB changes.

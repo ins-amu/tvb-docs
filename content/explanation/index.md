@@ -20,7 +20,7 @@ facts see [Reference](../reference/index.md).
 - **[Excitation–inhibition balance](excitation-inhibition-balance.md)** — Feedback inhibition control (FIC), criticality, and stable operating regimes.
 - **[Neural mass models](neural-mass-models.md)** — Mesoscopic approximations of neuronal populations: derivation, assumptions, and limits.
 - **[Phase planes](phase-plane-explanation.md)** — Geometric analysis of 2D dynamical systems: nullclines, eigenvalues, and limit cycles.
-- **[From simulation to inference](tvbl-sim-to-inference.md)** — Closing the loop: simulation-based inference (SBI) and parameter recovery in TVB-Lite.
+- **[Inference](../user-guide/inference.md)** — Bayesian parameter inference: likelihood-based and simulation-based routes, degeneracy, and how to check the result.
 
 ## Numerical & Paper Studies
 

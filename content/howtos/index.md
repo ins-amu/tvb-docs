@@ -14,7 +14,8 @@ the steps and skip the teaching. If you are new here, start with the
 ## Core Recipes
 
 - **[Adding a custom stimulus](custom-stimulus.md)** — Injecting spatio-temporal inputs into regional neural mass equations.
-- **[TVB-Lite parameter inference](tvbl-inference.md)** — Inferring model parameters from synthetic observations using CDE.
+- **[Check an amortised posterior](../user-guide/inference/posterior-calibration.md)** — Parameter recovery, simulation-based calibration and coverage for simulation-based inference.
+- **[Fit an evoked-response model with a likelihood](../user-guide/inference/erp-likelihood.md)** — Optimisation, MCMC, the Laplace approximation and model comparison.
 - **[Writing a new model](write-a-model.md)** — Implementing and registering a custom neural mass model in TVB.
 
 ## Connectivity & Stimuli

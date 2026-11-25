@@ -79,7 +79,7 @@ that the wiring plus those dynamics are sufficient to produce the observed
 functional network.
 
 Two cautions carry over from the inference discussion
-([from simulation to inference](tvbl-sim-to-inference.md)): many parameter sets
+([inference overview](../user-guide/inference.md)): many parameter sets
 give similar FC, so a good FC fit is evidence of plausibility rather than of a
 correct parameter set; and a static correlation matrix is a poor summary of a
 system whose functional organization changes over time, which is why

@@ -10,10 +10,8 @@ kernelspec:
 *Tutorial — a guided first run of the FitzHugh–Nagumo network.*
 
 In this tutorial you run a small **FitzHugh–Nagumo** network simulation using the
-numpy-only `tvbl` engine that backs these docs. The same analysis is the single
-source of truth behind the [How-to](../howtos/tvbl-inference.md),
-[Reference](../reference/model-cards/fitzhugh-nagumo.md) and
-[Explanation](../explanation/tvbl-sim-to-inference.md) pages.
+numpy-only `tvbl` engine that backs these docs. The model itself is described
+on the [FitzHugh–Nagumo model card](../reference/model-cards/fitzhugh-nagumo.md).
 
 ```{code-cell} ipython3
 :tags: [remove-cell]
@@ -54,6 +52,6 @@ plt.show()
 ```
 
 You should see a mix of quiescent and oscillating nodes — the network's delayed
-coupling is what makes some nodes fire rhythmically. Next, the
-[How-to guide](../howtos/tvbl-inference.md) shows how to *infer* the parameters
-that produced activity like this.
+coupling is what makes some nodes fire rhythmically. To learn how to *infer*
+the parameters that produced activity like this, continue with the
+[inference tutorial](../user-guide/inference/npe-montbrio.md).

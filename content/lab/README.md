@@ -18,9 +18,7 @@ are different *views* of it.
   | View | Page | What it shows |
   | --- | --- | --- |
   | Tutorial | `content/tutorials/tvbl-quickstart.md` | guided run + activity figure |
-  | How‑to | `content/howtos/tvbl-inference.md` | SBI recipe + posterior figure |
   | Reference | `content/reference/model-cards/fitzhugh-nagumo.md` | model card + **interactive plotly explorer** |
-  | Explanation | `content/explanation/tvbl-sim-to-inference.md` | nullclines + narrative |
 
 ## Interactivity tiers (the design decision)
 

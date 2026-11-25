@@ -23,42 +23,50 @@ content/
 
 ---
 
-## 3-Step Quickstart
+## Quickstart
 
 You will need Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
 
 All build tasks live in [`make.py`](make.py), a stdlib-only Python script, so
-`make` is optional. On macOS/Linux use `python3 make.py <task>`; on Windows use
-`py -3 make.py <task>`. If you do have `make`, `make <task>` works too and is
-equivalent.
+`make` is optional. On macOS/Linux use `make <task>` or `python3 make.py <task>`;
+on Windows use `py -3 make.py <task>`.
 
-### 1. Setup
-Create the virtual environment and install pinned dependencies:
+### 1. Start Developing (Automatic Setup + Live Reload)
+Running bare `make` (or `python3 make.py`) runs the default `dev` task:
 ```bash
-python3 make.py setup
+make
 ```
-To ensure dependencies are up to date, you may need to
-```bash
-uv pip sync requirements/uv.lock
-```
+This automatically:
+1. Creates `.venv` if missing and verifies it matches `requirements/uv.lock` via `uv` (syncing if needed).
+2. Incrementally stages downloadable `.ipynb` notebooks into `_build/notebooks/`.
+3. Starts a live-reloading MyST dev server + unified local router at [http://localhost:8000](http://localhost:8000) (automatically picking the next free port if 8000 is occupied, or reporting the URL if this repo's server is already running).
 
-### 2. Verify and Build Docs
-Run the reference validation and MyST build with code execution:
+Visit:
+- **MyST Documentation (live reload):** [http://localhost:8000](http://localhost:8000)
+- **Interactive JupyterLite Lab (if built):** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
+- **Downloadable Notebooks:** [http://localhost:8000/notebooks/](http://localhost:8000/notebooks/)
+
+Useful flags for local editing:
+- `python3 make.py dev --no-execute` — skip notebook/cell execution for fast prose, CSS, or TOC edits.
+- `python3 make.py status` — show build freshness, active dev server, and what `make` will run next.
+- `python3 make.py serve --static` — preview the static `_build/html` build on port 8000 instead of live `myst start`.
+
+### 2. Verify and Build Static Docs
+Run the reference validation and static MyST build with code execution:
 ```bash
 python3 make.py check
 ```
-*(This runs `make.py refs` followed by `make.py docs`—the exact checks CI executes on pull requests).*
+*(This runs `make.py refs` followed by `make.py docs`—the exact checks CI executes on pull requests. Locally, unchanged steps are skipped using `_build/.state.json`; pass `-f`/`--force` to rebuild everything.)*
 
-### 3. Preview the Unified Site
-Start a local web server to inspect both the documentation and the lab:
+### 3. Build JupyterLite (Optional)
+To build the WebAssembly kernel and JupyterLite distribution locally into `_build/lite` (and sync it to `_build/html/lite`):
 ```bash
-python3 make.py serve
+python3 make.py lite-setup   # only needed once, or auto-run by `make lite` if micromamba is installed
+python3 make.py lite
 ```
-Visit:
-- **MyST Documentation:** [http://localhost:8000](http://localhost:8000)
-- **Interactive JupyterLite Lab:** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
+`make lite` caches the emscripten WASM prefix in `_build/xeus-prefix/` keyed by `environment.yml`, builds into `_build/lite/` (so `make docs` never deletes it), and automatically chooses between a no-op, `tvbl`-only re-patch, content-only Lite update, or full rebuild.
 
-*(Optional)* To build the WebAssembly kernel and JupyterLite distribution locally, run `python3 make.py lite-setup` followed by `python3 make.py lite`.
+Use `make clean` to clear generated HTML/site outputs while keeping expensive caches (`_build/execute`, `_build/cache`, `_build/xeus-prefix`, `_build/lite`), or `make clean-all` to wipe everything.
 
 ---
 
@@ -123,9 +131,9 @@ Page templates with pre-configured frontmatter, Diátaxis structure, and interac
    - Ensure simulations are fast and deterministic (execution time < 10 seconds per page) so the build completes quickly.
 3. **Automatic JupyterLite notebook generation:**
    - You do **not** need to manually create or sync a `.ipynb` notebook.
-   - When `tools/stage_lite.py` runs (part of `make.py docs` / `make.py check`), it detects markdown pages with code cells and automatically generates:
-     - Interactive notebook: `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
-     - Downloadable notebook: `_build/html/notebooks/<quadrant>/<slug>.ipynb`.
+   - `tools/stage_lite.py` incrementally detects markdown pages with code cells and automatically generates:
+     - Downloadable notebook (during `make.py docs` / `make.py dev`): `_build/notebooks/<quadrant>/<slug>.ipynb` (synced to `_build/html/notebooks/<quadrant>/<slug>.ipynb` on static builds).
+     - Interactive notebook (during `make.py lite`): `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
 4. **Register in `_toc.yml`:**
    Add your page under the appropriate quadrant chapter in `_toc.yml`:
    ```yaml

@@ -6,7 +6,7 @@ Hover over a green link to preview its definition. Select a term to jump to its 
 
 :::{glossary}
 Additive noise
-: Random input added to the state dynamics with an amplitude independent of the current state.
+: Stochastic forcing applied during integration with an amplitude independent of the current state.
 
 Adjacency matrix
 : A matrix whose entries indicate or weight edges between pairs of network nodes.
@@ -48,6 +48,9 @@ Brain atlas
 ## C–D
 
 :::{glossary}
+Coloured noise
+: Temporally correlated stochastic forcing; TVB generates exponentially correlated noise when `ntau` is positive.
+
 Conduction speed
 : The assumed speed of signal propagation along a tract, used with {term}`tract length <Tract length>` to calculate a delay.
 
@@ -66,7 +69,7 @@ Coupling
 : The rule that turns activity from other nodes or populations into input to a node’s local dynamics.
 
 Coupling function
-: The mathematical transformation that converts incoming network activity into input to a model.
+: A transformation of activity arriving from connected nodes, applied before or after weighted summation and passed to the local model.
 
 Covariance
 : A measure of how two variables vary together around their means.
@@ -81,7 +84,7 @@ Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
 Dynamical noise
-: Random input to the evolution of neural activity, denoted $w(t)$ in the virtual brain twin standard model.
+: The formal stochastic forcing $w_i(t)$ added to the state dynamics at node $i$ in the [mathematical framework](user-guide/mathematical-framework.md). During stochastic integration, its increment is applied to the state update.
 
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
@@ -163,7 +166,7 @@ Initial condition
 : The state from which integration starts. A delayed system generally also needs a history before the start time.
 
 Integrator
-: A numerical method for advancing the model state in time.
+: A numerical method for solving a model's differential equations using finite time steps.
 
 Jacobian
 : The matrix of first partial derivatives of a vector-valued function, used to linearise dynamics near a state.
@@ -190,7 +193,7 @@ Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
 Multiplicative noise
-: Random input whose amplitude depends on the current state.
+: Stochastic forcing applied during integration with an amplitude that depends on the current state.
 
 :::
 
@@ -198,7 +201,7 @@ Multiplicative noise
 
 :::{glossary}
 Neural field model
-: A spatially resolved model of population activity on a continuous domain, with interactions between locations.
+: A model of population activity distributed over cortical space. A continuous neural field may be described by a partial differential or spatial integro-differential equation. TVB approximates it with coupled neural masses at a finite set of cortical mesh vertices.
 
 Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
@@ -211,8 +214,8 @@ Node
 Nullcline
 : A set of states where the time derivative of one {term}`state variable <State variable>` vanishes.
 
-Observation model
-: A model relating latent states to measured data, which can include both a {term}`forward model <Forward model>` and measurement noise.
+Observer model
+: A model that maps simulated neural activity to an observable signal, such as EEG, MEG, or BOLD. It may include spatial projection, haemodynamic dynamics, or measurement noise.
 
 Ordinary differential equation
 : An equation relating a function of one independent variable, usually time here, to its derivatives.

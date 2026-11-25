@@ -18,7 +18,6 @@ project:
   # The standalone phase-plane widget is embedded via iframe from here.
   static_files:
     - content/_static/phase-plane-standalone.html
-    - content/_static/mpr.html
 
 site:
   title: TVB Simulation Documentation
@@ -34,7 +33,7 @@ site:
     logo_url: https://the-virtual-brain.org
     favicon: content/_static/favicon.ico
     style: content/_static/theme.css      # custom CSS (re-skins --myst-color-*)
-    hide_search: false
+    hide_search: true                    # the post-build TVB search replaces MyST's dialog
   # ---------------------------------------------------------------------------
   # Template PARTS: named content slots rendered as MyST markdown. The default
   # "Made with MyST" badge is the fallback for `primary_sidebar_footer`.

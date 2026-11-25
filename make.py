@@ -154,11 +154,12 @@ def task_docs() -> None:
     task_apidoc()
     run(["uv", "run", "myst", "build", "--config", ".myst.apidoc.yml", "--execute", "--html"])
     run(["node", "tools/build_glossary.mjs"])
-    run(["node", "tools/build_api_search.mjs"])
+    run(["node", "tools/build_site_search.mjs"])
     run(["uv", "run", "python", "tools/stage_lite.py"])
 
 
 def task_test() -> None:
+    run(["node", "--test", "tests/test_site_search.mjs"])
     run(
         ["uv", "run", "--with", "pytest", "pytest", "-q", "tests", tvbl_test_dir()],
         env=build_env({"PYTHONPATH": f".{os.pathsep}content/_code"}),

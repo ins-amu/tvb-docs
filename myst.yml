@@ -8,6 +8,7 @@ project:
   # static widgets in the HTML build (requires Node >= 22 and uv).
   plugins:
     - plugins/glossary-links.mjs
+    - plugins/phaseplane.mjs
     - https://github.com/developmentseed/myst-anywidget-static-export/releases/latest/download/plugin.mjs
     # marimo islands: reactive {marimo} cells in MyST pages (see content/_code/tvbl_docs.py)
     - type: executable

@@ -119,8 +119,12 @@ $r \in [0, 2]$, $V \in [-2, 1.5]$.
   should be treated as numerical failure rather than as model behaviour.
 
 Explore the nullclines and their movement interactively in the
-[phase-plane tutorial](../../tutorials/phase-plane.md) — the embedded widget
-supports this model (`model_name="mpr"`).
+[phase-plane tutorial](../../tutorials/phase-plane.md) — or directly below.
+
+## Interactive Phase Plane
+
+```{phaseplane} montbrio_pazo_roxin
+```
 
 ## Paper Reference
 

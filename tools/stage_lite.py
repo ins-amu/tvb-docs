@@ -2,22 +2,18 @@
 """Stage JupyterLite contents directory (_build/lite_contents) from content/.
 
 This script unifies the MyST documentation tree and the JupyterLite environment:
-1. Incrementally syncs `_build/lite_contents/` (preserving mtimes for JupyterLite's
-   doit cache, using hardlinks where possible, and pruning stale files).
+1. Cleans and creates `_build/lite_contents/`.
 2. Copies `content/_code/tvbl/` and `content/_code/tvbl_docs.py` to the root of
    `_build/lite_contents/` so that `import tvbl` and `import tvbl_docs` work
    directly from any notebook.
 3. Copies repo root `README.md` to `_build/lite_contents/README.md`.
-4. Walks `content/` (excluding `_code/`, `_static/`, `_templates/`, and `.refs-cache.json`):
-   - Syncs notebooks (.ipynb), Python scripts (.py), data files, and figures.
+4. Walks `content/` (excluding `_code/`, `_static/`, and `.refs-cache.json`):
+   - Copies notebooks (.ipynb), Python scripts (.py), data files (.zip, .npy, .pem, .bib, .toml, .txt, etc.),
+     and figures (.png, .jpg, .svg, .pdf).
    - Converts MyST markdown (.md) containing executable code cells (`{code-cell}`)
-     into Jupyter notebooks (.ipynb) at matching relative paths (only when changed),
-     adapting any `sys.path` boilerplate so that `tvbl` and `tvbl_docs` are found.
-   - Syncs generated notebooks to the downloadable notebooks folder (default
-     `_build/html/notebooks/` or `--notebooks-dir`).
-
-Pass `--notebooks-only` to convert only `{code-cell}` markdown files directly into
-`--notebooks-dir` in milliseconds without staging the full 56 MB Lite contents tree.
+     into Jupyter notebooks (.ipynb) at matching relative paths, adapting any
+     `sys.path` boilerplate so that `tvbl` and `tvbl_docs` are found seamlessly.
+   - Copies generated notebooks to `_build/html/notebooks/` for direct download links.
 """
 
 from __future__ import annotations
@@ -28,13 +24,12 @@ import os
 from pathlib import Path
 import re
 import shutil
+import sys
 
-def _get_jupytext():
-    try:
-        import jupytext
-        return jupytext
-    except ImportError:
-        return None
+try:
+    import jupytext
+except ImportError:
+    jupytext = None
 
 DATA_EXTENSIONS = {
     ".zip", ".npy", ".pem", ".bib", ".toml", ".txt", ".csv",
@@ -44,8 +39,6 @@ DATA_EXTENSIONS = {
 FIGURE_EXTENSIONS = {
     ".png", ".jpg", ".jpeg", ".pdf", ".svg", ".gif", ".webp",
 }
-
-EXCLUDED_TOP_DIRS = {"_code", "_static", "_templates", ".refs-cache.json"}
 
 SYS_PATH_BOILERPLATE_PATTERN = re.compile(
     r'_root\s*=\s*pathlib\.Path\.cwd\(\)\s*\n'
@@ -66,16 +59,6 @@ SYS_PATH_REPLACEMENT = (
     '        sys.path.append(str(_root / "content" / "_code"))'
 )
 
-SITECUSTOMIZE_TEXT = (
-    'import sys, pathlib\n'
-    'for _dir in [pathlib.Path("/drive"), pathlib.Path.cwd(), *pathlib.Path.cwd().parents]:\n'
-    '    if (_dir / "tvbl_docs.py").exists() and str(_dir) not in sys.path:\n'
-    '        sys.path.insert(0, str(_dir))\n'
-    '        break\n'
-)
-
-SCRIPT_MTIME_NS = Path(__file__).resolve().stat().st_mtime_ns
-
 
 def patch_code_cell(source: str | list[str]) -> str | list[str]:
     """Adapt sys.path search in code cells so tvbl/tvbl_docs work in Lite and MyST."""
@@ -87,6 +70,7 @@ def patch_code_cell(source: str | list[str]) -> str | list[str]:
         return patched.splitlines(keepends=True) if is_list else patched
 
     if '(_root / "myst.yml").exists()' in text and 'sys.path.insert' in text:
+        # Fallback line-by-line replacement if indentation or formatting differs
         lines = text.splitlines(keepends=True)
         new_lines: list[str] = []
         skip = False
@@ -103,13 +87,13 @@ def patch_code_cell(source: str | list[str]) -> str | list[str]:
     return source
 
 
-def convert_with_jupytext(md_path: Path, ipynb_path: Path, jupytext_mod) -> None:
+def convert_with_jupytext(md_path: Path, ipynb_path: Path) -> None:
     """Convert MyST markdown to Jupyter notebook using jupytext."""
-    nb = jupytext_mod.read(md_path, fmt="myst")
+    nb = jupytext.read(md_path, fmt="myst")
     for cell in nb.cells:
         if cell.get("cell_type") == "code":
             cell["source"] = patch_code_cell(cell.get("source", ""))
-    jupytext_mod.write(nb, ipynb_path, fmt="notebook")
+    jupytext.write(nb, ipynb_path, fmt="notebook")
 
 
 def convert_with_fallback(md_path: Path, ipynb_path: Path) -> None:
@@ -130,6 +114,7 @@ def convert_with_fallback(md_path: Path, ipynb_path: Path) -> None:
     }
 
     i = 0
+    # Parse frontmatter if present
     if lines and lines[0].strip() == "---":
         i = 1
         while i < len(lines) and lines[i].strip() != "---":
@@ -159,6 +144,7 @@ def convert_with_fallback(md_path: Path, ipynb_path: Path) -> None:
             cell_meta: dict = {}
             code_lines: list[str] = []
 
+            # Check for directive tags e.g. :tags: [remove-cell]
             while i < len(lines) and lines[i].strip().startswith(":"):
                 tag_line = lines[i].strip()
                 if tag_line.startswith(":tags:"):
@@ -204,230 +190,141 @@ def convert_with_fallback(md_path: Path, ipynb_path: Path) -> None:
 
 def convert_md_to_ipynb(md_path: Path, ipynb_path: Path) -> None:
     """Convert MyST markdown to Jupyter notebook using jupytext or fallback."""
-    if ipynb_path.exists() or ipynb_path.is_symlink():
-        ipynb_path.unlink()
-    jupytext_mod = _get_jupytext()
-    if jupytext_mod is not None:
+    if jupytext is not None:
         try:
-            convert_with_jupytext(md_path, ipynb_path, jupytext_mod)
+            convert_with_jupytext(md_path, ipynb_path)
             return
         except Exception as exc:
             print(f"Warning: jupytext failed on {md_path} ({exc}); using fallback converter")
     convert_with_fallback(md_path, ipynb_path)
 
 
-def sync_file(src: Path, dst: Path, *, hardlink: bool = True, force: bool = False) -> bool:
-    """Sync src -> dst only when needed; returns True if dst was updated."""
-    if dst.exists() and not dst.is_symlink() and not force:
-        try:
-            if hardlink and os.path.samefile(src, dst):
-                return False
-        except OSError:
-            pass
-        s_stat = src.stat()
-        d_stat = dst.stat()
-        if s_stat.st_size == d_stat.st_size and s_stat.st_mtime_ns == d_stat.st_mtime_ns:
-            return False
+def stage_lite(root: Path, content_dir: Path, lite_contents_dir: Path, html_dir: Path) -> None:
+    print(f"=== Staging JupyterLite contents ===")
+    print(f"  Root:           {root}")
+    print(f"  Content dir:    {content_dir}")
+    print(f"  Lite contents:  {lite_contents_dir}")
+    print(f"  HTML dir:       {html_dir}")
 
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    # Unlink before replacing so we never mutate a shared hardlink target.
-    if dst.exists() or dst.is_symlink():
-        dst.unlink()
-    if hardlink:
-        try:
-            os.link(src, dst)
-            return True
-        except OSError:
-            pass
-    shutil.copy2(src, dst)
-    return True
-
-
-def needs_convert(md_path: Path, ipynb_path: Path, *, force: bool = False) -> bool:
-    if force or not ipynb_path.is_file():
-        return True
-    try:
-        dst_mtime = ipynb_path.stat().st_mtime_ns
-        src_mtime = max(md_path.stat().st_mtime_ns, SCRIPT_MTIME_NS)
-        return dst_mtime < src_mtime
-    except OSError:
-        return True
-
-
-def prune_stale(root_dir: Path, expected: set[Path]) -> int:
-    """Delete files in root_dir not present in expected, plus empty directories."""
-    if not root_dir.exists():
-        return 0
-    pruned = 0
-    for path in sorted(root_dir.rglob("*"), reverse=True):
-        if path.is_file() or path.is_symlink():
-            if path.resolve() not in expected:
-                path.unlink()
-                pruned += 1
-        elif path.is_dir():
-            try:
-                if not any(path.iterdir()):
-                    path.rmdir()
-            except OSError:
-                pass
-    return pruned
-
-
-def write_if_changed(path: Path, text: str, *, force: bool = False) -> bool:
-    if not force and path.is_file():
-        try:
-            if path.read_text(encoding="utf-8") == text:
-                return False
-        except OSError:
-            pass
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() or path.is_symlink():
-        path.unlink()
-    path.write_text(text, encoding="utf-8")
-    return True
-
-
-def is_excluded_content(parts: tuple[str, ...]) -> bool:
-    if parts[0] in EXCLUDED_TOP_DIRS:
-        return True
-    if parts[:2] == ("reference", "api"):
-        return True
-    if any(p.startswith(".") for p in parts):
-        return True
-    if any(p == "__pycache__" for p in parts):
-        return True
-    return False
-
-
-def stage_notebooks_only(
-    content_dir: Path, download_dir: Path, *, force: bool = False
-) -> None:
-    download_dir.mkdir(parents=True, exist_ok=True)
-    expected_downloads: set[Path] = set()
-    converted = 0
-    skipped = 0
-
-    for item in sorted(content_dir.rglob("*.md")):
-        if not item.is_file():
-            continue
-        rel = item.relative_to(content_dir)
-        if is_excluded_content(rel.parts):
-            continue
-        text = item.read_text(encoding="utf-8")
-        if "```{code-cell}" in text or "```code-cell" in text:
-            download_dest = download_dir / rel.with_suffix(".ipynb")
-            expected_downloads.add(download_dest.resolve())
-            if needs_convert(item, download_dest, force=force):
-                download_dest.parent.mkdir(parents=True, exist_ok=True)
-                convert_md_to_ipynb(item, download_dest)
-                converted += 1
-            else:
-                skipped += 1
-
-    pruned = prune_stale(download_dir, expected_downloads)
-    print(
-        f"Notebooks staged ({download_dir}): "
-        f"converted={converted}, unchanged={skipped}, pruned={pruned}"
-    )
-
-
-def stage_lite(
-    root: Path,
-    content_dir: Path,
-    lite_contents_dir: Path,
-    download_dir: Path,
-    *,
-    force: bool = False,
-) -> None:
+    # 1. Clean and create lite_contents directory
+    if lite_contents_dir.exists():
+        shutil.rmtree(lite_contents_dir)
     lite_contents_dir.mkdir(parents=True, exist_ok=True)
-    download_dir.mkdir(parents=True, exist_ok=True)
 
-    expected_lite: set[Path] = set()
-    expected_downloads: set[Path] = set()
-    copied = 0
-    skipped = 0
-    converted = 0
-
-    def record_copy(src: Path, dst: Path) -> None:
-        nonlocal copied, skipped
-        expected_lite.add(dst.resolve())
-        if sync_file(src, dst, hardlink=True, force=force):
-            copied += 1
-        else:
-            skipped += 1
-
-    # 1. Sync tvbl package and tvbl_docs.py to lite_contents root
+    # 2. Copy tvbl package and tvbl_docs.py to lite_contents root
     tvbl_src = content_dir / "_code" / "tvbl"
     tvbl_dest = lite_contents_dir / "tvbl"
     if tvbl_src.exists():
-        for item in sorted(tvbl_src.rglob("*")):
-            if not item.is_file():
-                continue
-            rel_tvbl = item.relative_to(tvbl_src)
-            if any(p == "__pycache__" or p.startswith(".") for p in rel_tvbl.parts):
-                continue
-            if item.suffix in {".pyc", ".nbc", ".nbi"} or item.name.startswith("test_"):
-                continue
-            record_copy(item, tvbl_dest / rel_tvbl)
+        shutil.copytree(
+            tvbl_src,
+            tvbl_dest,
+            ignore=shutil.ignore_patterns(
+                "__pycache__", "*.pyc", "*.nbc", "*.nbi", "test_*.py"
+            ),
+        )
+        print(f"Copied {tvbl_src} -> {tvbl_dest}")
     else:
         print(f"Warning: {tvbl_src} does not exist!")
 
     tvbl_docs_src = content_dir / "_code" / "tvbl_docs.py"
+    tvbl_docs_dest = lite_contents_dir / "tvbl_docs.py"
     if tvbl_docs_src.exists():
-        record_copy(tvbl_docs_src, lite_contents_dir / "tvbl_docs.py")
+        shutil.copy2(tvbl_docs_src, tvbl_docs_dest)
+        print(f"Copied {tvbl_docs_src} -> {tvbl_docs_dest}")
 
+    # Ensure sys.path in Lite finds root if launched from anywhere
     sitecustomize_path = lite_contents_dir / "sitecustomize.py"
-    expected_lite.add(sitecustomize_path.resolve())
-    if write_if_changed(sitecustomize_path, SITECUSTOMIZE_TEXT, force=force):
-        copied += 1
-    else:
-        skipped += 1
+    sitecustomize_path.write_text(
+        'import sys, pathlib\n'
+        'for _dir in [pathlib.Path("/drive"), pathlib.Path.cwd(), *pathlib.Path.cwd().parents]:\n'
+        '    if (_dir / "tvbl_docs.py").exists() and str(_dir) not in sys.path:\n'
+        '        sys.path.insert(0, str(_dir))\n'
+        '        break\n',
+        encoding="utf-8",
+    )
 
-    # 2. Sync README.md
+    # 3. Copy README.md to lite_contents
     readme_src = root / "README.md"
+    readme_dest = lite_contents_dir / "README.md"
     if readme_src.exists():
-        record_copy(readme_src, lite_contents_dir / "README.md")
+        shutil.copy2(readme_src, readme_dest)
+        print(f"Copied {readme_src} -> {readme_dest}")
 
-    # 3. Walk content/ and incrementally sync/convert files
+    # 4. Walk content/ and copy/convert files
+    copied_count = 0
+    converted_count = 0
+    download_dir = html_dir / "notebooks"
+    download_dir.mkdir(parents=True, exist_ok=True)
+
     for item in sorted(content_dir.rglob("*")):
         if not item.is_file():
             continue
 
         rel = item.relative_to(content_dir)
         parts = rel.parts
-        if is_excluded_content(parts):
+
+        # Skip excluded dirs and files
+        if parts[0] in ("_code", "_static", "_templates", ".refs-cache.json"):
+            continue
+        if parts[:2] == ("reference", "api"):
+            continue
+        if any(p.startswith(".") for p in parts):
+            continue
+        if any(p == "__pycache__" for p in parts):
             continue
 
         dest = lite_contents_dir / rel
 
-        if item.suffix in {".ipynb", ".py"} or item.suffix in DATA_EXTENSIONS or item.suffix in FIGURE_EXTENSIONS or "figures" in parts:
-            record_copy(item, dest)
+        # Case A: Notebooks
+        if item.suffix == ".ipynb":
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, dest)
+            copied_count += 1
+
+        # Case B: Python scripts
+        elif item.suffix == ".py":
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, dest)
+            copied_count += 1
+
+        # Case C: Data files
+        elif item.suffix in DATA_EXTENSIONS:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, dest)
+            copied_count += 1
+
+        # Case D: Figures and images
+        elif item.suffix in FIGURE_EXTENSIONS or "figures" in parts:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, dest)
+            copied_count += 1
+
+        # Case E: Markdown files
         elif item.suffix == ".md":
             text = item.read_text(encoding="utf-8")
             if "```{code-cell}" in text or "```code-cell" in text:
+                # Convert executable markdown to ipynb
                 nb_dest = dest.with_suffix(".ipynb")
-                expected_lite.add(nb_dest.resolve())
-                if needs_convert(item, nb_dest, force=force):
-                    nb_dest.parent.mkdir(parents=True, exist_ok=True)
-                    convert_md_to_ipynb(item, nb_dest)
-                    converted += 1
-                else:
-                    skipped += 1
+                nb_dest.parent.mkdir(parents=True, exist_ok=True)
+                convert_md_to_ipynb(item, nb_dest)
+                converted_count += 1
 
+                # Copy to downloadable notebooks folder
                 download_dest = download_dir / rel.with_suffix(".ipynb")
-                expected_downloads.add(download_dest.resolve())
-                sync_file(nb_dest, download_dest, hardlink=True, force=force)
-            elif any(p in ("demos", "lab") for p in parts):
-                record_copy(item, dest)
+                download_dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(nb_dest, download_dest)
+            else:
+                # Non-executable markdown docs in demos or lab
+                if any(p in ("demos", "lab") for p in parts):
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(item, dest)
+                    copied_count += 1
 
-    pruned_lite = prune_stale(lite_contents_dir, expected_lite)
-    pruned_dl = prune_stale(download_dir, expected_downloads)
-
-    print(
-        f"Staged Lite contents ({lite_contents_dir}): "
-        f"updated={copied}, converted={converted}, unchanged={skipped}, "
-        f"pruned={pruned_lite + pruned_dl}"
-    )
+    print(f"\nStaging complete!")
+    print(f"  Copied files:     {copied_count}")
+    print(f"  Converted .md:    {converted_count}")
+    print(f"  Lite contents at: {lite_contents_dir}")
+    print(f"  Downloads at:     {download_dir}")
 
 
 def main() -> None:
@@ -440,24 +337,14 @@ def main() -> None:
                         help="Output directory (default: <root>/_build/lite_contents)")
     parser.add_argument("--html", type=Path, default=None,
                         help="HTML build directory (default: <root>/_build/html)")
-    parser.add_argument("--notebooks-dir", type=Path, default=None,
-                        help="Downloadable notebooks directory (default: <html_dir>/notebooks)")
-    parser.add_argument("--notebooks-only", action="store_true",
-                        help="Only convert executable markdown files into notebooks-dir")
-    parser.add_argument("--force", action="store_true",
-                        help="Force re-copying and re-converting all files")
 
     args = parser.parse_args()
     root = args.root.resolve()
     content_dir = (args.content or (root / "content")).resolve()
     lite_contents_dir = (args.output or (root / "_build" / "lite_contents")).resolve()
     html_dir = (args.html or (root / "_build" / "html")).resolve()
-    download_dir = (args.notebooks_dir or (html_dir / "notebooks")).resolve()
 
-    if args.notebooks_only:
-        stage_notebooks_only(content_dir, download_dir, force=args.force)
-    else:
-        stage_lite(root, content_dir, lite_contents_dir, download_dir, force=args.force)
+    stage_lite(root, content_dir, lite_contents_dir, html_dir)
 
 
 if __name__ == "__main__":

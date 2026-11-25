@@ -12,7 +12,6 @@ content/_code/**/__pycache__/
 .jupyterlite.doit.db
 *.doit.db
 cockle_wasm_env/
-.cockle_temp/
 dist/
 local-channel/
 environment.ci.yml

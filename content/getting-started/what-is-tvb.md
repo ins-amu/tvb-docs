@@ -41,7 +41,7 @@ The main components of a TVB simulation are:
 
 - **As a Python library:** the `tvb-library` package, which these docs
   focus on. You build and run simulations in scripts or notebooks. See
-  [Installation](installation.md).
+  [Installation](installation.md) and [Quickstart guide](quickstart-guide.md). 
 
 % REVIEW: decide how prominently to feature the TVB website and web interface.
 - **Through the web interface:** TVB also has a graphical interface, available

@@ -117,9 +117,9 @@ the diagonal zeroed.
 | `'region'` | largest absolute row sum (in-strength) | row sums will be in range 0-1 |
 | `'none'`, `None` | 1.0 | no change to the original weights |
 
-If these options are insufficient, you may wish to normalize weights matrix outside of the TVB library. For one subject you might wish to normalize to the largest value. Alternatively, for a population study you may wish to pick a single normalization constant across all subjects an normalize without the use of the `scaled_weights` method. Log normalization is also an option.
+If these options are insufficient, you may wish to normalize weights matrix outside of the TVB ecosystem. For example, in a population study you may wish to pick a single normalization constant across all subjects an normalize without the use of the `scaled_weights` method. Log normalization is also an option. Neither one of these two methods are provided by TVB.
 
-**Global coupling** 
+While normalization should be viewed as part of preprocessing, coupling functions can have similar effects on the weights, see **global coupling**
 
 The [coupling page](bb-coupling.md) covers the gain side.
 
@@ -135,7 +135,7 @@ If you supply `centres` but not `tract_lengths`, `configure()` fills them with
 Euclidean distances between region centres. That is a straight-line proxy.
 
 `speed` is one number for the whole network, or a full matrix if you want
-heterogeneous conduction speeds. Its unit is mm/ms, and the default is 3.0. Recommendation for a different speed (3.8) may  be found here [TODO cite]
+heterogeneous conduction speeds. Its unit is mm/ms, and the default is 3.0. Recommendation for a different speed (3.8) may be found here [TODO cite]
 
 ### How delays are computed
 

@@ -6,7 +6,7 @@ bibliography:
 
 # What is TVB?
 
-The Virtual Brain (TVB) is an open-source ecosystem for whole-brain modeling. It represents the brain as a network of regions, each described by a neural mass model: a low-dimensional set of equations capturing the collective activity of a large population of neurons. Regions are linked according to structural connectivity data. Simulating how activity evolves across this network produces signals that can be compared with measured brain activity, such as EEG, MEG or fMRI recordings.
+The Virtual Brain (TVB) is an open-source ecosystem for whole-brain modeling. It represents the brain as a network of regions, each described by a neural mass model: a low-dimensional set of equations capturing the collective activity of a large population of neurons. Regions are linked according to structural connectivity data. Simulating how activity evolves across this network produces signals that can be compared with measured brain activity, such as sEEG, EEG, MEG or fMRI recordings.
 
 ## How a simulation works
 
@@ -34,7 +34,7 @@ The main components of a TVB simulation are:
 
 - **As a Python library:** the `tvb-library` package, which these docs
   focus on. You build and run simulations in scripts or notebooks. See
-  [Installation](installation.md).
+  [Installation](installation.md) and [Quickstart guide](quickstart-guide.md).
 
 % REVIEW: decide how prominently to feature the TVB website and web interface.
 - **Through the web interface:** TVB also has a graphical interface, available
@@ -56,7 +56,7 @@ contributing (TO ADD).
 
 ## Citing TVB
 
-If you use TVB in published work, please cite the following papers:
+If you use TVB, please cite the following papers:
 
 - [@sanzleon2013]
 - [@schirner2022]

@@ -22,7 +22,7 @@ then follow [Installation](content/getting-started/installation.md) instructions
 | --- | --- | --- |
 | **Getting started** | What TVB is, how to install it, and a first simulation | [What is TVB?](content/getting-started/what-is-tvb.md) |
 | **User guide** | How to build, run and analyse simulations: building blocks, preparing data, understanding output, parameter sweeps, inference, high-performance computing and high-resolution simulations | [Mathematical framework](content/user-guide/mathematical-framework.md) |
-| **Model zoo** | Detailed explanations of the neural mass models available in TVB, and how to add your own | [Introduction](content/model-zoo/intro.md) |
+| **Model zoo** | Detailed explanations of the neural mass models available in TVB, and instructions how to add your own | [Introduction](content/model-zoo/intro.md) |
 | **API reference** | Technical reference for TVB's code | TO ADD |
 | **Extended tutorials** | Complete worked examples for specific research applications | TO ADD |
 

@@ -15,6 +15,7 @@ import argparse
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -25,8 +26,9 @@ DRY_RUN = False
 
 TASKS = {
     "setup": "Create .venv and install pinned dependencies from uv.lock",
+    "apidoc": "Generate native MyST API reference pages for tvb",
     "refs": "Validate BibTeX citations against Crossref API",
-    "docs": "Build MyST HTML docs with execution and stage JupyterLite contents",
+    "docs": "Build MyST HTML docs with API reference, execution, and JupyterLite staging",
     "test": "Run unit tests and reference checks",
     "check": "Run the exact checks CI runs on PRs (refs + docs)",
     "lite-setup": "Create ~/.micromamba/envs/build-tvbl from build-environment.yml",
@@ -40,7 +42,9 @@ CLEAN_PATHS = (
     "_build/site",
     "_build/html",
     "_build/execute",
+    "_build/apidoc",
     "_build/lite_contents",
+    ".myst.apidoc.yml",
     ".jupyterlite.doit.db",
     "cockle_wasm_env",
 )
@@ -138,20 +142,27 @@ def task_setup() -> None:
     run(["uv", "pip", "sync", "requirements/uv.lock"])
 
 
+def task_apidoc() -> None:
+    run(["uv", "run", "python", "-m", "tools.apidoc"])
+
+
 def task_refs() -> None:
     run([python_cmd(), "tools/check_refs.py", "content/references.bib"])
 
 
 def task_docs() -> None:
-    run(["uv", "run", "myst", "build", "--execute", "--html"])
+    task_apidoc()
+    run(["uv", "run", "myst", "build", "--config", ".myst.apidoc.yml", "--execute", "--html"])
     run(["node", "tools/build_glossary.mjs"])
+    run(["node", "tools/build_site_search.mjs"])
     run(["uv", "run", "python", "tools/stage_lite.py"])
 
 
 def task_test() -> None:
+    run(["node", "--test", "tests/test_site_search.mjs"])
     run(
-        ["uv", "run", "--with", "pytest", "pytest", "-q", tvbl_test_dir()],
-        env=build_env({"PYTHONPATH": "content/_code"}),
+        ["uv", "run", "--with", "pytest", "pytest", "-q", "tests", tvbl_test_dir()],
+        env=build_env({"PYTHONPATH": f".{os.pathsep}content/_code"}),
     )
     task_refs()
 
@@ -206,17 +217,31 @@ def watch_state() -> dict[Path, int]:
     return state
 
 
+def find_free_port(start: int = 8000, max_tries: int = 100) -> int:
+    """Return `start` if available, otherwise the first free port after it."""
+    for port in range(start, start + max_tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
+                sock.bind(("", port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"No free port found in range {start}..{start + max_tries - 1}")
+
+
 def task_serve() -> None:
     """Serve the built site, rebuilding the docs whenever a source changes."""
     task_docs()
 
+    port = find_free_port(8000)
+    print(f"+ serving _build/html at http://localhost:{port}", flush=True)
     server = subprocess.Popen(
-        [python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"],
+        [python_cmd(), "-m", "http.server", str(port), "--directory", "_build/html"],
         cwd=ROOT,
         env=build_env(),
     )
     # Without this, `kill <pid>` would skip the cleanup below and leave
-    # http.server orphaned on port 8000. Ctrl+C is handled by main().
+    # http.server orphaned. Ctrl+C is handled by main().
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
     try:
         state = watch_state()
@@ -246,6 +271,16 @@ def task_clean() -> None:
             shutil.rmtree(path)
         elif path.exists() or path.is_symlink():
             path.unlink()
+    api_dir = ROOT / "content" / "reference" / "api"
+    if api_dir.is_dir():
+        for item in api_dir.iterdir():
+            if item.name != "index.md":
+                print(f"+ rm -f content/reference/api/{item.name}", flush=True)
+                if not DRY_RUN:
+                    if item.is_dir():
+                        shutil.rmtree(item)
+                    else:
+                        item.unlink()
 
 
 def main(argv: list[str] | None = None) -> int:

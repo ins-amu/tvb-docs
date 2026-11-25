@@ -1,6 +1,6 @@
 # Glossary
 
-Hover over a green link to preview its definition. Select a term to jump to its entry.
+[Search glossary terms and definitions](#search-glossary), or browse the entries below. Hover over a green link to preview its definition.
 
 ## A–B
 
@@ -171,6 +171,9 @@ Initial condition
 Integrator
 : A numerical method for advancing the model state in time.
 
+Isotropic material
+: A material that is isotropic behaves in precisely the same way regardless of how it is oriented with respect to sources, fields, and other materials.
+
 Jacobian
 : The matrix of first partial derivatives of a vector-valued function, used to linearise dynamics near a state.
 
@@ -179,6 +182,9 @@ Lead field
 
 Limit cycle
 : An isolated periodic orbit in state space, which may be attracting, repelling, or neither.
+
+Linear material
+: A material is said to be linear if its properties do not depend on the sources and fields applied to the material.
 
 Local coupling
 : Interactions among nearby sites or populations, distinguished in TVB surface simulations from long-range connections between regions.
@@ -355,6 +361,9 @@ Vector field
 
 Weight normalisation
 : Rescaling connection weights according to a rule, such as dividing each row by its sum.
+
+White matter
+: Brain tissue composed predominantly of myelinated axons that connect different regions of the central nervous system, facilitating communication between them.
 
 White noise
 : Noise with no temporal correlation and a flat power spectrum in the idealised continuous-time limit.

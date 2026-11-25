@@ -75,7 +75,7 @@ fig
 
 ```{marimo} python
 mo.md("The same model, coupled across a network, is simulated and inferred on the "
-      "[Tutorial](../tutorials/tvbl-quickstart.md) and [How-to](../howtos/tvbl-inference.md) pages.")
+      "[Tutorial](../../tutorials/tvbl-quickstart.md) and [How-to](../../howtos/tvbl-inference.md) pages.")
 ```
 
 ## Paper Reference

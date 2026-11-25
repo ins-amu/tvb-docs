@@ -96,6 +96,10 @@ parts:
           - file: content/model-zoo/new-model-testing.md
           - file: content/model-zoo/new-model-notebook-phaseplane.md
 
+  - caption: Reference
+    chapters:
+      - file: content/reference/api/index.md
+
   - caption: Old Tutorials
     chapters:
       - file: content/tutorials/index.md
@@ -166,7 +170,6 @@ parts:
   - caption: Old Reference
     chapters:
       - file: content/reference/index.md
-      - file: content/reference/api/index.md
       - title: Model cards
         sections:
           - file: content/reference/model-cards/wilson-cowan.md

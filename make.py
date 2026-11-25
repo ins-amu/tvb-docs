@@ -15,6 +15,7 @@ import argparse
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -215,17 +216,31 @@ def watch_state() -> dict[Path, int]:
     return state
 
 
+def find_free_port(start: int = 8000, max_tries: int = 100) -> int:
+    """Return `start` if available, otherwise the first free port after it."""
+    for port in range(start, start + max_tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
+                sock.bind(("", port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"No free port found in range {start}..{start + max_tries - 1}")
+
+
 def task_serve() -> None:
     """Serve the built site, rebuilding the docs whenever a source changes."""
     task_docs()
 
+    port = find_free_port(8000)
+    print(f"+ serving _build/html at http://localhost:{port}", flush=True)
     server = subprocess.Popen(
-        [python_cmd(), "-m", "http.server", "8000", "--directory", "_build/html"],
+        [python_cmd(), "-m", "http.server", str(port), "--directory", "_build/html"],
         cwd=ROOT,
         env=build_env(),
     )
     # Without this, `kill <pid>` would skip the cleanup below and leave
-    # http.server orphaned on port 8000. Ctrl+C is handled by main().
+    # http.server orphaned. Ctrl+C is handled by main().
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
     try:
         state = watch_state()

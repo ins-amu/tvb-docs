@@ -57,7 +57,7 @@ Conduction speed
 Connectome
 : A network representation of anatomical connections. In TVB, a regional connectome typically supplies connection weights and tract lengths.
 
-  [Explanation: The connectome](explanation/connectome.md)
+  [Building Blocks: Connectivity](user-guide/bb-connectivity.md)
 
 Control parameter
 : A parameter varied to examine how a model’s dynamics change.
@@ -77,6 +77,9 @@ Covariance
 Criticality
 : A regime near a transition where small parameter changes can qualitatively alter collective dynamics.
 
+Diffusion MRI
+: MRI methods that measure water diffusion in tissue and support tractography of {term}`white-matter <White matter>` pathways.
+
 Diffusion-weighted MRI
 : MRI sensitive to water diffusion, used by {term}`tractography <Tractography>` to estimate possible white-matter pathways.
 
@@ -84,7 +87,7 @@ Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
 Dynamical noise
-: Stochastic forcing $w_i(t)$ added to node $i$'s state dynamics; stochastic integration applies its increment during each update.
+: Stochastic forcing $g(\psi_i)\xi_i(t)$ applied during integration; $g$ sets its amplitude and can depend on the node's state.
 
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
@@ -145,8 +148,14 @@ Global coupling
 Haemodynamic response
 : The changes in blood flow, volume, and oxygenation that follow neural activity.
 
+Heterogeneous connectivity
+: Coupling that varies by source and target, as with long-range white-matter pathways linking different brain regions.
+
 Heun method
 : A predictor–corrector integrator that averages derivatives evaluated at the initial state and an Euler prediction.
+
+Homogeneous connectivity
+: A connectivity rule whose coupling depends on spatial separation and is invariant under translation across the cortical sheet.
 
 Hopf bifurcation
 : A {term}`bifurcation <Bifurcation>` in which a fixed point changes stability and a nearby periodic orbit appears or disappears.
@@ -201,7 +210,7 @@ Multiplicative noise
 
 :::{glossary}
 Neural field model
-: A model of population activity over cortical space. TVB approximates a continuous neural field with neural masses at cortical mesh vertices.
+: A continuous spatial model of neural activity, often a PDE. TVB approximates it with discrete neural masses; see [High Resolution](user-guide/hr/classic.md).
 
 Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
@@ -243,8 +252,14 @@ Posterior
 Postsynaptic potential
 : A change in membrane potential caused by synaptic input, averaged over a population in a neural mass model.
 
+Postsynaptic transformation
+: In network coupling, $Z^{(a)}$ acts on the weighted sum of incoming contributions at the receiving node.
+
 Power spectral density
 : Signal power per unit frequency, describing how variance is distributed across frequencies.
+
+Presynaptic transformation
+: In network coupling, $S^{(a)}$ transforms each source-to-target contribution before connection weights are summed.
 
 Prior
 : A probability distribution representing parameter uncertainty before conditioning on the current observations.
@@ -367,6 +382,9 @@ Wave-to-pulse transform
 
 Weight normalisation
 : Rescaling connection weights according to a rule, such as dividing each row by its sum.
+
+White matter
+: Brain tissue containing axonal pathways that connect distant neuronal populations; myelin surrounds many of these axons.
 
 White noise
 : Noise with no temporal correlation and a flat power spectrum in the idealised continuous-time limit.

@@ -82,6 +82,7 @@ Criticality
 
 Diffusion MRI
 : MRI methods that measure water diffusion in tissue and support tractography of {term}`white-matter <White matter>` pathways.
+
 Delay
 : The lag between activity at one node and its arrival at another. Delays give a network simulation a {term}`history <History>`.
 
@@ -164,6 +165,7 @@ Heun method
 
 Homogeneous connectivity
 : A connectivity rule whose coupling depends on spatial separation and is invariant under translation across the cortical sheet.
+
 History
 : The record of a node's past states over its {term}delay <Delay>, allowing states from previous integration steps to influence neighbouring nodes.
 

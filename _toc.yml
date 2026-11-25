@@ -260,5 +260,4 @@ parts:
     file: content/glossary.md
 
   - caption: About
-    chapters:
-      - file: content/about/about-this-site.md
+    file: content/about/about-this-site.md

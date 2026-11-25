@@ -132,26 +132,46 @@ def test_callgraph_and_star_import_backlinks() -> None:
     assert len(backlinks.get("tvb.simulator.simulator.Simulator", [])) >= 10
 
 
-def test_single_page_part_becomes_leaf_toc_entry(tmp_path: Path) -> None:
-    """A `_toc.yml` part given `file:` (not `chapters:`) links straight to its page."""
+def test_toc_parts_match_their_shape_in_source(tmp_path: Path) -> None:
+    """No part may render as a one-page dropdown: `_toc.yml` parts holding a single
+    plain page (`file:` instead of `chapters:`, or a lone chapter file) become leaf
+    links; everything else stays a group with one child per chapter."""
     import yaml
 
     from tools.apidoc import render
+
+    repo_root = find_repo_root()
+    parts = yaml.safe_load((repo_root / "_toc.yml").read_text(encoding="utf-8"))["parts"]
 
     real_tree = render.build_api_toc_tree
     render.build_api_toc_tree = lambda _pkg: []  # API tree irrelevant here
     out = tmp_path / "myst.yml"
     try:
-        write_merged_myst_config(find_repo_root(), object(), out)  # type: ignore[arg-type]
+        write_merged_myst_config(repo_root, object(), out)  # type: ignore[arg-type]
     finally:
         render.build_api_toc_tree = real_tree
 
     toc = yaml.safe_load(out.read_text(encoding="utf-8"))["project"]["toc"]
-    assert [e for e in toc if e.get("title") == "Glossary"] == [
-        {"file": "content/glossary.md", "title": "Glossary"}
-    ]
-    about = [e for e in toc if e.get("title") == "About"]
-    assert about and "children" in about[0], "parts with chapters stay groups"
+    by_title = {e["title"]: e for e in toc if "title" in e}
+    assert len(by_title) == len(parts), "every part gets exactly one TOC entry"
+
+    for part in parts:
+        chapters = part.get("chapters", [])
+        single_page = "file" in part and not chapters
+        lone_page = len(chapters) == 1 and "file" in chapters[0] and not chapters[0].get("sections")
+        entry = by_title[part["caption"]]
+
+        if single_page or lone_page:
+            page = part["file"] if single_page else chapters[0]["file"]
+            assert entry == {"file": page, "title": part["caption"]}, (
+                f"part {part['caption']!r} holds a single page and must be a leaf link"
+            )
+        else:
+            assert "file" not in entry and entry.get("children"), (
+                f"part {part['caption']!r} must stay a group"
+            )
+            assert len(entry["children"]) == len(chapters)
+
 
 
 def test_generated_api_integrity_when_present() -> None:

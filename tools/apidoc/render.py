@@ -630,6 +630,22 @@ def build_api_toc_tree(pkg: LoadedPackage) -> list[dict]:
     return tree
 
 
+def _single_page_file(part: dict) -> str | None:
+    """Page file when a `_toc.yml` part holds one plain page, else None.
+
+    Declared as `- caption: X` + `file:` or as a single `chapters:` entry without
+    `sections`. Such a part must not become a dropdown around its only child.
+    """
+    chapters = part.get("chapters", [])
+    if "file" in part and not chapters:
+        return part["file"]
+    if len(chapters) == 1:
+        chapter = chapters[0]
+        if "file" in chapter and not chapter.get("sections"):
+            return chapter["file"]
+    return None
+
+
 def write_merged_myst_config(repo_root: Path, pkg: LoadedPackage, out_config: Path) -> Path:
     """Merge `myst.yml` + `_toc.yml` + generated API tree into a gitignored `.myst.apidoc.yml`."""
     myst_cfg = yaml.safe_load((repo_root / "myst.yml").read_text(encoding="utf-8"))
@@ -638,10 +654,11 @@ def write_merged_myst_config(repo_root: Path, pkg: LoadedPackage, out_config: Pa
     api_tree = build_api_toc_tree(pkg)
     myst_toc: list[dict] = [{"file": toc_cfg["root"]}]
     for part in toc_cfg.get("parts", []):
-        if "file" in part and "chapters" not in part:
-            # Single-page part (`- caption: X` + `file:`): link straight to the page
-            # instead of wrapping it in a one-child collapsible group.
-            myst_toc.append({"file": part["file"], "title": part["caption"]})
+        single_page = _single_page_file(part)
+        if single_page is not None:
+            # One-page part: link straight to the page instead of wrapping it in
+            # a one-child collapsible group.
+            myst_toc.append({"file": single_page, "title": part["caption"]})
             continue
         part_entry: dict = {"title": part["caption"]}
         if "chapters" in part:

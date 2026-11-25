@@ -58,6 +58,9 @@ parts:
       - title: Inference
         sections:
           - file: content/user-guide/inference.md
+          - file: content/user-guide/inference/npe-montbrio.md
+          - file: content/user-guide/inference/posterior-calibration.md
+          - file: content/user-guide/inference/erp-likelihood.md
 
       - title: HPC
         sections:

@@ -1,6 +1,6 @@
 # Glossary
 
-Hover over a green link to preview its definition. Select a term to jump to its entry.
+[Search glossary terms and definitions](#search-glossary), or browse the entries below. Hover over a green link to preview its definition.
 
 ## A–B
 

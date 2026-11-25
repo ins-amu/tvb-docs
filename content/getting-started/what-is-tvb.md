@@ -10,7 +10,6 @@ The Virtual Brain (TVB) is an open-source ecosystem for whole-brain modeling.
 It represents the brain as a network of regions, each described by
 a neural mass model: a low-dimensional set of equations capturing the
 collective activity of a large population of neurons.
-are derived from networks of spiking neurons; others are phenomenological,
 designed to reproduce particular dynamics directly. Regions are linked
 according to anatomical data, and simulating how activity evolves across this
 network produces signals that can be compared with measured brain activity,

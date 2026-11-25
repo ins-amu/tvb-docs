@@ -7,7 +7,7 @@ bibliography:
 # Connectivity
 
 The {term}`connectome` is the anatomical scaffold of a TVB simulation. The
-dynamics live in the {term}`neural mass model` at each {term}`node`; the
+dynamics live in the {term}`neural mass model` of each {term}`node`; the
 connectome decides which nodes can influence each other, how strongly, and
 with what delay.
 
@@ -22,7 +22,7 @@ This page covers three topics. Jump to whichever you need.
 (role)=
 ## What the connectome does in a simulation
 
-The connectome is a mathematical representation of how the individual brain regions are interconnected. It consists of two matrices. One representing connection strengths, and the second one representing the delay (or length) of those connections. While the individual nodes hold their state, the connectome holds the information on which nodes this state affects and with how much delay.
+The connectome is a mathematical representation of how the individual brain regions are interconnected. It consists of two matrices. One representing connection strengths, and the second one representing the delay (or length, see [tract lengths](#delays) for more details) of those connections. While the individual nodes hold their state, the connectome holds the information on which nodes this state affects and with how much delay.
 
 ### Nodes come from a parcellation
 
@@ -33,13 +33,13 @@ size of the network. TVB places no constraint on how many regions you use.
 ### Edges come from tractography
 
 The {term}`edges <Edge>` are inferred from {term}`Diffusion-weighted MRI`.
-{term}`Tractography` algorithms follow directional bias through the volume, tracing candidate pathways called {term}`streamlines <Streamline>`, from one voxel to the next.
+{term}`Tractography` algorithms follow **directional bias** through the volume, tracing candidate pathways called {term}`streamlines <Streamline>`, from one voxel to the next. These streamlines represent white matter bundles.
 
-The endpoints of the streamlines are assigned to parcels. Counting the number of streamlines between region k and region j gives the edge weight, the standard proxy for how much wiring connects them. [TODO cite]. The
+The endpoints of the streamlines are assigned to parcels. Counting the number of streamlines between region k and region j gives the edge weight, the standard proxy for how strong the connection between them is. [TODO cite]. The
 streamline path length gives the edge's physical distance, which becomes a
 delay once a {term}`conduction speed`[TODO cite] is assumed.
 
-### What the simulator reads out of it [TODO RENAME]
+### How the simulator uses the connectome data
 
 The connection weights become the coupling term. For region $k$, the delayed
 activity arriving from the rest of the network is
@@ -55,7 +55,7 @@ where $u_{kj}$ is the weight from region $j$ to region $k$, $\ell_{kj}$ is the
 
 
 (object)=
-## What the object holds [TODO RENAME]
+## Description of the Connectivity class
 
 `tvb.datatypes.connectivity.Connectivity` is a collection of arrays, all indexed
 by region. $l$ is the number of regions.
@@ -72,7 +72,7 @@ For a definitive API reference, see [TODO link api reference].
 | `centres` | yes | $(l, 3)$ | mm | you | Required for surfaces and forward models. Can be approximated by the `centres_*()` methods. |
 | `region_labels` | yes | $(l,)$ str | - | you | Fallback: `create_region_labels()`, which generates `region_000`, `region_001`, … |
 | `cortical` | no | $(l,)$ bool | - | you | Cortex or not. |
-| `hemispheres` | no | $(l,)$ bool | - | you | `True` is right. Fallback: label prefix. |
+| `hemispheres` | no | $(l,)$ bool | - | you | `True' corresponds to the right hemisphere. Fallback: label prefix. |
 | `orientations` | no | $(l, 3)$ | unit vector | you | Zeros where unknown. |
 | `areas` | no | $(l,)$ | mm² | you | Surface area per region. |
 | `undirected` | - | bool | - | derived | False by default, set to True if weights are a symetrical matrix |
@@ -86,7 +86,7 @@ Only `weights` lacks any form of fallback. All other parameters either have a fa
 ---
 
 (weights-section)=
-## Weights
+### Weights
 
 `weights[k, j]` is the strength of the projection **from region $j$ onto region
 $k$**. Rows index targets, columns index sources.
@@ -102,12 +102,12 @@ by hand.
 The matrix is directed by default unless it happens to be symmetric. `configure()` sets
 `undirected` to `True` when it finds an exactly symmetric matrix.
 
-### The diagonal
+#### The diagonal
 
 Self-connections live on the diagonal, and the library does not remove these by default. `transform_remove_self_connections()` returns a copy with
 the diagonal zeroed.
 
-### Normalization
+#### Normalization
 
 `scaled_weights(mode)` returns a scaled copy; it does not modify `self`.
 
@@ -124,20 +124,20 @@ While normalization should be viewed as part of preprocessing, coupling function
 The [coupling page](bb-coupling.md) covers the gain side.
 
 ---
-
-## Tract lengths, conduction speed and delays
+(delays)=
+### Tract lengths, conduction speed and delays
 
 `tract_lengths[k, j]` is the physical length of the fibre pathway between
-regions $k$ and $j$, in millimetres. Tractography cannot tell direction, so
+regions $k$ and $j$, in millimetres. The matrix [TODO FINISH] Tractography cannot tell direction, so
 these matrices come out symmetric; nothing in TVB enforces that.
 
 If you supply `centres` but not `tract_lengths`, `configure()` fills them with
-Euclidean distances between region centres. That is a straight-line proxy.
+Euclidean distances between region centres. That is a straight-line proxy, not recommended.
 
 `speed` is one number for the whole network, or a full matrix if you want
 heterogeneous conduction speeds. Its unit is mm/ms, and the default is 3.0. Recommendation for a different speed (3.8) may be found here [TODO cite]
 
-### How delays are computed
+#### How delays are computed
 
 $$
 \tau_{kj} = \frac{\ell_{kj}}{v_{kj}}
@@ -164,7 +164,7 @@ The history buffer scales with $\max(\tau) / \Delta t$. Long tracts and small
 steps both cost memory, and this is usually the limit on how long a delay a
 simulation can carry.
 
-### Causality at the two scales
+#### Causality at the two scales
 
 Short-range connections on a cortical surface are treated as instantaneous within one integration step. Their
 influence spreads one step at a time. See [local connectivity

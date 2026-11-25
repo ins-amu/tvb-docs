@@ -74,8 +74,14 @@ Covariance
 Criticality
 : A regime near a transition where small parameter changes can qualitatively alter collective dynamics.
 
+Delay
+: The lag between activity at one node and its arrival at another. Delays give a network simulation a {term}`history <History>`.
+
 Diffusion-weighted MRI
 : MRI sensitive to water diffusion, used by {term}`tractography <Tractography>` to estimate possible white-matter pathways.
+
+Directional bias
+: The preference of a {term}`tractography <Tractography>` algorithm to extend a {term}`streamline <Streamline>` along the locally dominant diffusion orientation, inferred from anisotropic water diffusion in white-matter fibre bundles.
 
 Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
@@ -141,6 +147,9 @@ Haemodynamic response
 
 Heun method
 : A predictor–corrector integrator that averages derivatives evaluated at the initial state and an Euler prediction.
+
+History
+: The record of a node's past states over its {term}delay <Delay>, allowing states from previous integration steps to influence neighbouring nodes.
 
 Hopf bifurcation
 : A {term}`bifurcation <Bifurcation>` in which a fixed point changes stability and a nearby periodic orbit appears or disappears.

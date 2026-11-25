@@ -35,13 +35,13 @@ size of the network. TVB places no constraint on how many regions you use.
 The {term}`edges <Edge>` are inferred from {term}`Diffusion-weighted MRI`.
 {term}`Tractography` algorithms follow **directional bias** through the volume, tracing candidate pathways called {term}`streamlines <Streamline>`, from one voxel to the next. These streamlines represent white matter bundles.
 
-The endpoints of the streamlines are assigned to parcels. Counting the number of streamlines between region k and region j gives the edge weight, the standard proxy for how strong the connection between them is. [TODO cite]. The
+The endpoints of the streamlines are assigned to parcels. Counting the number of streamlines between region k and region j gives the edge weight, the standard proxy for how strong the connection between them is [@hagmann2008; @schirner2015]. The
 streamline path length gives the edge's physical distance, which becomes a
-delay once a {term}`conduction speed`[TODO cite] is assumed.
+delay once a {term}`conduction speed`[@lemarechal2022] is assumed.
 
 ### How the simulator uses the connectome data
 
-The connection weights become the coupling term. For region $k$, the delayed
+The connection weights become the coupling terms. For region $k$, the delayed
 activity arriving from the rest of the network is
 
 $$
@@ -64,9 +64,9 @@ For a definitive API reference, see [TODO link api reference].
 
 | Field | Required | Shape | Units | Set by | Notes |
 |---|---|---|---|---|---|
-| `weights` | yes | $(l, l)$ | arbitrary | you | Directed by default. Rows are targets. |
+| `weights` | yes | $(l, l)$ | arbitrary | you | Expects to be asymmetric by default. Rows are targets. |
 | `tract_lengths` | yes | $(l, l)$ | mm | you | Fallback: straight-line distance from `centres`. |
-| `speed` | yes | $(1,)$ or $(l, l)$ | mm/ms | you | Default 3.0 if unset. Recommended 3.8 by [TODO charlotte paper]. If you're not using delays, you may set speed to `float(inf)` |
+| `speed` | yes | $(1,)$ or $(l, l)$ | mm/ms | you | Default 3.0 if unset. 3.8 recommended by [@lemarechal2022]. If you're not using delays, you may set speed to `float(inf)` |
 | `delays` | - | $(l, l)$ | ms | derived | `tract_lengths / speed`, in `configure()`. |
 | `idelays` | - | $(l, l)$ int | integration steps | `set_idelays(dt)` | What the solver actually uses. |
 | `centres` | yes | $(l, 3)$ | mm | you | Required for surfaces and forward models. Can be approximated by the `centres_*()` methods. |
@@ -83,7 +83,6 @@ For a definitive API reference, see [TODO link api reference].
 
 Only `weights` lacks any form of fallback. All other parameters either have a fallback, a default value, or are derived. A fallback refers to an alternative method for estimating the data when it is missing (e.g., calling `centres_spherical()` instead of loading `centres.txt`). A default, on the other hand, is a predefined value used when no assignment is provided.
 
----
 
 (weights-section)=
 ### Weights
@@ -128,14 +127,41 @@ The [coupling page](bb-coupling.md) covers the gain side.
 ### Tract lengths, conduction speed and delays
 
 `tract_lengths[k, j]` is the physical length of the fibre pathway between
-regions $k$ and $j$, in millimetres. The matrix [TODO FINISH] Tractography cannot tell direction, so
-these matrices come out symmetric; nothing in TVB enforces that.
+regions $k$ and $j$, in millimetres. The matrix has the same orientation as weights,
+so rows are targets. Tractography cannot tell direction, so
+these matrices usually are symmetric. However, nothing in TVB enforces symmetricity.
 
 If you supply `centres` but not `tract_lengths`, `configure()` fills them with
 Euclidean distances between region centres. That is a straight-line proxy, not recommended.
 
 `speed` is one number for the whole network, or a full matrix if you want
-heterogeneous conduction speeds. Its unit is mm/ms, and the default is 3.0. Recommendation for a different speed (3.8) may be found here [TODO cite]
+heterogeneous conduction speeds. Its unit is mm/ms, and the default is 3.0. A speed of 3.8 mm/ms is recommended, derived from an atlas of axonal and synaptic delays estimated from cortico-cortical evoked potentials [@lemarechal2022].
+
+(metadata)=
+### Centres, labels, hemispheres, cortical flag
+
+`centres` is $(l, 3)$ in millimetres, in whatever coordinate space the atlas
+uses. It is optional for a bare regional simulation, but required if geometry matters: fallback for tract lengths, {term}`lead field` projections for EEG/MEG, different visualisations. Usually you won't need it.
+
+`region_labels` are labels for the individual regions. Their ordering is the same as every other attribute of connectivity (weights, tract lengths, centres...)
+
+`hemispheres` is a boolean vector with `True` meaning right.
+If unset, `configure()` infers it from the first letter of each
+label (`L/R`), and falls back to "second half of the indices
+is right" when labels carry no prefix.
+
+`cortical` marks which regions are cortex. If you wish to add
+subcortical structures, you need to set these labels yourself. 
+`subcortical_indices` is derived from it. `areas` and 
+`orientations` are optional and may be zeros where unknown; 
+zeros are the documented convention for "not measured", not a
+physical value.
+
+`number_of_regions` and `number_of_connections` are both computed in
+`configure()`. Note that `number_of_connections` counts non-zero entries, so a
+symmetric matrix counts every edge twice.
+
+---
 
 #### How delays are computed
 
@@ -149,7 +175,7 @@ $$
 `configure()` computes `delays` unconditionally as `tract_lengths / speed`, so
 changing `speed` takes effect on the next `configure()`. `set_idelays(dt)` then
 converts those into whole integration steps, and that integer matrix is what the
-solver indexes into its history buffer.
+solver indexes into its **history** buffer.
 
 :::{warning}
 **Delays are quantised, and $\Delta t$ sets the resolution.**
@@ -160,11 +186,16 @@ coarsens the whole delay structure. If a result depends on short-range timing, c
 $\tau_{\min} / \Delta t$.
 :::
 
-The history buffer scales with $\max(\tau) / \Delta t$. Long tracts and small
+The **history** buffer scales with $\max(\tau) / \Delta t$. Long tracts and small
 steps both cost memory, and this is usually the limit on how long a delay a
 simulation can carry.
 
 #### Causality at the two scales
+
+:::{caution}
+**replaced in TVB 3.0.** This subsection documents how TVB used to treat
+causality across scales. It is kept for reference only: TVB 3.0 supersedes it.
+:::
 
 Short-range connections on a cortical surface are treated as instantaneous within one integration step. Their
 influence spreads one step at a time. See [local connectivity
@@ -192,7 +223,7 @@ A zip must contain
 
 Optional files: `average_orientations.txt`, `cortical.txt`, `hemispheres.txt`, `areas.txt`.
 
-From your own arrays, assign the fields directly:
+Alternatively, use you own arrays and assign the fields directly:
 
 ```python
 conn = connectivity.Connectivity()
@@ -209,7 +240,7 @@ Bring-your-own-data specifics - validation, units, hemisphere handling - are in
 ### 2. Set the conduction speed
 
 ```python
-conn.speed = np.array([3.0])          # mm/ms, whole network
+conn.speed = np.array([3.0])          # mm/ms, whole network. This is the default, here explicitly for completenes
 # OR
 conn.speed = np.inf                   # effectively no delays
 ```

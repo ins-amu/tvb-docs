@@ -15,7 +15,7 @@ from tools.apidoc.callgraph import build_class_hierarchy, extract_static_uses
 from tools.apidoc.config import AnchorRegistry, find_repo_root, find_tvb_search_path
 from tools.apidoc.docstring import render_docstring, rst_to_myst
 from tools.apidoc.loader import load_tvb_package
-from tools.apidoc.render import build_symbol_table
+from tools.apidoc.render import build_symbol_table, write_merged_myst_config
 from tools.apidoc.traits import extract_trait
 
 
@@ -130,6 +130,28 @@ def test_callgraph_and_star_import_backlinks() -> None:
     # Must resolve `from tvb.simulator.lab import *` usage of Generic2dOscillator / Simulator
     assert len(backlinks.get(g2d_path, [])) >= 10
     assert len(backlinks.get("tvb.simulator.simulator.Simulator", [])) >= 10
+
+
+def test_single_page_part_becomes_leaf_toc_entry(tmp_path: Path) -> None:
+    """A `_toc.yml` part given `file:` (not `chapters:`) links straight to its page."""
+    import yaml
+
+    from tools.apidoc import render
+
+    real_tree = render.build_api_toc_tree
+    render.build_api_toc_tree = lambda _pkg: []  # API tree irrelevant here
+    out = tmp_path / "myst.yml"
+    try:
+        write_merged_myst_config(find_repo_root(), object(), out)  # type: ignore[arg-type]
+    finally:
+        render.build_api_toc_tree = real_tree
+
+    toc = yaml.safe_load(out.read_text(encoding="utf-8"))["project"]["toc"]
+    assert [e for e in toc if e.get("title") == "Glossary"] == [
+        {"file": "content/glossary.md", "title": "Glossary"}
+    ]
+    about = [e for e in toc if e.get("title") == "About"]
+    assert about and "children" in about[0], "parts with chapters stay groups"
 
 
 def test_generated_api_integrity_when_present() -> None:

@@ -257,8 +257,7 @@ parts:
           - file: content/demos/sandbox/surface_stochastic.ipynb
 
   - caption: Glossary
-    chapters:
-      - file: content/glossary.md
+    file: content/glossary.md
 
   - caption: About
     chapters:

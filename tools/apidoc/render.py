@@ -638,6 +638,11 @@ def write_merged_myst_config(repo_root: Path, pkg: LoadedPackage, out_config: Pa
     api_tree = build_api_toc_tree(pkg)
     myst_toc: list[dict] = [{"file": toc_cfg["root"]}]
     for part in toc_cfg.get("parts", []):
+        if "file" in part and "chapters" not in part:
+            # Single-page part (`- caption: X` + `file:`): link straight to the page
+            # instead of wrapping it in a one-child collapsible group.
+            myst_toc.append({"file": part["file"], "title": part["caption"]})
+            continue
         part_entry: dict = {"title": part["caption"]}
         if "chapters" in part:
             part_entry["children"] = _sphinx_chapters_to_myst_toc(part["chapters"], api_tree)

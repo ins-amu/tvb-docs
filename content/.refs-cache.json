@@ -81,6 +81,48 @@
     "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a nonlinear model of neuronal dynamics",
     "year": 2003
   },
+  "10.1016/j.neunet.2023.03.040": {
+    "authors": [
+      "Bartolomei",
+      "Hashemi",
+      "Jha",
+      "Jirsa",
+      "Sip",
+      "Vattikonda",
+      "Woodman"
+    ],
+    "title": "Amortized Bayesian inference on generative dynamical network models of epilepsy using deep neural density estimators",
+    "year": 2023
+  },
+  "10.1016/j.neuroimage.2005.10.045": {
+    "authors": [
+      "David",
+      "Friston",
+      "Harrison",
+      "Kiebel",
+      "Kilner",
+      "Mattout"
+    ],
+    "title": "Dynamic causal modeling of evoked responses in EEG and MEG",
+    "year": 2006
+  },
+  "10.1016/j.neuroimage.2015.03.008": {
+    "authors": [
+      "Friston",
+      "Penny",
+      "Sengupta"
+    ],
+    "title": "Gradient-free MCMC methods for dynamic causal modelling",
+    "year": 2015
+  },
+  "10.1023/A:1008202821328": {
+    "authors": [
+      "Price",
+      "Storn"
+    ],
+    "title": "Differential Evolution – A Simple and Efficient Heuristic for global Optimization over Continuous Spaces",
+    "year": 1997
+  },
   "10.1038/s41598-017-03073-5": {
     "authors": [
       "Deco",
@@ -100,6 +142,33 @@
     "title": "A coupled ordinary differential equation lattice model for the simulation of epileptic seizures",
     "year": 1999
   },
+  "10.1073/pnas.1912789117": {
+    "authors": [
+      "Brehmer",
+      "Cranmer",
+      "Louppe"
+    ],
+    "title": "The frontier of simulation-based inference",
+    "year": 2020
+  },
+  "10.1080/01621459.1995.10476572": {
+    "authors": [
+      "Kass",
+      "Raftery"
+    ],
+    "title": "Bayes Factors",
+    "year": 1995
+  },
+  "10.1086/670067": {
+    "authors": [
+      "Foreman-Mackey",
+      "Goodman",
+      "Hogg",
+      "Lang"
+    ],
+    "title": "<tt>emcee</tt>\n                    : The MCMC Hammer",
+    "year": 2013
+  },
   "10.1088/0954-898X/14/4/305": {
     "authors": [
       "Breakspear",
@@ -108,6 +177,18 @@
     ],
     "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a biophysical model of neuronal dynamics",
     "year": 2003
+  },
+  "10.1088/2632-2153/ad6230": {
+    "authors": [
+      "Fousek",
+      "Hashemi",
+      "Jirsa",
+      "Petkoski",
+      "Woodman",
+      "Ziaeemehr"
+    ],
+    "title": "Simulation-based inference on virtual brain models of disorders",
+    "year": 2024
   },
   "10.1093/brain/awu133": {
     "authors": [
@@ -129,6 +210,16 @@
     ],
     "title": "Individual brain structure and modelling predict seizure propagation",
     "year": 2017
+  },
+  "10.1098/rsif.2024.0880": {
+    "authors": [
+      "Baldy",
+      "Hashemi",
+      "Jirsa",
+      "Woodman"
+    ],
+    "title": "Dynamic causal modelling in probabilistic programming languages",
+    "year": 2025
   },
   "10.1098/rspb.1984.0024": {
     "authors": [
@@ -156,6 +247,13 @@
     "title": "An Active Pulse Transmission Line Simulating Nerve Axon",
     "year": 1962
   },
+  "10.1109/TAC.1974.1100705": {
+    "authors": [
+      "Akaike"
+    ],
+    "title": "A new look at the statistical model identification",
+    "year": 1974
+  },
   "10.1126/sciadv.abf4752": {
     "authors": [
       "Aquino",
@@ -170,6 +268,15 @@
     "title": "Dynamical consequences of regional heterogeneity in the brain’s transcriptional landscape",
     "year": 2021
   },
+  "10.1137/130916138": {
+    "authors": [
+      "Constantine",
+      "Dow",
+      "Wang"
+    ],
+    "title": "Active Subspace Methods in Theory and Practice: Applications to Kriging Surfaces",
+    "year": 2014
+  },
   "10.1162/neco_a_01300": {
     "authors": [
       "Gast",
@@ -178,6 +285,65 @@
     ],
     "title": "A Mean-Field Description of Bursting Dynamics in Spiking Neural Networks with Short-Term Adaptation",
     "year": 2020
+  },
+  "10.1162/neco_a_01701": {
+    "authors": [
+      "Baldy",
+      "Breyton",
+      "Hashemi",
+      "Jirsa",
+      "Woodman"
+    ],
+    "title": "Inference on the Macroscopic Dynamics of Spiking Neurons",
+    "year": 2024
+  },
+  "10.1214/20-BA1221": {
+    "authors": [
+      "Bürkner",
+      "Carpenter",
+      "Gelman",
+      "Simpson",
+      "Vehtari"
+    ],
+    "title": "Rank-Normalization, Folding, and Localization: An Improved Rˆ for Assessing Convergence of MCMC (with Discussion)",
+    "year": 2021
+  },
+  "10.1214/23-BA1404": {
+    "authors": [
+      "Bürkner",
+      "Faltejsková",
+      "Gelman",
+      "Huurre",
+      "Kim",
+      "Modrák",
+      "Moon",
+      "Vehtari"
+    ],
+    "title": "Simulation-Based Calibration Checking for Bayesian Computation: The Choice of Test Quantities Shapes Sensitivity",
+    "year": 2025
+  },
+  "10.1214/aoap/1034625254": {
+    "authors": [
+      "Gelman",
+      "Gilks",
+      "Roberts"
+    ],
+    "title": "Weak convergence and optimal scaling of random walk Metropolis algorithms",
+    "year": 1997
+  },
+  "10.1214/aos/1176325750": {
+    "authors": [
+      "Tierney"
+    ],
+    "title": "Markov Chains for Exploring Posterior Distributions",
+    "year": 1994
+  },
+  "10.1214/aos/1176344136": {
+    "authors": [
+      "Schwarz"
+    ],
+    "title": "Estimating the Dimension of a Model",
+    "year": 1978
   },
   "10.1371/journal.pcbi.1000219": {
     "authors": [
@@ -226,6 +392,37 @@
     "title": "How Local Excitation-Inhibition Ratio Impacts the Whole Brain Dynamics",
     "year": 2014
   },
+  "10.21105/joss.02505": {
+    "authors": [
+      "Boelts",
+      "Deistler",
+      "Durkan",
+      "Gonçalves",
+      "Greenberg",
+      "Lueckmann",
+      "Macke",
+      "Tejero-Cantero"
+    ],
+    "title": "sbi: A toolkit for simulation-based inference",
+    "year": 2020
+  },
+  "10.2140/camcos.2010.5.65": {
+    "authors": [
+      "Goodman",
+      "Weare"
+    ],
+    "title": "Ensemble samplers with affine invariance",
+    "year": 2010
+  },
+  "10.2307/3318737": {
+    "authors": [
+      "Haario",
+      "Saksman",
+      "Tamminen"
+    ],
+    "title": "An Adaptive Metropolis Algorithm",
+    "year": 2001
+  },
   "10.3389/fninf.2013.00010": {
     "authors": [
       "Domide",
@@ -258,5 +455,23 @@
     ],
     "title": "Biophysically inspired mean-field model of neuronal populations driven by ion-exchange mechanisms",
     "year": 2026
+  },
+  "10.7554/eLife.56261": {
+    "authors": [
+      "Bassetto",
+      "Chintaluri",
+      "Deistler",
+      "Gonçalves",
+      "Greenberg",
+      "Haddad",
+      "Lueckmann",
+      "Macke",
+      "Nonnenmacher",
+      "Podlaski",
+      "Vogels",
+      "Öcal"
+    ],
+    "title": "Training deep neural density estimators to identify mechanistic models of neural dynamics",
+    "year": 2020
   }
 }

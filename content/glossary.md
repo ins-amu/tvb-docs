@@ -14,6 +14,11 @@ Adjacency matrix
 Alpha kernel
 : A synaptic response proportional to time multiplied by an exponential decay, rising from zero to one peak.
 
+Amortised inference
+: Training an estimator once so that the posterior for any new observation is obtained from a single fast evaluation, without retraining.
+
+  [Tutorial: simulation-based inference](user-guide/inference/npe-montbrio.md)
+
 Attractor
 : A set of states that nearby trajectories approach over time.
 
@@ -168,14 +173,20 @@ Jacobian
 Lead field
 : The sensor pattern produced by a unit source. A lead-field matrix collects these patterns to project source activity to sensors.
 
+Likelihood
+: The probability of the observed data as a function of the model parameters, usually written as the density of the data given the parameters.
+
 Limit cycle
 : An isolated periodic orbit in state space, which may be attracting, repelling, or neither.
 
 Local coupling
 : Interactions among nearby sites or populations, distinguished in TVB surface simulations from long-range connections between regions.
 
+Markov chain Monte Carlo
+: A family of algorithms that draw correlated samples from a distribution by simulating a Markov chain whose long-run distribution is the target.
+
 Masked autoregressive flow
-: An invertible density model built from autoregressive transformations, used in the inference guide to estimate a conditional posterior.
+: An invertible density model built from autoregressive transformations, used in the inference tutorials to estimate a conditional posterior.
 
 Mean-field model
 : A model that represents interactions through aggregate quantities, such as mean synaptic input, rather than tracking every individual interaction.
@@ -231,6 +242,9 @@ Phase portrait
 Posterior
 : The probability distribution of parameters after conditioning on observed data or summaries.
 
+Posterior predictive check
+: A comparison of data simulated from posterior parameter draws with the observation, to test whether the fitted model reproduces it.
+
 Power spectral density
 : Signal power per unit frequency, describing how variance is distributed across frequencies.
 
@@ -278,7 +292,7 @@ Sigmoid
 Simulation-based inference
 : Inference that uses simulations to learn about unknown parameters when evaluating the likelihood directly is difficult.
 
-  [Explanation: From simulation to inference](explanation/tvbl-sim-to-inference.md)
+  [Inference overview](user-guide/inference.md)
 
 Sparse coupling
 : A representation or computation that stores or evaluates only the connections present in the network.

@@ -33,3 +33,8 @@ mcp-hub-extension/tsconfig.tsbuildinfo
 # notebook stuff
 content/demos/*.png
 content/demos/_widget_assets
+
+# Generated API reference pages (keep orientation index.md)
+content/reference/api/*
+!content/reference/api/index.md
+.myst.apidoc.yml

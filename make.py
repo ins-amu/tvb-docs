@@ -25,8 +25,9 @@ DRY_RUN = False
 
 TASKS = {
     "setup": "Create .venv and install pinned dependencies from uv.lock",
+    "apidoc": "Generate native MyST API reference pages for tvb",
     "refs": "Validate BibTeX citations against Crossref API",
-    "docs": "Build MyST HTML docs with execution and stage JupyterLite contents",
+    "docs": "Build MyST HTML docs with API reference, execution, and JupyterLite staging",
     "test": "Run unit tests and reference checks",
     "check": "Run the exact checks CI runs on PRs (refs + docs)",
     "lite-setup": "Create ~/.micromamba/envs/build-tvbl from build-environment.yml",
@@ -40,7 +41,9 @@ CLEAN_PATHS = (
     "_build/site",
     "_build/html",
     "_build/execute",
+    "_build/apidoc",
     "_build/lite_contents",
+    ".myst.apidoc.yml",
     ".jupyterlite.doit.db",
     "cockle_wasm_env",
 )
@@ -138,20 +141,26 @@ def task_setup() -> None:
     run(["uv", "pip", "sync", "requirements/uv.lock"])
 
 
+def task_apidoc() -> None:
+    run(["uv", "run", "python", "-m", "tools.apidoc"])
+
+
 def task_refs() -> None:
     run([python_cmd(), "tools/check_refs.py", "content/references.bib"])
 
 
 def task_docs() -> None:
-    run(["uv", "run", "myst", "build", "--execute", "--html"])
+    task_apidoc()
+    run(["uv", "run", "myst", "build", "--config", ".myst.apidoc.yml", "--execute", "--html"])
     run(["node", "tools/build_glossary.mjs"])
+    run(["node", "tools/build_api_search.mjs"])
     run(["uv", "run", "python", "tools/stage_lite.py"])
 
 
 def task_test() -> None:
     run(
-        ["uv", "run", "--with", "pytest", "pytest", "-q", tvbl_test_dir()],
-        env=build_env({"PYTHONPATH": "content/_code"}),
+        ["uv", "run", "--with", "pytest", "pytest", "-q", "tests", tvbl_test_dir()],
+        env=build_env({"PYTHONPATH": f".{os.pathsep}content/_code"}),
     )
     task_refs()
 
@@ -246,6 +255,16 @@ def task_clean() -> None:
             shutil.rmtree(path)
         elif path.exists() or path.is_symlink():
             path.unlink()
+    api_dir = ROOT / "content" / "reference" / "api"
+    if api_dir.is_dir():
+        for item in api_dir.iterdir():
+            if item.name != "index.md":
+                print(f"+ rm -f content/reference/api/{item.name}", flush=True)
+                if not DRY_RUN:
+                    if item.is_dir():
+                        shutil.rmtree(item)
+                    else:
+                        item.unlink()
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -34,6 +34,7 @@ parts:
           - file: content/user-guide/data/preprocessing.md
           - file: content/user-guide/data/dwi.md
           - file: content/user-guide/data/qaqc.md
+          - file: content/user-guide/data/non_invasive_stimulation.md
       
       - title: Understanding Output
         # data structures, time scales, state variables,

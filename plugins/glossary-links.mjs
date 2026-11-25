@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const glossaryPath = resolve('content/glossary.md');
+const generatedApiDir = resolve('content/reference/api');
 
 // These words often have other meanings. Use an explicit {term} role
 // when the glossary sense is intended.
@@ -114,7 +115,10 @@ function termTransform() {
   }
 
   return (tree, file) => {
-    if (file.path && resolve(file.path) !== glossaryPath) visitProse(tree, linkText);
+    const filePath = file.path ? resolve(file.path) : '';
+    if (filePath && filePath !== glossaryPath && !filePath.startsWith(`${generatedApiDir}/`)) {
+      visitProse(tree, linkText);
+    }
   };
 }
 

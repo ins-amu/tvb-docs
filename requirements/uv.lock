@@ -837,11 +837,16 @@ ipykernel==7.4.0 \
     --hash=sha256:4330114d22b9b33575b2c7c68753fc8faabbbcfbc60b0cdff9f14dd4ce63742f \
     --hash=sha256:a6757f790ddc5a6006b813d82da1a9dbb65b3a00f2b6607df776418c6566ec1c
     # via -r requirements/base.txt
+ipympl==0.10.0 \
+    --hash=sha256:a09c4f0ff86490cc62aed45e53b912fb706e3ec3506c4a51ce4a670d6667f5ce \
+    --hash=sha256:eda69602a010af2a42e8ebd069b0ee0dbe8df7fc69d7c1e8b99fece0a2fe613f
+    # via -r requirements/base.txt
 ipython==9.17.1 \
     --hash=sha256:6d1645743cfd1a07eb695d85aa2b5fa66721f8cbae9431d4049f7084bbf06509 \
     --hash=sha256:8919be8c27f20a6f4423145028063f6637b42a03ce57665bb12015ee1f073529
     # via
     #   ipykernel
+    #   ipympl
     #   ipywidgets
 ipython-pygments-lexers==1.1.1 \
     --hash=sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81 \
@@ -853,6 +858,7 @@ ipywidgets==8.1.9 \
     # via
     #   -r requirements/base.txt
     #   anywidget
+    #   ipympl
     #   tvb-library
     #   tvb-phaseplane
 isoduration==20.11.0 \
@@ -1649,6 +1655,7 @@ matplotlib==3.11.2 \
     --hash=sha256:fea03cf56568cc1cba08b470be6a0559e71c3a5b688d54b7179bb35ba23d0821
     # via
     #   -r requirements/base.txt
+    #   ipympl
     #   seaborn
     #   tvb-library
 matplotlib-inline==0.2.2 \
@@ -1965,6 +1972,7 @@ numpy==2.5.3 \
     #   bctpy
     #   contourpy
     #   emcee
+    #   ipympl
     #   matplotlib
     #   numba
     #   numexpr
@@ -2211,7 +2219,9 @@ pillow==12.3.0 \
     --hash=sha256:fdafc9cce40277e0f7a0feabce0ee50dd2fa1800f3b38015e51296b5e814048d \
     --hash=sha256:fe3cca2e4e8a592be0f269a1ca4835c25199d9f3ce815c8491048f785b0a0198 \
     --hash=sha256:ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7
-    # via matplotlib
+    # via
+    #   ipympl
+    #   matplotlib
 platformdirs==4.12.3 \
     --hash=sha256:080f3b39423b5abfca9a23d84c4e9795f54d395cd8459867a8ded44084fcd5f8 \
     --hash=sha256:427fc0bb321ae0c5b037fa03238ca74820437be162e78b4848c4d4055b9b766c
@@ -3356,6 +3366,7 @@ traitlets==5.16.1 \
     --hash=sha256:f775618166caa0396c8e337099240f2bd3e5e917d203b2e6fbe21a58d3cb1f6b
     # via
     #   ipykernel
+    #   ipympl
     #   ipython
     #   ipywidgets
     #   jupyter-client
@@ -3391,8 +3402,10 @@ typing-extensions==4.16.0 \
     #   anyio
     #   anywidget
     #   beautifulsoup4
+    #   exceptiongroup
     #   fastmcp-slim
     #   google-genai
+    #   httpx2
     #   jupyter-client
     #   logfire
     #   mcp
@@ -3405,6 +3418,8 @@ typing-extensions==4.16.0 \
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
+    #   referencing
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.4 \
     --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \

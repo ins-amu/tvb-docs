@@ -13,7 +13,7 @@
 
 This page describes the toolchain, structure, and build of the TVB Simulation
 Documentation. It is a reference page: accurate description, not a lesson. For
-the writing rules see [CONTRIBUTING.md](../../CONTRIBUTING.md); to start using
+the writing rules see [CONTRIBUTING.md](https://github.com/ins-amu/tvb-docs/blob/main/CONTRIBUTING.md); to start using
 the docs see the [landing page](../../README.md).
 
 ## What this repo is
@@ -88,5 +88,5 @@ uncommitted; `.gitignore` excludes them (along with `.venv/`, `_build/`, and
 
 ## Contributing
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the writers guide (Diátaxis
+See [CONTRIBUTING.md](https://github.com/ins-amu/tvb-docs/blob/main/CONTRIBUTING.md) for the writers guide (Diátaxis
 rules, page conventions, and how to add a page or a notebook).

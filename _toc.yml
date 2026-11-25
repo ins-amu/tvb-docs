@@ -34,6 +34,7 @@ parts:
           - file: content/user-guide/data/preprocessing.md
           - file: content/user-guide/data/dwi.md
           - file: content/user-guide/data/qaqc.md
+          - file: content/user-guide/data/non_invasive_stimulation.md
       
       - title: Understanding Output
         # data structures, time scales, state variables,
@@ -69,8 +70,14 @@ parts:
       - title: High Resolution
         sections:
           - file: content/user-guide/hr/classic.md
-          - file: content/user-guide/hr/hybrid.md
           - file: content/user-guide/hr/re-entry.md
+
+      - title: Hybrid Simulation
+        sections:
+          - file: content/user-guide/hybrid/hybrid-concepts.md
+          - file: content/user-guide/hybrid/hybrid-contracts.md
+          - file: content/user-guide/hybrid/hybrid-backends-and-sweeps.md
+          - file: content/user-guide/hybrid/hybrid-tutorials.md
 
   - caption: Model Zoo
     chapters:
@@ -88,6 +95,10 @@ parts:
           - file: content/model-zoo/new-model-subclass.md
           - file: content/model-zoo/new-model-testing.md
           - file: content/model-zoo/new-model-notebook-phaseplane.md
+
+  - caption: Reference
+    chapters:
+      - file: content/reference/api/index.md
 
   - caption: Old Tutorials
     chapters:

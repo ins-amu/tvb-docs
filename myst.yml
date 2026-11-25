@@ -12,8 +12,7 @@ project:
     - plugins/py-xref.mjs
     - https://github.com/developmentseed/myst-anywidget-static-export/releases/latest/download/plugin.mjs
     # marimo islands: reactive {marimo} cells in MyST pages (see content/_code/tvbl_docs.py)
-    - type: executable
-      path: .venv/bin/jupyter-book-marimo
+    - plugins/marimo-lazy.mjs
   # Static assets copied verbatim into the built site (basename preserved).
   # The standalone phase-plane widget is embedded via iframe from here.
   static_files:

@@ -46,17 +46,17 @@ four kinds of need. Pick the one that matches what you are trying to do.
 
 | If you want to… | Go to | It is… |
 | --- | --- | --- |
-| **learn by doing** a first simulation, start to finish | [Tutorials](tutorials/index.md) | guided lessons |
-| **accomplish a specific task** (add a stimulus, run inference, …) | [How-to guides](howtos/index.md) | practical recipes |
-| **look up precise facts** (model equations, parameters, the API) | [Reference](reference/index.md) | accurate description |
-| **understand why** things work the way they do (concepts, theory) | [Explanation](explanation/index.md) | conceptual background |
+| **learn by doing** a first simulation, start to finish | [Tutorials](content/tutorials/index.md) | guided lessons |
+| **accomplish a specific task** (add a stimulus, run inference, …) | [How-to guides](content/howtos/index.md) | practical recipes |
+| **look up precise facts** (model equations, parameters, the API) | [Reference](content/reference/index.md) | accurate description |
+| **understand why** things work the way they do (concepts, theory) | [Explanation](content/explanation/index.md) | conceptual background |
 | **explore interactive demos & sandbox prototypes** | [Demos & Sandbox](content/demos/index.md) | notebooks & lab |
 
-**New here?** Start with the [Tutorials](tutorials/index.md) — run a first
+**New here?** Start with the [Tutorials](content/tutorials/index.md) — run a first
 simulation, then explore the phase plane interactively.
 
 ## About this documentation
 
 How this site is built, the toolchain, and the writing rules live in
-[About this documentation](reference/about-this-site.md) and
-[CONTRIBUTING.md](CONTRIBUTING.md).
+[About this documentation](content/about/about-this-site.md) and
+[CONTRIBUTING.md](https://github.com/ins-amu/tvb-docs/blob/main/CONTRIBUTING.md).

@@ -26,6 +26,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 STATE_FILE = ROOT / "_build" / ".state.json"
 DEV_SERVER_FILE = ROOT / "_build" / ".dev-server.json"
+VENV_LOCK_STAMP = ROOT / ".venv" / ".uv-lock-sha256"
 
 DRY_RUN = False
 FORCE = False
@@ -106,6 +107,8 @@ def venv_bin(name: str) -> list[str]:
 def build_env(extra: dict[str, str] | None = None) -> dict[str, str]:
     env = os.environ.copy()
     path_prefix: list[str] = []
+    if (ROOT / ".venv").is_dir():
+        env["VIRTUAL_ENV"] = str(ROOT / ".venv")
     for rel in (".venv/bin", ".venv/Scripts"):
         venv_dir = ROOT / rel
         if venv_dir.is_dir():
@@ -114,6 +117,9 @@ def build_env(extra: dict[str, str] | None = None) -> dict[str, str]:
         path_prefix.extend([str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin"])
     if path_prefix:
         env["PATH"] = os.pathsep.join([*path_prefix, env.get("PATH", "")])
+    if is_ci():
+        for var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
+            env.setdefault(var, "1")
     if extra:
         env.update(extra)
     return env
@@ -462,10 +468,25 @@ def lite_env_ready() -> bool:
     return shutil.which("jupyter") is not None
 
 
+def _uv_lock_sha256() -> str:
+    lock_file = ROOT / "requirements" / "uv.lock"
+    if not lock_file.is_file():
+        return ""
+    return hashlib.sha256(lock_file.read_bytes()).hexdigest()
+
+
 def venv_in_sync() -> bool:
     """Return True if .venv exists and matches requirements/uv.lock."""
     if not venv_ready():
         return False
+    lock_hash = _uv_lock_sha256()
+    stamp_matches = (
+        bool(lock_hash)
+        and VENV_LOCK_STAMP.is_file()
+        and VENV_LOCK_STAMP.read_text(encoding="utf-8").strip() == lock_hash
+    )
+    if is_ci() and stamp_matches:
+        return True
     res = subprocess.run(
         ["uv", "pip", "sync", "--offline", "--dry-run", "requirements/uv.lock"],
         cwd=ROOT,
@@ -474,7 +495,12 @@ def venv_in_sync() -> bool:
         text=True,
         check=False,
     )
-    return res.returncode == 0 and "Would make no changes" in (res.stderr + res.stdout)
+    out = res.stderr + res.stdout
+    if res.returncode == 0 and "Would make no changes" in out:
+        return True
+    if res.returncode != 0 and stamp_matches and "offline" in out.lower():
+        return True
+    return False
 
 
 def ensure_venv() -> None:
@@ -553,6 +579,8 @@ def task_setup() -> None:
             cmd.append("--clear")
         run(cmd)
     run(["uv", "pip", "sync", "requirements/uv.lock"])
+    if not DRY_RUN and (ROOT / ".venv").is_dir():
+        VENV_LOCK_STAMP.write_text(_uv_lock_sha256() + "\n", encoding="utf-8")
 
 
 def _apidoc_outputs_ready() -> bool:
@@ -609,6 +637,8 @@ def task_docs() -> None:
     myst_cmd = [*venv_bin("myst"), "build", "--config", ".myst.apidoc.yml"]
     if execute:
         myst_cmd.append("--execute")
+        if is_ci():
+            myst_cmd.extend(["--execute-parallel", "2"])
     myst_cmd.append("--html")
 
     run(myst_cmd)

@@ -10,17 +10,17 @@ The Virtual Brain (TVB) represents the mesoscopic activity of neuronal populatio
 
 ## Network dynamics
 
-Let $\psi(x_i,t)$ denote the state vector of the neural population at node $i$
+Let $\psi_i(t)$ denote the state vector of the neural population at node $i$
 and time $t$. The Jirsa–Haken formulation distinguishes local dynamics from
 interactions within nearby tissue and through long-range connections
-[@jirsaHaken1996; @jirsaHaken1997; @wang2024]. General form of TVB equations for $M$ connectivity pathways can be written as,
+[@jirsaHaken1996; @jirsaHaken1997; @sanzleon2015;@wang2024;@hashemi2025]. General form of TVB equations for $M$ connectivity pathways can be written as,
 
 $$
 \begin{aligned}
 c_i^{(a)}(t)
-&=Z^{(a)}\!\left(\sum_{j\in\mathcal N_i^{(a)}}W_{ij}^{(a)}S^{(a)}\!\left(\psi(x_j,t-\tau_{ij}^{(a)})\right)\right),\qquad a=1,\ldots,M,\\
-\dot{\psi}(x_i,t)
-&=L_i\!\left(\psi(x_i,t),\boldsymbol\nu_{1,i}\mathbf c_i(t)\right)+\boldsymbol\nu_{2,i}\mathbf c_i(t)+w_i(t).
+&=Z^{(a)}\!\left(\sum_{j\in\mathcal N_i^{(a)}}W_{ij}^{(a)}S^{(a)}\!\left(\psi_i,\psi_j(t-\tau_{ij}^{(a)})\right)\right),\qquad a=1,\ldots,M,\\
+\dot{\psi}_i(t)
+&=L_i\!\left(\psi_i(t),\boldsymbol\nu_{1,i}\mathbf c_i(t)\right)+\boldsymbol\nu_{2,i}\mathbf c_i(t)+g(\psi_i)\xi_i(t).
 \end{aligned}
 $$
 
@@ -48,8 +48,8 @@ Several pathways can therefore contribute to the same component. The first
 map passes weighted inputs into the local dynamics $L_i$, while the second
 adds them directly to the state derivative. This lets the local equations and the
 coupling arrangement vary between nodes. The formal
-{term}`noise term <Dynamical noise>` $w_i(t)$ is added outside the pathway
-transformations. TVB's
+{term}`noise term <Dynamical noise>` $g(\psi_i)\xi_i(t)$ is added outside the pathway
+transformations and is allowed to be state dependent (i.e., multiplicative) through the function $g(\psi_i)$. TVB's
 [coupling functions](https://docs.thevirtualbrain.org/api/tvb.simulator.coupling.html)
 apply the source and receiving transformations [@sanzleon2015].
 
@@ -60,16 +60,16 @@ $\boldsymbol\nu_{2,i}=(1,1)$, so the additive input is
 $c_i^{(\ell)}+c_i^{(g)}$. If both $Z^{(a)}$ are the identity, both source
 transformations are $S$, and their weights are written
 $W_{ij}^{(\ell)}=w_{ij}$ and $W_{ij}^{(g)}=W_{ij}$, the equation becomes
-
+(we omit explicit time-dependence of the variables for the sake of clarity, )
 $$
 \begin{aligned}
-\dot{\psi}(x_i,t)={}&L_i\!\left(\psi(x_i,t)\right)\\
-&+\sum_{j\in\mathcal N_i^{(\ell)}}w_{ij}S\!\left(\psi(x_j,t-\tau_{ij})\right)\\
-&+\sum_{j\in\mathcal N_i^{(g)}}W_{ij}S\!\left(\psi(x_j,t-\tau_{ij})\right)+w_i(t).
+\dot{\psi}_i={}&L_i\!\left(\psi_i\right)\\
+&+\sum_{k\in\mathcal N_i^{(\ell)}}w_{ik}S\!\left(\psi_i, \psi_k(t-\tau_{ik})\right)\\
+&+\sum_{j\in\mathcal N_i^{(g)}}W_{ij}S\!\left(\psi_i,\psi_j(t-\tau_{ij})\right)+g(\psi_i)\xi_i(t).
 \end{aligned}
 $$
 
-Here $L_i(\psi)=L_i(\psi,\mathbf 0)$, and $\tau_{ij}$ denotes the delay on
+Here $L_i(\psi)=L_i(\psi,\mathbf 0)$, and $\tau_{ij}$ denotes the propagation (axonal) delay on
 the relevant pathway [@wang2024]. The relevant
 [model card](../reference/index.md) describes how coupling enters when a model
 does not follow this additive form.
@@ -135,8 +135,8 @@ connectivity pathway has its own weights, delays, and coupling transformations.
 
 | Symbol | Meaning |
 | --- | --- |
-| $x_i$ | Brain region represented by node $i$, or a cortical vertex in a surface model. |
-| $\psi(x_i,t)$ | State vector of the neural population at sampled position $x_i$ and time $t$. |
+| $i$ | Brain region represented by node $i$, or a cortical vertex in a surface model. |
+| $\psi(t)$ | State vector of the neural population at sampled position $x_i$ and time $t$. |
 | $k$ | Index of a component of the state vector at node $i$. |
 | $L_i$ | Local neural mass dynamics at node $i$, which may depend on the coupling contributions; the model may vary between nodes. |
 | $M$, $a$ | Number of connectivity pathways and the index of one pathway. |
@@ -151,4 +151,5 @@ connectivity pathway has its own weights, delays, and coupling transformations.
 | $c_i^{(a)}(t)$ | Coupling contribution from pathway $a$ to node $i$ at time $t$. |
 | $\ell$, $g$ | Local cortical and long-range pathways in the expanded equation. |
 | $w_{ij}$, $W_{ij}$ | Local cortical and long-range connection weights in the expanded equation. |
-| $w_i(t)$ | Formal stochastic forcing added to the state dynamics at node $i$. |
+| $g_i$ | Function for the state-dependency of the noise at node $i$. |
+| $\xi_i(t)$ | Formal stochastic forcing added to the state dynamics at node $i$. |

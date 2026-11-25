@@ -63,7 +63,7 @@ contributing (TO ADD).
 
 ## Citing TVB
 
-If you use TVB in published work, please cite the following papers:
+If you use TVB, please cite the following papers:
 
 - [@sanzleon2013]
 - [@schirner2022]

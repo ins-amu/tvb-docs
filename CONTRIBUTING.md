@@ -23,42 +23,50 @@ content/
 
 ---
 
-## 3-Step Quickstart
+## Quickstart
 
 You will need Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
 
 All build tasks live in [`make.py`](make.py), a stdlib-only Python script, so
-`make` is optional. On macOS/Linux use `python3 make.py <task>`; on Windows use
-`py -3 make.py <task>`. If you do have `make`, `make <task>` works too and is
-equivalent.
+`make` is optional. On macOS/Linux use `make <task>` or `python3 make.py <task>`;
+on Windows use `py -3 make.py <task>`.
 
-### 1. Setup
-Create the virtual environment and install pinned dependencies:
+### 1. Start Developing (Automatic Setup + Live Reload)
+Running bare `make` (or `python3 make.py`) runs the default `dev` task:
 ```bash
-python3 make.py setup
+make
 ```
-To ensure dependencies are up to date, you may need to
-```bash
-uv pip sync requirements/uv.lock
-```
+This automatically:
+1. Creates `.venv` if missing and verifies it matches `requirements/uv.lock` via `uv` (syncing if needed).
+2. Incrementally stages downloadable `.ipynb` notebooks into `_build/notebooks/`.
+3. Starts a live-reloading MyST dev server + unified local router at [http://localhost:8000](http://localhost:8000) (automatically picking the next free port if 8000 is occupied, or reporting the URL if this repo's server is already running).
 
-### 2. Verify and Build Docs
-Run the reference validation and MyST build with code execution:
+Visit:
+- **MyST Documentation (live reload):** [http://localhost:8000](http://localhost:8000)
+- **Interactive JupyterLite Lab (if built):** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
+- **Downloadable Notebooks:** [http://localhost:8000/notebooks/](http://localhost:8000/notebooks/)
+
+Useful flags for local editing:
+- `python3 make.py dev --no-execute` — skip notebook/cell execution for fast prose, CSS, or TOC edits.
+- `python3 make.py status` — show build freshness, active dev server, and what `make` will run next.
+- `python3 make.py serve --static` — preview the static `_build/html` build on port 8000 instead of live `myst start`.
+
+### 2. Verify and Build Static Docs
+Run the reference validation and static MyST build with code execution:
 ```bash
 python3 make.py check
 ```
-*(This runs `make.py refs` followed by `make.py docs`—the exact checks CI executes on pull requests).*
+*(This runs `make.py refs` followed by `make.py docs`—the exact checks CI executes on pull requests. Locally, unchanged steps are skipped using `_build/.state.json`; pass `-f`/`--force` to rebuild everything.)*
 
-### 3. Preview the Unified Site
-Start a local web server to inspect both the documentation and the lab:
+### 3. Build JupyterLite (Optional)
+To build the WebAssembly kernel and JupyterLite distribution locally into `_build/lite` (and sync it to `_build/html/lite`):
 ```bash
-python3 make.py serve
+python3 make.py lite-setup   # only needed once, or auto-run by `make lite` if micromamba is installed
+python3 make.py lite
 ```
-Visit:
-- **MyST Documentation:** [http://localhost:8000](http://localhost:8000)
-- **Interactive JupyterLite Lab:** [http://localhost:8000/lite/lab/index.html](http://localhost:8000/lite/lab/index.html)
+`make lite` caches the emscripten WASM prefix in `_build/xeus-prefix/` keyed by `environment.yml`, builds into `_build/lite/` (so `make docs` never deletes it), and automatically chooses between a no-op, `tvbl`-only re-patch, content-only Lite update, or full rebuild.
 
-*(Optional)* To build the WebAssembly kernel and JupyterLite distribution locally, run `python3 make.py lite-setup` followed by `python3 make.py lite`.
+Use `make clean` to clear generated HTML/site outputs while keeping expensive caches (`_build/execute`, `_build/cache`, `_build/xeus-prefix`, `_build/lite`), or `make clean-all` to wipe everything.
 
 ---
 
@@ -123,9 +131,9 @@ Page templates with pre-configured frontmatter, Diátaxis structure, and interac
    - Ensure simulations are fast and deterministic (execution time < 10 seconds per page) so the build completes quickly.
 3. **Automatic JupyterLite notebook generation:**
    - You do **not** need to manually create or sync a `.ipynb` notebook.
-   - When `tools/stage_lite.py` runs (part of `make.py docs` / `make.py check`), it detects markdown pages with code cells and automatically generates:
-     - Interactive notebook: `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
-     - Downloadable notebook: `_build/html/notebooks/<quadrant>/<slug>.ipynb`.
+   - `tools/stage_lite.py` incrementally detects markdown pages with code cells and automatically generates:
+     - Downloadable notebook (during `make.py docs` / `make.py dev`): `_build/notebooks/<quadrant>/<slug>.ipynb` (synced to `_build/html/notebooks/<quadrant>/<slug>.ipynb` on static builds).
+     - Interactive notebook (during `make.py lite`): `_build/lite_contents/<quadrant>/<slug>.ipynb` (accessible in JupyterLite at `/lite/lab/index.html?path=<quadrant>/<slug>.ipynb`).
 4. **Register in `_toc.yml`:**
    Add your page under the appropriate quadrant chapter in `_toc.yml`:
    ```yaml
@@ -151,6 +159,85 @@ The `content/demos/` directory contains 60+ legacy demonstration notebooks from 
    - Update deprecated TVB 2.x imports to modern TVB 3.0 / `tvbl` APIs.
    - Ensure imports and dependencies are pinned in `requirements/uv.lock` or `environment.yml`.
    - Once the notebook executes cleanly and deterministically within build time limits, remove `"execute": {"skip": true}` from the notebook metadata so CI verifies it on every PR.
+
+---
+
+## Linking Between Pages
+
+MyST (`mystmd`) resolves links differently depending on whether the target is in `_toc.yml`, exists only on disk, or is staged post-build. Follow these rules so links work both in the built HTML site and on GitHub.
+
+### Summary Table
+
+| Target | Syntax | Example |
+|---|---|---|
+| Another doc page (`.md` or `.ipynb` in `_toc.yml`) | Relative path from current file | `[First Simulation](../tutorials/first-simulation.md)` |
+| Page from `README.md` (repo root) | Relative path including `content/` | `[Tutorials](content/tutorials/index.md)` |
+| Page with auto-filled title | Empty brackets or `{doc}` role | `[](../tutorials/first-simulation.md)` or `` {doc}`../tutorials/first-simulation.md` `` |
+| Heading / labeled target on a page | Relative path + `#label` (or `{ref}`) | `[Section](../explanation/connectome.md#my-label)` |
+| File **not** in `_toc.yml` (e.g. `CONTRIBUTING.md`) | Full GitHub URL (or `{download}` if download is intended) | `[CONTRIBUTING.md](https://github.com/ins-amu/tvb-docs/blob/main/CONTRIBUTING.md)` |
+| JupyterLite Lab | Root-relative `/lite/...` path | `[Open in Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb)` |
+| Downloadable notebook | Root-relative `/notebooks/...` path | `[Download Notebook](/notebooks/tutorials/first-simulation.ipynb)` |
+| Glossary term | `{term}` role | `` {term}`monitors <Monitor>` `` |
+| External website | Full URL **with `https://`** | `[TVB](https://www.thevirtualbrain.org)` |
+
+### 1. Cross-Linking Documentation Pages (`.md` and `.ipynb`)
+
+Always use **relative file paths** from the file you are editing to the target `.md` or `.ipynb` file:
+
+- From `README.md` (at the repository root), paths into `content/` must include `content/`:
+  ```markdown
+  [Tutorials](content/tutorials/index.md)
+  ```
+- From `content/tutorials/first-simulation.md` to `content/explanation/connectome.md`:
+  ```markdown
+  [Connectome](../explanation/connectome.md)
+  ```
+- From `content/reference/model-cards/wilson-cowan.md` to `content/tutorials/first-simulation.md`:
+  ```markdown
+  [First Simulation](../../tutorials/first-simulation.md)
+  ```
+- Linking to an `.ipynb` listed in `_toc.yml` works the same way:
+  ```markdown
+  [Jansen–Rit Simulation](../demos/simulate_region_jansen_rit.ipynb)
+  ```
+
+**Why relative file paths instead of `/slug` URLs?**
+MyST derives URL slugs from **file basenames** and deduplicates collisions with `-1`, `-2`, etc. (for example, `content/demos/index.md` becomes `/index-4`). Relative file paths are resolved automatically to the right `/slug` at build time and also work when browsing source files on GitHub.
+
+**Auto-filled titles:** Leave the link text empty (`[](../tutorials/first-simulation.md)`) or use the `{doc}` role (`` {doc}`../tutorials/first-simulation.md` ``) to have MyST insert the target page's title automatically.
+
+### 2. Linking to Headings, Figures, and Labels
+
+Assign an explicit target label above a heading/block with `(my-label)=` (or `:label: my-label` inside directives such as `::{figure}`), then link to it with `#my-label`:
+
+```markdown
+[See the section](#my-label)
+[See the section on another page](../explanation/connectome.md#my-label)
+```
+
+You can also use `` {ref}`my-label` `` (inserts title) or `` {numref}`fig-example` `` (inserts numbered reference such as *Figure 1*).
+
+### 3. Pitfall: Linking to `.md` Files Not in `_toc.yml`
+
+If you write a relative link to a local file that exists on disk **but is not listed in `_toc.yml`** (such as `CONTRIBUTING.md` or `content/references.bib`), MyST does **not** build it as an HTML page. Instead, MyST treats it as a **static downloadable asset** (`static: true`), copies it to `/_public/<name>-<hash>.<ext>`, and renders a download link — clicking it downloads the raw `.md` file rather than opening a page.
+
+- If the document should be a page on the site, add it to `_toc.yml`.
+- If it is a repository-only file (like `CONTRIBUTING.md`), link to its GitHub URL instead of a relative path.
+
+### 4. JupyterLite Lab & Notebook Downloads
+
+`tools/stage_lite.py` stages converted notebooks into `/lite/` and `/notebooks/` *after* the MyST build, using paths relative to `content/` (with `.md` converted to `.ipynb`). Because MyST does not manage these routes, link to them using root-relative paths:
+
+```markdown
+[Open in JupyterLite Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb)
+[Download Notebook](/notebooks/tutorials/first-simulation.ipynb)
+```
+
+*(Note: `content/README.ipynb` is a JupyterLite-only landing notebook not in `_toc.yml`, so its links use paths relative to `content/`, e.g. `tutorials/first-simulation.ipynb`.)*
+
+### 5. External URLs
+
+Always include the `https://` scheme. Bare domains like `[TVB](thevirtualbrain.org)` are treated by MyST as unresolved relative file paths.
 
 ---
 

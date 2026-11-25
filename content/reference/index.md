@@ -55,4 +55,5 @@ Notebooks demonstrating model equations, phase portraits, and interactive parame
 
 ## Site & Architecture
 
-- **[About this documentation](about-this-site.md)** — Diátaxis architecture, MyST configuration, marimo islands, and build pipeline.
+- **[Python API Reference](api/index.md)** — Auto-generated reference for `tvb` (`tvb.simulator`, `tvb.datatypes`, `tvb.analyzers`, `tvb.basic`) with traits tables, static call graphs, and tutorial backlinks.
+- **[About this documentation](../about/about-this-site.md)** — Diátaxis architecture, MyST configuration, marimo islands, and build pipeline.

@@ -568,6 +568,9 @@ def emit_xref_and_search_indexes(
     return xref_path, symbols_path
 
 
+API_INDEX_PAGE = "content/reference/api/index.md"
+
+
 def _sphinx_chapters_to_myst_toc(chapters: list[dict], api_tree: list[dict]) -> list[dict]:
     """Convert `_toc.yml` chapter trees into `myst.yml` `project.toc` entries, attaching API tree."""
     out: list[dict] = []
@@ -580,7 +583,7 @@ def _sphinx_chapters_to_myst_toc(chapters: list[dict], api_tree: list[dict]) -> 
         children: list[dict] = []
         if "sections" in ch:
             children = _sphinx_chapters_to_myst_toc(ch["sections"], api_tree)
-        if ch.get("file") == "content/reference/api/index.md":
+        if ch.get("file") == API_INDEX_PAGE:
             children = [*children, *api_tree]
         if children:
             item["children"] = children
@@ -646,6 +649,17 @@ def _single_page_file(part: dict) -> str | None:
     return None
 
 
+def _has_api_page(entries: list[dict]) -> bool:
+    """True when a generated API page (not just the hand-written index) is in the TOC."""
+    for entry in entries:
+        file = entry.get("file") or ""
+        if file.startswith("content/reference/api/") and file != API_INDEX_PAGE:
+            return True
+        if _has_api_page(entry.get("children") or []):
+            return True
+    return False
+
+
 def write_merged_myst_config(repo_root: Path, pkg: LoadedPackage, out_config: Path) -> Path:
     """Merge `myst.yml` + `_toc.yml` + generated API tree into a gitignored `.myst.apidoc.yml`."""
     myst_cfg = yaml.safe_load((repo_root / "myst.yml").read_text(encoding="utf-8"))
@@ -657,13 +671,23 @@ def write_merged_myst_config(repo_root: Path, pkg: LoadedPackage, out_config: Pa
         single_page = _single_page_file(part)
         if single_page is not None:
             # One-page part: link straight to the page instead of wrapping it in
-            # a one-child collapsible group.
-            myst_toc.append({"file": single_page, "title": part["caption"]})
+            # a one-child collapsible group — but still hang the API tree off the
+            # API index page, or no API page would ever reach `project.toc`.
+            entry: dict = {"file": single_page, "title": part["caption"]}
+            if single_page == API_INDEX_PAGE and api_tree:
+                entry["children"] = api_tree
+                api_tree = []
+            myst_toc.append(entry)
             continue
         part_entry: dict = {"title": part["caption"]}
         if "chapters" in part:
             part_entry["children"] = _sphinx_chapters_to_myst_toc(part["chapters"], api_tree)
         myst_toc.append(part_entry)
+
+    if api_tree and not _has_api_page(myst_toc):
+        # `_toc.yml` no longer points at the API index page: keep the generated
+        # pages reachable rather than silently dropping all of them.
+        myst_toc.append({"title": "API Reference", "children": [{"file": API_INDEX_PAGE}, *api_tree]})
 
     # Compute exact index* slugs assigned by mystmd project.toc (where root README gets `index`).
     index_slugs: dict[str, str] = {}

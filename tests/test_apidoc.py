@@ -173,6 +173,36 @@ def test_toc_parts_match_their_shape_in_source(tmp_path: Path) -> None:
             assert len(entry["children"]) == len(chapters)
 
 
+def test_api_tree_reaches_toc_whatever_the_reference_part_shape(tmp_path: Path) -> None:
+    """The generated API pages must land in `project.toc` even when `_toc.yml`
+    holds `content/reference/api/index.md` as a lone page (no siblings)."""
+    import yaml
+
+    from tools.apidoc import render
+
+    repo_root = find_repo_root()
+    tree = [{"file": "content/reference/api/tvb.md", "title": "tvb"}]
+    real_tree = render.build_api_toc_tree
+    render.build_api_toc_tree = lambda _pkg: tree
+    out = tmp_path / "myst.yml"
+    try:
+        write_merged_myst_config(repo_root, object(), out)  # type: ignore[arg-type]
+    finally:
+        render.build_api_toc_tree = real_tree
+
+    toc = yaml.safe_load(out.read_text(encoding="utf-8"))["project"]["toc"]
+    files = [e.get("file") for e in _flatten(toc)]
+    assert "content/reference/api/tvb.md" in files
+
+
+def _flatten(entries: list[dict]) -> list[dict]:
+    flat: list[dict] = []
+    for entry in entries:
+        flat.append(entry)
+        flat.extend(_flatten(entry.get("children") or []))
+    return flat
+
+
 
 def test_generated_api_integrity_when_present() -> None:
     repo_root = find_repo_root()

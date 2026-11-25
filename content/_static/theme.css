@@ -220,6 +220,13 @@ pre.sourceCode,
 .myst-toc-item {
   padding-left: 0.75rem;
 }
+/* A part that is a single page renders as a leaf link (no collapsible wrapper
+ * around a part title), so add the title's 0.5rem py-2 back to keep it the
+ * same height as the collapsible part headings beside it. */
+.myst-toc > a.myst-toc-item {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
 
 /* ------------------------------------------------------------------ *
  * Always-visible section permalinks — show a calm blue "#" instead of the

@@ -15,7 +15,7 @@ from tools.apidoc.callgraph import build_class_hierarchy, extract_static_uses
 from tools.apidoc.config import AnchorRegistry, find_repo_root, find_tvb_search_path
 from tools.apidoc.docstring import render_docstring, rst_to_myst
 from tools.apidoc.loader import load_tvb_package
-from tools.apidoc.render import build_symbol_table
+from tools.apidoc.render import build_symbol_table, write_merged_myst_config
 from tools.apidoc.traits import extract_trait
 
 
@@ -130,6 +130,78 @@ def test_callgraph_and_star_import_backlinks() -> None:
     # Must resolve `from tvb.simulator.lab import *` usage of Generic2dOscillator / Simulator
     assert len(backlinks.get(g2d_path, [])) >= 10
     assert len(backlinks.get("tvb.simulator.simulator.Simulator", [])) >= 10
+
+
+def test_toc_parts_match_their_shape_in_source(tmp_path: Path) -> None:
+    """No part may render as a one-page dropdown: `_toc.yml` parts holding a single
+    plain page (`file:` instead of `chapters:`, or a lone chapter file) become leaf
+    links; everything else stays a group with one child per chapter."""
+    import yaml
+
+    from tools.apidoc import render
+
+    repo_root = find_repo_root()
+    parts = yaml.safe_load((repo_root / "_toc.yml").read_text(encoding="utf-8"))["parts"]
+
+    real_tree = render.build_api_toc_tree
+    render.build_api_toc_tree = lambda _pkg: []  # API tree irrelevant here
+    out = tmp_path / "myst.yml"
+    try:
+        write_merged_myst_config(repo_root, object(), out)  # type: ignore[arg-type]
+    finally:
+        render.build_api_toc_tree = real_tree
+
+    toc = yaml.safe_load(out.read_text(encoding="utf-8"))["project"]["toc"]
+    by_title = {e["title"]: e for e in toc if "title" in e}
+    assert len(by_title) == len(parts), "every part gets exactly one TOC entry"
+
+    for part in parts:
+        chapters = part.get("chapters", [])
+        single_page = "file" in part and not chapters
+        lone_page = len(chapters) == 1 and "file" in chapters[0] and not chapters[0].get("sections")
+        entry = by_title[part["caption"]]
+
+        if single_page or lone_page:
+            page = part["file"] if single_page else chapters[0]["file"]
+            assert entry == {"file": page, "title": part["caption"]}, (
+                f"part {part['caption']!r} holds a single page and must be a leaf link"
+            )
+        else:
+            assert "file" not in entry and entry.get("children"), (
+                f"part {part['caption']!r} must stay a group"
+            )
+            assert len(entry["children"]) == len(chapters)
+
+
+def test_api_tree_reaches_toc_whatever_the_reference_part_shape(tmp_path: Path) -> None:
+    """The generated API pages must land in `project.toc` even when `_toc.yml`
+    holds `content/reference/api/index.md` as a lone page (no siblings)."""
+    import yaml
+
+    from tools.apidoc import render
+
+    repo_root = find_repo_root()
+    tree = [{"file": "content/reference/api/tvb.md", "title": "tvb"}]
+    real_tree = render.build_api_toc_tree
+    render.build_api_toc_tree = lambda _pkg: tree
+    out = tmp_path / "myst.yml"
+    try:
+        write_merged_myst_config(repo_root, object(), out)  # type: ignore[arg-type]
+    finally:
+        render.build_api_toc_tree = real_tree
+
+    toc = yaml.safe_load(out.read_text(encoding="utf-8"))["project"]["toc"]
+    files = [e.get("file") for e in _flatten(toc)]
+    assert "content/reference/api/tvb.md" in files
+
+
+def _flatten(entries: list[dict]) -> list[dict]:
+    flat: list[dict] = []
+    for entry in entries:
+        flat.append(entry)
+        flat.extend(_flatten(entry.get("children") or []))
+    return flat
+
 
 
 def test_generated_api_integrity_when_present() -> None:

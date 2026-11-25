@@ -28,7 +28,6 @@ then follow [Installation](content/getting-started/installation.md) instructions
 
 Look up unfamiliar terms in the [Glossary](content/glossary.md). Information
 on contributing to these docs is in
-[Community & contributing](content/about/about-this-site.md).
 
 The code examples in these docs are run every time the site is built, so they
 stay working as TVB changes.

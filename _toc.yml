@@ -70,8 +70,14 @@ parts:
       - title: High Resolution
         sections:
           - file: content/user-guide/hr/classic.md
-          - file: content/user-guide/hr/hybrid.md
           - file: content/user-guide/hr/re-entry.md
+
+      - title: Hybrid Simulation
+        sections:
+          - file: content/user-guide/hybrid/hybrid-concepts.md
+          - file: content/user-guide/hybrid/hybrid-contracts.md
+          - file: content/user-guide/hybrid/hybrid-backends-and-sweeps.md
+          - file: content/user-guide/hybrid/hybrid-tutorials.md
 
   - caption: Model Zoo
     chapters:

@@ -154,6 +154,85 @@ The `content/demos/` directory contains 60+ legacy demonstration notebooks from 
 
 ---
 
+## Linking Between Pages
+
+MyST (`mystmd`) resolves links differently depending on whether the target is in `_toc.yml`, exists only on disk, or is staged post-build. Follow these rules so links work both in the built HTML site and on GitHub.
+
+### Summary Table
+
+| Target | Syntax | Example |
+|---|---|---|
+| Another doc page (`.md` or `.ipynb` in `_toc.yml`) | Relative path from current file | `[First Simulation](../tutorials/first-simulation.md)` |
+| Page from `README.md` (repo root) | Relative path including `content/` | `[Tutorials](content/tutorials/index.md)` |
+| Page with auto-filled title | Empty brackets or `{doc}` role | `[](../tutorials/first-simulation.md)` or `` {doc}`../tutorials/first-simulation.md` `` |
+| Heading / labeled target on a page | Relative path + `#label` (or `{ref}`) | `[Section](../explanation/connectome.md#my-label)` |
+| File **not** in `_toc.yml` (e.g. `CONTRIBUTING.md`) | Full GitHub URL (or `{download}` if download is intended) | `[CONTRIBUTING.md](https://github.com/ins-amu/tvb-docs/blob/main/CONTRIBUTING.md)` |
+| JupyterLite Lab | Root-relative `/lite/...` path | `[Open in Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb)` |
+| Downloadable notebook | Root-relative `/notebooks/...` path | `[Download Notebook](/notebooks/tutorials/first-simulation.ipynb)` |
+| Glossary term | `{term}` role | `` {term}`monitors <Monitor>` `` |
+| External website | Full URL **with `https://`** | `[TVB](https://www.thevirtualbrain.org)` |
+
+### 1. Cross-Linking Documentation Pages (`.md` and `.ipynb`)
+
+Always use **relative file paths** from the file you are editing to the target `.md` or `.ipynb` file:
+
+- From `README.md` (at the repository root), paths into `content/` must include `content/`:
+  ```markdown
+  [Tutorials](content/tutorials/index.md)
+  ```
+- From `content/tutorials/first-simulation.md` to `content/explanation/connectome.md`:
+  ```markdown
+  [Connectome](../explanation/connectome.md)
+  ```
+- From `content/reference/model-cards/wilson-cowan.md` to `content/tutorials/first-simulation.md`:
+  ```markdown
+  [First Simulation](../../tutorials/first-simulation.md)
+  ```
+- Linking to an `.ipynb` listed in `_toc.yml` works the same way:
+  ```markdown
+  [Jansen–Rit Simulation](../demos/simulate_region_jansen_rit.ipynb)
+  ```
+
+**Why relative file paths instead of `/slug` URLs?**
+MyST derives URL slugs from **file basenames** and deduplicates collisions with `-1`, `-2`, etc. (for example, `content/demos/index.md` becomes `/index-4`). Relative file paths are resolved automatically to the right `/slug` at build time and also work when browsing source files on GitHub.
+
+**Auto-filled titles:** Leave the link text empty (`[](../tutorials/first-simulation.md)`) or use the `{doc}` role (`` {doc}`../tutorials/first-simulation.md` ``) to have MyST insert the target page's title automatically.
+
+### 2. Linking to Headings, Figures, and Labels
+
+Assign an explicit target label above a heading/block with `(my-label)=` (or `:label: my-label` inside directives such as `::{figure}`), then link to it with `#my-label`:
+
+```markdown
+[See the section](#my-label)
+[See the section on another page](../explanation/connectome.md#my-label)
+```
+
+You can also use `` {ref}`my-label` `` (inserts title) or `` {numref}`fig-example` `` (inserts numbered reference such as *Figure 1*).
+
+### 3. Pitfall: Linking to `.md` Files Not in `_toc.yml`
+
+If you write a relative link to a local file that exists on disk **but is not listed in `_toc.yml`** (such as `CONTRIBUTING.md` or `content/references.bib`), MyST does **not** build it as an HTML page. Instead, MyST treats it as a **static downloadable asset** (`static: true`), copies it to `/_public/<name>-<hash>.<ext>`, and renders a download link — clicking it downloads the raw `.md` file rather than opening a page.
+
+- If the document should be a page on the site, add it to `_toc.yml`.
+- If it is a repository-only file (like `CONTRIBUTING.md`), link to its GitHub URL instead of a relative path.
+
+### 4. JupyterLite Lab & Notebook Downloads
+
+`tools/stage_lite.py` stages converted notebooks into `/lite/` and `/notebooks/` *after* the MyST build, using paths relative to `content/` (with `.md` converted to `.ipynb`). Because MyST does not manage these routes, link to them using root-relative paths:
+
+```markdown
+[Open in JupyterLite Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb)
+[Download Notebook](/notebooks/tutorials/first-simulation.ipynb)
+```
+
+*(Note: `content/README.ipynb` is a JupyterLite-only landing notebook not in `_toc.yml`, so its links use paths relative to `content/`, e.g. `tutorials/first-simulation.ipynb`.)*
+
+### 5. External URLs
+
+Always include the `https://` scheme. Bare domains like `[TVB](thevirtualbrain.org)` are treated by MyST as unresolved relative file paths.
+
+---
+
 ## Citations & References
 
 All academic citations live in `content/references.bib`.

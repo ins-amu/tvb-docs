@@ -1,0 +1,114 @@
+name: Nightly bump tvb-library wheel
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Check for newer tvb-library wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+
+      - name: Check latest wheel on ins-amu/tvb-wheels index
+        id: check
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import re
+          import sys
+          import urllib.request
+          from pathlib import Path
+
+          req_path = Path("requirements/base.txt")
+          req_text = req_path.read_text(encoding="utf-8")
+          m_cur = re.search(r"^tvb-library==([^\s#]+)", req_text, flags=re.MULTILINE)
+          if not m_cur:
+              print("No pinned tvb-library==... found in requirements/base.txt", file=sys.stderr)
+              print("changed=false")
+              raise SystemExit(0)
+          current_ver = m_cur.group(1)
+
+          index_url = "https://ins-amu.github.io/tvb-wheels/simple/tvb-library/"
+          with urllib.request.urlopen(index_url) as resp:
+              body = resp.read().decode("utf-8")
+
+          versions = sorted(
+              set(re.findall(r"tvb_library-([^-]+)-cp3\d+-", body)),
+              key=lambda v: [
+                  (0, int(tok)) if tok.isdigit() else (1, tok)
+                  for tok in re.split(r"(\d+)", v)
+                  if tok
+              ],
+          )
+          if not versions:
+              print("No wheels found on PEP 503 index", file=sys.stderr)
+              print("changed=false")
+              raise SystemExit(0)
+
+          latest_ver = versions[-1]
+          print(f"Current pin: {current_ver}; Latest wheel: {latest_ver}", file=sys.stderr)
+          if latest_ver == current_ver:
+              print("changed=false")
+              raise SystemExit(0)
+
+          updated = re.sub(
+              r"^tvb-library==[^\s#]+",
+              f"tvb-library=={latest_ver}",
+              req_text,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          req_path.write_text(updated, encoding="utf-8")
+          print("changed=true")
+          print(f"old_ver={current_ver}")
+          print(f"new_ver={latest_ver}")
+          PY
+
+      - name: Regenerate requirements/uv.lock
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          uv pip compile --universal --generate-hashes --emit-index-url --index-strategy unsafe-best-match requirements/base.txt -o requirements/uv.lock
+
+      - name: Open or update bump PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OLD_VER: ${{ steps.check.outputs.old_ver }}
+          NEW_VER: ${{ steps.check.outputs.new_ver }}
+        run: |
+          if git diff --quiet requirements/base.txt requirements/uv.lock; then
+            echo "No lockfile diff; skipping PR."
+            exit 0
+          fi
+
+          BRANCH="chore/bump-tvb-library"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add requirements/base.txt requirements/uv.lock
+          git commit -m "Bump tvb-library wheel to ${NEW_VER}"
+          git push --force-with-lease origin "$BRANCH"
+
+          TITLE="Bump tvb-library wheel to ${NEW_VER}"
+          BODY="Automated bump of \`tvb-library\` from \`${OLD_VER}\` to \`${NEW_VER}\` from [\`ins-amu/tvb-wheels\`](https://github.com/ins-amu/tvb-wheels/releases/tag/v${NEW_VER})."
+
+          EXISTING_PR=$(gh pr list --repo "${{ github.repository }}" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$EXISTING_PR" ]]; then
+            gh pr edit "$EXISTING_PR" --repo "${{ github.repository }}" --title "$TITLE" --body "$BODY"
+          else
+            gh pr create --repo "${{ github.repository }}" --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"
+          fi

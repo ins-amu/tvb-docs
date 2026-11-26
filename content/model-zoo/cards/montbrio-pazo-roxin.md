@@ -5,7 +5,7 @@ bibliography:
 # Montbrió–Pazo–Roxin
 
 The Montbrió–Pazo–Roxin model is an exact macroscopic representation of an
-infinite, all-to-all coupled population of quadratic integrate-and-fire
+infinite, all-to-all coupled population of quadratic integrate-and-fire (QIF)
 neurons based on Ott-Antonsen reduction. Using mean firing rate and
 mean membrane potential as macroscopic descriptive quantities, it reproduces
 the dynamical states of the spiking population wrt external drive, including
@@ -14,7 +14,7 @@ synchronous firing patterns. This card documents the implementation in TVB
 
 ## Model
 
-Two state variables: $r$ (the population's average firing rate, constrained to
+The model is described by two state variables: $r$ (the population's average firing rate, constrained to
 $r \ge 0$) and $V$ (its average membrane potential).
 
 $$

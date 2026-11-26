@@ -20,7 +20,8 @@ put them to work.
 ## Inference means a distribution, not a number
 
 Fitting a model by minimising an error returns a single parameter set. That is
-rarely enough, because many different parameter sets can fit the same data
+not necessarily representative of the expected parameter values, because many
+different parameter sets can fit the same data
 equally well. Bayesian inference returns all of them, weighted by plausibility.
 It combines three ingredients:
 

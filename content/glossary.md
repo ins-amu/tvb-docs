@@ -82,6 +82,9 @@ Criticality
 Diffusion-weighted MRI
 : MRI sensitive to water diffusion, used by {term}`tractography <Tractography>` to estimate possible white-matter pathways.
 
+Degeneracy
+: A posterior pathology where parameters trade off or couple tightly, forming ridges, symmetries, or funnels that blur inference and impede optimization and MCMC exploration.
+
 Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
@@ -98,6 +101,9 @@ Edge
 
 EEG
 : Electroencephalography measures electrical potential differences at electrodes, usually on the scalp.
+
+Effective sample size
+: (ESS) the number of independent draws with the same estimation power as autocorrelated MCMC samples, estimated from multi-chain autocorrelations to quantify Monte Carlo error.
 
 Eigenvalue
 : A scalar associated with a matrix mode. For a {term}`Jacobian`, its real part determines the mode’s local growth or decay.
@@ -262,6 +268,9 @@ Propagation delay
 ## R–S
 
 :::{glossary}
+R-hat
+: (R) Convergence diagnostic comparing between- and within-chain variance across split, rank-normalized chains; values near 1 indicate mixing, while higher values signal non-convergence.
+
 Reduced model
 : A simplified model that retains selected behaviour while using fewer variables, parameters, or mechanisms.
 

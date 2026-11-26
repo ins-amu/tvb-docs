@@ -18,6 +18,20 @@ A FitzHugh–Nagumo neural mass with delayed network coupling `Cx`. In TVB, Fitz
 \end{aligned}
 ```
 
+## Nullclines and network coupling
+
+$X$ is the fast variable and $Y$ the slow one, their rates set by $\tau$ and
+$1/\tau$. The $X$-nullcline ($\dot X = 0$) is the cubic $Y = X^3/3 - X$, and
+the $Y$-nullcline ($\dot Y = 0$) is the vertical line $X = a - k\,C_x$. Their
+intersection is the fixed point. Whether the trajectory settles on it or
+circles it on a relaxation oscillation depends on which branch of the cubic it
+lies on; see [Phase planes](../../explanation/phase-plane-explanation.md) for the
+general method.
+
+In a network, $C_x$ is the weighted sum of the other nodes' $X$, each read at its
+delayed past. `tvbl` evaluates it with a sparse (CSR) read-out of a history
+buffer and integrates the network with the stochastic Heun scheme.
+
 ## Parameters
 
 | Parameter | Meaning | Range | Default |
@@ -74,8 +88,9 @@ fig
 ```
 
 ```{marimo} python
-mo.md("The same model, coupled across a network, is simulated and inferred on the "
-      "[Tutorial](../../tutorials/tvbl-quickstart.md) and [How-to](../../howtos/tvbl-inference.md) pages.")
+mo.md("The same model, coupled across a network, is simulated on the "
+      "[Tutorial](../../tutorials/tvbl-quickstart.md). Parameter inference is covered in the "
+      "[inference section](../../user-guide/inference.md).")
 ```
 
 ## Paper Reference

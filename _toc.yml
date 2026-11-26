@@ -59,6 +59,9 @@ parts:
       - title: Inference
         sections:
           - file: content/user-guide/inference.md
+          - file: content/user-guide/inference/npe-montbrio.md
+          - file: content/user-guide/inference/posterior-calibration.md
+          - file: content/user-guide/inference/erp-likelihood.md
 
       - title: HPC
         sections:
@@ -125,7 +128,6 @@ parts:
     chapters:
       - file: content/howtos/index.md
       - file: content/howtos/custom-stimulus.md
-      - file: content/howtos/tvbl-inference.md
       - file: content/howtos/write-a-model.md
       - title: Connectivity & Stimuli
         sections:
@@ -215,7 +217,6 @@ parts:
       - file: content/explanation/excitation-inhibition-balance.md
       - file: content/explanation/neural-mass-models.md
       - file: content/explanation/phase-plane-explanation.md
-      - file: content/explanation/tvbl-sim-to-inference.md
       - title: Numerical & Paper Studies
         sections:
           - file: content/demos/integrators_presentation.ipynb

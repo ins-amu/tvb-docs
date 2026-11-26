@@ -130,9 +130,19 @@ class ConditionalDensityEstimator(abc.ABC):
 
     def train(self, params: np.ndarray, features: np.ndarray,
               n_iter: int = 2000, learning_rate: float = 1e-3,
-              seed: int = 0, use_tqdm: bool = True):
+              seed: int = 0, use_tqdm: bool = True,
+              batch_size: int = None, validation_fraction: float = 0.0,
+              patience: int = None, eval_every: int = None,
+              clip_norm: float = None):
         """
         Trains the model using the Adam optimizer.
+
+        With the defaults this is plain full-batch Adam for ``n_iter`` steps.
+        Passing ``batch_size`` switches to minibatches drawn from a reshuffled
+        epoch order, and ``validation_fraction`` holds out a random subset whose
+        loss is tracked every ``eval_every`` steps.  The weights with the lowest
+        validation loss are kept, and with ``patience`` set, training stops once
+        that many evaluations pass without improvement.
 
         Parameters
         ----------
@@ -141,13 +151,24 @@ class ConditionalDensityEstimator(abc.ABC):
         features : np.ndarray
             An (N, feature_dim) matrix of corresponding data features.
         n_iter : int, optional
-            The number of gradient descent iterations.
+            The maximum number of gradient steps.
         learning_rate : float, optional
             The learning rate for the Adam optimizer.
         seed : int, optional
             Seed for reproducible weight initialization and training.
         use_tqdm : bool, optional
             If True, displays a progress bar during training.
+        batch_size : int, optional
+            Minibatch size; ``None`` uses the full training set at every step.
+        validation_fraction : float, optional
+            Fraction of the samples held out for validation (0 disables it).
+        patience : int, optional
+            Number of validation checks without improvement before stopping.
+        eval_every : int, optional
+            Steps between validation checks; defaults to one pass over the
+            training set.
+        clip_norm : float, optional
+            Rescale the gradient whenever its global L2 norm exceeds this value.
         """
         # --- 1. Data Validation ---
         if params.shape[0] != features.shape[0]:
@@ -172,7 +193,24 @@ class ConditionalDensityEstimator(abc.ABC):
         params = params.astype(dtype, copy=False)
         features = features.astype(dtype, copy=False)
 
+        n_total = params.shape[0]
+        n_val = int(round(validation_fraction * n_total))
+        if n_val >= n_total:
+            raise ValueError("validation_fraction leaves no training samples.")
+        order = rng.permutation(n_total)
+        val_idx, train_idx = order[:n_val], order[n_val:]
+        params_val, features_val = params[val_idx], features[val_idx]
+        params, features = params[train_idx], features[train_idx]
+        n_train = params.shape[0]
+
+        full_batch = batch_size is None or batch_size >= n_train
+        steps_per_epoch = 1 if full_batch else int(math.ceil(n_train / batch_size))
+        if eval_every is None:
+            eval_every = steps_per_epoch
+
         self.loss_history = []
+        self.val_loss_history = []
+        best_val, best_weights, stale = np.inf, None, 0
 
         # --- 3. Optimization Loop ---
         # Adam optimizer state
@@ -180,9 +218,19 @@ class ConditionalDensityEstimator(abc.ABC):
         v = {key: np.zeros_like(val) for key, val in self.weights.items()}
         beta1, beta2, epsilon = 0.9, 0.999, 1e-8
 
+        epoch_order = np.arange(n_train)
         iterator = trange(n_iter, desc="Training", disable=not use_tqdm)
         for i in iterator:
-            loss, g = self._loss_and_grad(self.weights, features, params)
+            if full_batch:
+                batch_params, batch_features = params, features
+            else:
+                pos = i % steps_per_epoch
+                if pos == 0:
+                    epoch_order = rng.permutation(n_train)
+                idx = epoch_order[pos * batch_size:(pos + 1) * batch_size]
+                batch_params, batch_features = params[idx], features[idx]
+
+            loss, g = self._loss_and_grad(self.weights, batch_features, batch_params)
             self.loss_history.append(loss)
 
             if not np.isfinite(loss):
@@ -194,16 +242,34 @@ class ConditionalDensityEstimator(abc.ABC):
 
             # Adam update step: validate every gradient before changing any
             # weight, so a late non-finite gradient cannot leave a partial update.
-            for key in self.weights:
-                if not np.all(np.isfinite(g[key])):
-                    print(f"Warning: Non-finite gradient for '{key}' at iteration {i}. Stopping.")
-                    return
+            bad = [key for key in self.weights if not np.all(np.isfinite(g[key]))]
+            if bad:
+                print(f"Warning: Non-finite gradient for '{bad[0]}' at iteration {i}. Stopping.")
+                break
+            if clip_norm is not None:
+                norm = np.sqrt(sum(float(np.sum(g[key] ** 2)) for key in self.weights))
+                if norm > clip_norm:
+                    g = {key: g[key] * (clip_norm / norm) for key in self.weights}
             for key in self.weights:
                 m[key] = beta1 * m[key] + (1 - beta1) * g[key]
                 v[key] = beta2 * v[key] + (1 - beta2) * (g[key]**2)
                 m_hat = m[key] / (1 - beta1**(i + 1))
                 v_hat = v[key] / (1 - beta2**(i + 1))
                 self.weights[key] -= learning_rate * m_hat / (np.sqrt(v_hat) + epsilon)
+
+            if n_val and ((i + 1) % eval_every == 0 or i + 1 == n_iter):
+                val_loss = self._loss_function(self.weights, features_val, params_val)
+                self.val_loss_history.append(val_loss)
+                if np.isfinite(val_loss) and val_loss < best_val:
+                    best_val, stale = val_loss, 0
+                    best_weights = {key: val.copy() for key, val in self.weights.items()}
+                else:
+                    stale += 1
+                if patience is not None and stale >= patience:
+                    break
+
+        if best_weights is not None:
+            self.weights = best_weights
 
 
 # =============================================================================
@@ -447,11 +513,18 @@ class MAFEstimator(ConditionalDensityEstimator):
         The number of flow layers (MADE blocks).
     hidden_units : int, optional
         The number of hidden units in each MADE block.
+    context_units : bool, optional
+        If True, hidden units may have autoregressive degree 0, so they see
+        only the conditioning features and feed every output. Without them
+        the first output dimension (the only one when ``param_dim == 1``)
+        depends on the features through a linear map alone, which limits the
+        conditional densities that can be represented.
     """
     param_dim: int
     feature_dim: int
     n_flows: int = 4
     hidden_units: int = 64
+    context_units: bool = False
 
     def __post_init__(self):
         super().__init__(self.param_dim, self.feature_dim)
@@ -466,7 +539,10 @@ class MAFEstimator(ConditionalDensityEstimator):
         for k in range(self.n_flows):
             # MADE masks and permutation
             m_in = np.arange(1, D + 1)
-            m_hidden = rng.randint(1, D, size=H) if D > 1 else np.ones(H, dtype=int)
+            if self.context_units:
+                m_hidden = rng.randint(0, D, size=H)
+            else:
+                m_hidden = rng.randint(1, D, size=H) if D > 1 else np.ones(H, dtype=int)
             M1 = (m_in[None, :] <= m_hidden[:, None]).astype('f')
             m_out = m_in.copy()
             M2 = (m_hidden[None, :] < m_out[:, None]).astype('f')

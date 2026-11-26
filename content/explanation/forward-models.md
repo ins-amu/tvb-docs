@@ -90,5 +90,5 @@ matrices — that can be compared against the same statistics computed from real
 data [@sanzleon2013]. That comparison is the basis of model validation and of
 parameter inference, where the forward direction is traversed backwards to ask
 which parameters could have produced the observed signal
-([from simulation to inference](tvbl-sim-to-inference.md),
+([inference overview](../user-guide/inference.md),
 [functional connectivity](functional-connectivity.md)).

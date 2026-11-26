@@ -8,6 +8,7 @@ project:
   # static widgets in the HTML build (requires Node >= 22 and uv).
   plugins:
     - plugins/glossary-links.mjs
+    - plugins/page-authors.mjs
     - plugins/phaseplane.mjs
     - plugins/py-xref.mjs
     - https://github.com/developmentseed/myst-anywidget-static-export/releases/latest/download/plugin.mjs

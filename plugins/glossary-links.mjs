@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const glossaryPath = resolve('content/glossary.md');
 const generatedApiDir = resolve('content/reference/api');
+const generatedContributorsPath = resolve('content/about/contributors.md');
 
 // These words often have other meanings. Use an explicit {term} role
 // when the glossary sense is intended.
@@ -116,7 +117,12 @@ function termTransform() {
 
   return (tree, file) => {
     const filePath = file.path ? resolve(file.path) : '';
-    if (filePath && filePath !== glossaryPath && !filePath.startsWith(`${generatedApiDir}/`)) {
+    if (
+      filePath &&
+      filePath !== glossaryPath &&
+      filePath !== generatedContributorsPath &&
+      !filePath.startsWith(`${generatedApiDir}/`)
+    ) {
       visitProse(tree, linkText);
     }
   };

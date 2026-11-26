@@ -42,7 +42,11 @@ for (const page of pages) {
       broken++;
     }
   }
-  if (page === glossary || location.startsWith('content/reference/api/')) continue;
+  if (
+    page === glossary ||
+    location === 'content/about/contributors.md' ||
+    location.startsWith('content/reference/api/')
+  ) continue;
   const missed = new Set();
   visitProse(page.mdast, (node) => {
     for (const { label } of matches(node.value)) missed.add(label);

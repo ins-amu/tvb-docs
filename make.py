@@ -39,6 +39,7 @@ PORT = 8000
 TASKS = {
     "dev": "Ensure setup and start live incremental dev server on http://localhost:8000 (default)",
     "apidoc": "Generate native MyST API reference pages for tvb",
+    "contributors": "Generate git-blame page attribution and Contributors dashboard",
     "docs": "Build MyST HTML docs with API reference, glossary check, and downloadable notebooks",
     "lite": "Incrementally build JupyterLite into _build/lite (and sync to _build/html/lite)",
     "all": "Build complete unified static site (_build/html with MyST docs and JupyterLite)",
@@ -58,9 +59,11 @@ CLEAN_PATHS = (
     "_build/site",
     "_build/html",
     "_build/apidoc",
+    "_build/contributors",
     "_build/lite_contents",
     "_build/notebooks",
     "_build/.state.json",
+    "content/about/contributors.md",
     ".myst.apidoc.yml",
     ".jupyterlite.doit.db",
 )
@@ -378,6 +381,8 @@ def _hash_tree_for_root(
                     continue
                 if rel_posix.startswith("content/reference/api/") and rel_posix != "content/reference/api/index.md":
                     continue
+                if rel_posix == "content/about/contributors.md":
+                    continue
         try:
             if use_content_hash:
                 h.update(f"{rel_posix}:{_sha256_file(f)}\n".encode("utf-8"))
@@ -425,6 +430,33 @@ def fp_apidoc() -> str:
     )
 
 
+def _git_head_sha() -> str:
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return res.stdout.strip() if res.returncode == 0 else ""
+    except OSError:
+        return ""
+
+
+def fp_contributors() -> str:
+    return _hash_tree(
+        [
+            ".mailmap",
+            "contributors.yml",
+            ".git-blame-ignore-revs",
+            "_toc.yml",
+            "tools/build_contributors.py",
+        ],
+        extra_tokens=[f"git_head={_git_head_sha()}"],
+    )
+
+
 def fp_docs() -> str:
     return _hash_tree(
         [
@@ -436,12 +468,14 @@ def fp_docs() -> str:
             "README.md",
             "tools/build_glossary.mjs",
             "tools/build_site_search.mjs",
+            "tools/build_contributors.py",
             "tools/stage_lite.py",
         ],
         exclude_content_generated=True,
         extra_tokens=[
             f"BASE_URL={os.environ.get('BASE_URL', '')}",
             f"apidoc={fp_apidoc()}",
+            f"contributors={fp_contributors()}",
         ],
     )
 
@@ -798,6 +832,24 @@ def task_apidoc() -> None:
     save_state({"apidoc": fp_apidoc()})
 
 
+def _contributors_outputs_ready() -> bool:
+    return (
+        (ROOT / "_build" / "contributors" / "contributors.json").is_file()
+        and (ROOT / "content" / "about" / "contributors.md").is_file()
+    )
+
+
+def task_contributors() -> None:
+    ensure_venv()
+    state = load_state()
+    cur = fp_contributors()
+    if not FORCE and not is_ci() and _contributors_outputs_ready() and state.get("contributors") == cur:
+        print("contributors up to date.", flush=True)
+        return
+    run([venv_python(), "tools/build_contributors.py"])
+    save_state({"contributors": fp_contributors()})
+
+
 def task_refs() -> None:
     state = load_state()
     cur = fp_refs()
@@ -811,6 +863,7 @@ def task_refs() -> None:
 def task_docs() -> None:
     ensure_venv()
     task_apidoc()
+    task_contributors()
     execute = not NO_EXECUTE
     state = load_state()
     cur_docs = fp_docs()
@@ -854,6 +907,8 @@ def task_docs() -> None:
             raise subprocess.CalledProcessError(rc, myst_cmd)
         if execute:
             persist_exec_cache()
+    if (ROOT / "_build" / "contributors" / "contributors.json").is_file():
+        copy("_build/contributors/contributors.json", "_build/html/contributors.json")
     run(["node", "tools/build_glossary.mjs"])
     run(["node", "tools/build_site_search.mjs"])
     run(
@@ -1084,6 +1139,7 @@ def task_dev() -> None:
         print(f"Port {PORT} is in use; starting dev server at http://localhost:{port}.", flush=True)
 
     task_apidoc()
+    task_contributors()
     run(
         [
             venv_python(),

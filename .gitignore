@@ -1,4 +1,5 @@
 .venv/
+.no-ensure-uv-sync
 _build/
 execute/
 __pycache__/
@@ -12,6 +13,7 @@ content/_code/**/__pycache__/
 .jupyterlite.doit.db
 *.doit.db
 cockle_wasm_env/
+.cockle_temp/
 dist/
 local-channel/
 environment.ci.yml
@@ -34,7 +36,10 @@ mcp-hub-extension/tsconfig.tsbuildinfo
 content/demos/*.png
 content/demos/_widget_assets
 
+content/.refs-cache.json
+
 # Generated API reference pages (keep orientation index.md)
 content/reference/api/*
 !content/reference/api/index.md
 .myst.apidoc.yml
+

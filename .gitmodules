@@ -1,0 +1,3 @@
+[submodule "trajecturtle"]
+	path = trajecturtle
+	url = https://github.com/maedoc/trajecturtle.git

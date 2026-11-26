@@ -2,7 +2,7 @@
 
 This section documents the public Python API of **`tvb` (`tvb-library`)**, generated statically from source docstrings, type annotations, and `neotraits` descriptors.
 
-- **Quick jump (`Ctrl+Shift+K` / `Cmd+Shift+K`)**: Open the client-side fuzzy symbol palette to jump directly to any module, class, trait, method, or function (supports camelCase/subsequence queries like `g2do` or `osc.dfun` and kind prefixes like `class:`, `mod:`, `fn:`, `trait:`).
+- **Search API (`Ctrl+Shift+K` / `Cmd+Shift+K`)**: Open site search in the API scope to jump to a module, class, method, function, trait, or attribute. Try fuzzy queries such as `g2do` or `osc.dfun`, or narrow by kind with a prefix such as `class:` or `fn:`.
 - **Cross-references**: Authors can link to any documented symbol from prose using `{py}` — for example {py}`tvb.simulator.models.Generic2dOscillator` or short unambiguous names like {py}`Generic2dOscillator` and {py}`Connectivity`.
 
 ## Package Structure

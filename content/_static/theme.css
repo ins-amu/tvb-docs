@@ -220,6 +220,13 @@ pre.sourceCode,
 .myst-toc-item {
   padding-left: 0.75rem;
 }
+/* A part that is a single page renders as a leaf link (no collapsible wrapper
+ * around a part title), so add the title's 0.5rem py-2 back to keep it the
+ * same height as the collapsible part headings beside it. */
+.myst-toc > a.myst-toc-item {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
 
 /* ------------------------------------------------------------------ *
  * Always-visible section permalinks — show a calm blue "#" instead of the
@@ -282,34 +289,39 @@ dt[id^="term-"]:target {
   background: var(--myst-color-accent-surface);
 }
 
-#glossary-search {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.65rem;
-  margin: 1rem 0;
+/* ------------------------------------------------------------------ *
+ * Trajecturtle (tvb-phaseplane) theme integration & modal layering
+ * ------------------------------------------------------------------ */
+.ppw-widget {
+  --ppw-bg: var(--myst-color-surface-header);
+  --ppw-surface: var(--myst-color-surface);
+  --ppw-plot-bg: var(--myst-color-bg);
+  --ppw-text: var(--myst-color-text);
+  --ppw-muted: var(--myst-color-text-secondary);
+  --ppw-border: var(--myst-color-bg-secondary);
+  --ppw-grid: var(--myst-color-bg-secondary);
+  --ppw-accent: var(--myst-color-primary);
+  margin: 1rem auto;
 }
 
-#glossary-search label {
-  font-size: 0.9rem;
-  font-weight: 600;
+html.dark .ppw-widget {
+  --ppw-bg: var(--myst-color-surface-header);
+  --ppw-surface: var(--myst-color-surface);
+  --ppw-plot-bg: var(--myst-color-bg);
+  --ppw-text: var(--myst-color-text);
+  --ppw-muted: var(--myst-color-text-secondary);
+  --ppw-border: #2e3440;
+  --ppw-grid: #2a303a;
+  --ppw-accent: var(--myst-color-primary);
 }
 
-#glossary-query {
-  width: min(15rem, 100%);
-  padding: 0.3rem 0.55rem;
-  border: 1px solid var(--myst-color-text-secondary);
-  border-radius: 0.35rem;
-  background: var(--myst-color-surface-header);
-  color: var(--myst-color-text);
+dialog.ppw-expanded-workspace {
+  z-index: 9999;
+  margin: auto;
+  color: var(--ppw-text);
+  background: var(--ppw-bg);
 }
 
-#glossary-query:focus-visible {
-  outline: 2px solid var(--myst-color-focus-ring);
-  outline-offset: 2px;
-}
-
-#glossary-search [role="status"] {
-  font-size: 0.85rem;
-  color: var(--myst-color-text-secondary);
+dialog.ppw-expanded-workspace::backdrop {
+  background: rgba(15, 20, 28, 0.65);
 }

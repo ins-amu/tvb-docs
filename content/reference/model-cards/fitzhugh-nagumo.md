@@ -89,8 +89,8 @@ fig
 
 ```{marimo} python
 mo.md("The same model, coupled across a network, is simulated on the "
-      "[Tutorial](../tutorials/tvbl-quickstart.md). Parameter inference is covered in the "
-      "[inference section](../user-guide/inference.md).")
+      "[Tutorial](../../tutorials/tvbl-quickstart.md). Parameter inference is covered in the "
+      "[inference section](../../user-guide/inference.md).")
 ```
 
 ## Paper Reference

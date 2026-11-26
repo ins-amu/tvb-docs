@@ -89,9 +89,12 @@ are the shipped `NArray` defaults.
   inhibitory brake and yields epileptic-like runaway activity.
 
 Explore these transitions interactively in the
-[phase-plane tutorial](../../tutorials/phase-plane.md): drag $P$ and the
-coupling sliders and watch the nullclines, fixed points, and trajectories
-change.
+[phase-plane tutorial](../../tutorials/phase-plane.md) — or directly below.
+
+## Interactive Phase Plane
+
+```{phaseplane} wilson_cowan
+```
 
 ## Paper Reference
 

@@ -1,12 +1,12 @@
 # Glossary
 
-Hover over a green link to preview its definition. Select a term to jump to its entry.
+[Search glossary terms and definitions](#search-glossary), or browse the entries below. Hover over a green link to preview its definition.
 
 ## A–B
 
 :::{glossary}
 Additive noise
-: Random input added to the state dynamics with an amplitude independent of the current state.
+: Stochastic forcing applied during integration with an amplitude independent of the current state.
 
 Adjacency matrix
 : A matrix whose entries indicate or weight edges between pairs of network nodes.
@@ -39,6 +39,11 @@ Bifurcation
 Bifurcation analysis
 : The study of how equilibria, oscillations, or other solutions appear, disappear, or change stability as parameters vary.
 
+  [Explanation: Bifurcation analysis](explanation/bifurcation-analysis.md)
+
+Biophysical model
+: A model whose equations represent specified physiological mechanisms, such as membrane currents or ion exchange.
+
 Bistability
 : Coexistence of two stable {term}`attractors <Attractor>` under the same parameter values.
 
@@ -53,13 +58,16 @@ Brain atlas
 ## C–D
 
 :::{glossary}
+Coloured noise
+: Temporally correlated stochastic forcing; TVB generates exponentially correlated noise when `ntau` is positive.
+
 Conduction speed
 : The assumed speed of signal propagation along a tract, used with {term}`tract length <Tract length>` to calculate a delay.
 
 Connectome
 : A network representation of anatomical connections. In TVB, a regional connectome typically supplies connection weights and tract lengths.
 
-  [Explanation: The connectome](explanation/connectome.md)
+  [Building Blocks: Connectivity](user-guide/bb-connectivity.md)
 
 Control parameter
 : A parameter varied to examine how a model’s dynamics change.
@@ -71,7 +79,7 @@ Coupling
 : The rule that turns activity from other nodes or populations into input to a node’s local dynamics.
 
 Coupling function
-: The mathematical transformation that converts incoming network activity into input to a model.
+: A transformation of activity arriving from connected nodes, applied before or after weighted summation and passed to the local model.
 
 Covariance
 : A measure of how two variables vary together around their means.
@@ -79,14 +87,26 @@ Covariance
 Criticality
 : A regime near a transition where small parameter changes can qualitatively alter collective dynamics.
 
+Diffusion MRI
+: MRI methods that measure water diffusion in tissue and support tractography of {term}`white-matter <White matter>` pathways.
+
+Delay
+: The lag between activity at one node and its arrival at another. Delays give a network simulation a {term}`history <History>`.
+
 Diffusion-weighted MRI
 : MRI sensitive to water diffusion, used by {term}`tractography <Tractography>` to estimate possible white-matter pathways.
 
 Degeneracy
 : A posterior pathology where parameters trade off or couple tightly, forming ridges, symmetries, or funnels that blur inference and impede optimization and MCMC exploration.
 
+Directional bias
+: The preference of a {term}`tractography <Tractography>` algorithm to extend a {term}`streamline <Streamline>` along the locally dominant diffusion orientation, inferred from anisotropic water diffusion in white-matter fibre bundles.
+
 Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
+
+Dynamical noise
+: Stochastic forcing $g(\psi_i)\xi_i(t)$ applied during integration; $g$ sets its amplitude and can depend on the node's state.
 
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
@@ -150,8 +170,17 @@ Global coupling
 Haemodynamic response
 : The changes in blood flow, volume, and oxygenation that follow neural activity.
 
+Heterogeneous connectivity
+: Coupling that varies by source and target, as with long-range white-matter pathways linking different brain regions.
+
 Heun method
 : A predictor–corrector integrator that averages derivatives evaluated at the initial state and an Euler prediction.
+
+Homogeneous connectivity
+: A connectivity rule whose coupling depends on spatial separation and is invariant under translation across the cortical sheet.
+
+History
+: The record of a node's past states over its {term}delay <Delay>, allowing states from previous integration steps to influence neighbouring nodes.
 
 Hopf bifurcation
 : A {term}`bifurcation <Bifurcation>` in which a fixed point changes stability and a nearby periodic orbit appears or disappears.
@@ -171,7 +200,10 @@ Initial condition
 : The state from which integration starts. A delayed system generally also needs a history before the start time.
 
 Integrator
-: A numerical method for advancing the model state in time.
+: A numerical method for solving a model's differential equations using finite time steps.
+
+Isotropic material
+: A material that is isotropic behaves in precisely the same way regardless of how it is oriented with respect to sources, fields, and other materials.
 
 Jacobian
 : The matrix of first partial derivatives of a vector-valued function, used to linearise dynamics near a state.
@@ -184,6 +216,9 @@ Likelihood
 
 Limit cycle
 : An isolated periodic orbit in state space, which may be attracting, repelling, or neither.
+
+Linear material
+: A material is said to be linear if its properties do not depend on the sources and fields applied to the material.
 
 Local coupling
 : Interactions among nearby sites or populations, distinguished in TVB surface simulations from long-range connections between regions.
@@ -204,13 +239,16 @@ Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
 Multiplicative noise
-: Random input whose amplitude depends on the current state.
+: Stochastic forcing applied during integration with an amplitude that depends on the current state.
 
 :::
 
 ## N–P
 
 :::{glossary}
+Neural field model
+: A continuous spatial model of neural activity, often a PDE. TVB approximates it with discrete neural masses; see [High Resolution](user-guide/hr/classic.md).
+
 Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
 
@@ -222,8 +260,8 @@ Node
 Nullcline
 : A set of states where the time derivative of one {term}`state variable <State variable>` vanishes.
 
-Observation model
-: A model relating latent states to measured data, which can include both a {term}`forward model <Forward model>` and measurement noise.
+Observer model
+: A model mapping simulated neural activity to observable signals such as EEG, MEG, or BOLD, possibly including spatial projection, haemodynamics, and measurement noise.
 
 Ordinary differential equation
 : An equation relating a function of one independent variable, usually time here, to its derivatives.
@@ -236,6 +274,9 @@ Parcellation
 
 Perturbation
 : A deliberate or incidental change to a system’s state or input, used to examine its response.
+
+Phenomenological model
+: A model formulated to reproduce observed dynamics without explicitly representing all the physiological mechanisms that generate them.
 
 Phase plane
 : A two-dimensional {term}`state space <State space>` used to visualise dynamics.
@@ -251,8 +292,17 @@ Posterior
 Posterior predictive check
 : A comparison of data simulated from posterior parameter draws with the observation, to test whether the fitted model reproduces it.
 
+Postsynaptic potential
+: A change in membrane potential caused by synaptic input, averaged over a population in a neural mass model.
+
+Postsynaptic transformation
+: In network coupling, $Z^{(a)}$ acts on the weighted sum of incoming contributions at the receiving node.
+
 Power spectral density
 : Signal power per unit frequency, describing how variance is distributed across frequencies.
+
+Presynaptic transformation
+: In network coupling, $S^{(a)}$ transforms each source-to-target contribution before connection weights are summed.
 
 Prior
 : A probability distribution representing parameter uncertainty before conditioning on the current observations.
@@ -263,9 +313,15 @@ Projection matrix
 Propagation delay
 : The travel time assigned to a network connection, commonly calculated as {term}`tract length <Tract length>` divided by {term}`conduction speed <Conduction speed>`.
 
+Pulse density
+: The average rate of action potentials across a neuronal population.
+
+Pulse-to-wave transform
+: Synaptic filtering that converts incoming {term}`pulse density <Pulse density>` into an average {term}`postsynaptic potential <Postsynaptic potential>`.
+
 :::
 
-## R–S
+## R–Q
 
 :::{glossary}
 R-hat
@@ -338,6 +394,9 @@ Summary statistic
 Synaptic time constant
 : A characteristic timescale controlling the rise, decay, or filtering of a synaptic response.
 
+Quadratic integrate-and-fire neurons
+: neuron model with quadratic function describing the evolution of membrane voltage $V$. Spike occurs at threshold $V_t$, followed by a reset to $V_r$.
+ 
 :::
 
 ## T–W
@@ -367,8 +426,14 @@ Transient
 Vector field
 : A function assigning a direction and rate of motion to each state in a continuous-time dynamical system.
 
+Wave-to-pulse transform
+: A nonlinear mapping from mean {term}`postsynaptic potential <Postsynaptic potential>` to population {term}`pulse density <Pulse density>`, commonly a sigmoid.
+
 Weight normalisation
 : Rescaling connection weights according to a rule, such as dividing each row by its sum.
+
+White matter
+: Brain tissue composed predominantly of myelinated axons that connect different regions of the central nervous system, facilitating communication between them.
 
 White noise
 : Noise with no temporal correlation and a flat power spectrum in the idealised continuous-time limit.

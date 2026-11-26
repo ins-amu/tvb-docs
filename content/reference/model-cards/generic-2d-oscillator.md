@@ -106,6 +106,11 @@ Explore the nullclines and their movement in the
 population-model template is described on the
 [neural mass models](../../explanation/neural-mass-models.md) page.
 
+## Interactive Phase Plane
+
+```{phaseplane} generic_2d_oscillator
+```
+
 ## Paper Reference
 
 Primary reference: [@fitzhugh1961; @nagumo1962].

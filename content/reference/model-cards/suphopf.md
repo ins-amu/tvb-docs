@@ -92,6 +92,11 @@ monitor records $x$ unless asked otherwise.
   metastable, constantly reconfiguring activity used in whole-brain resting-state
   modelling.
 
+## Interactive Phase Plane
+
+```{phaseplane} suphopf
+```
+
 ## Paper Reference
 
 Primary reference: [@deco2017; @kuznetsov2004].

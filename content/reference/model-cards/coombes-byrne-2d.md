@@ -99,6 +99,11 @@ $r \in [0, 2]$, $V \in [-2, 1.5]$.
   unavailable. Add the $(g, q)$ pair — see [Coombes–Byrne](coombes-byrne.md) —
   whenever the synapse's rise and decay time matters.
 
+## Interactive Phase Plane
+
+```{phaseplane} coombes_byrne_2d
+```
+
 ## Paper Reference
 
 Primary reference: [@coombesByrne2019].

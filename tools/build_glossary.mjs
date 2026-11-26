@@ -1,5 +1,5 @@
-import { copyFileSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { relative, dirname, join } from 'node:path';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { glossaryMatches, visitProse } from '../plugins/glossary-links.mjs';
 
 const site = '_build/site/content';
@@ -59,16 +59,29 @@ for (const page of pages) {
 console.log(`Checked ${checked} glossary links. Found ${unlinked} unlinked page/term pairs.`);
 if (broken) process.exit(1);
 
-// Load the enhancement on every entry page so client-side navigation to the
-// glossary works too. A relative URL also supports GitHub Pages subpaths.
-const script = 'glossary-search.js';
-copyFileSync(join('content/_static', script), join(html, script));
-for (const name of readdirSync(html, { recursive: true })) {
-  if (!name.endsWith('.html') || name.split('/').some((part) => part.startsWith('_'))) continue;
-  const path = join(html, name);
-  const document = readFileSync(path, 'utf8');
-  if (!document.includes('</body>') || document.includes('id="tvb-glossary-search-script"')) continue;
-  const src = relative(dirname(path), join(html, script));
-  const tag = `<script id="tvb-glossary-search-script" defer src="${src}"></script>`;
-  writeFileSync(path, document.replace('</body>', `${tag}</body>`));
+// Index each term at its own validated anchor, not the A–Z group heading.
+function plainText(node) {
+  if (!node) return '';
+  if (node.value != null) return node.value;
+  const text = (node.children ?? []).map(plainText).join(node.type === 'definitionDescription' ? ' ' : '');
+  return text || node.label || '';
 }
+
+const searchEntries = [];
+for (const list of walk(glossary.mdast)) {
+  if (list.type !== 'definitionList') continue;
+  let entry;
+  for (const node of list.children) {
+    if (node.type === 'definitionTerm') {
+      entry = anchorIds.has(node.html_id)
+        ? { url: `/${glossary.slug}#${node.html_id}`, title: plainText(node), content: '' }
+        : null;
+      if (entry) searchEntries.push(entry);
+    } else if (node.type === 'definitionDescription' && entry) {
+      entry.content = `${entry.content} ${plainText(node)}`.trim();
+    }
+  }
+}
+if (searchEntries.length !== anchorIds.size) throw new Error('Glossary search does not cover every term anchor.');
+writeFileSync(join(html, 'search-glossary.json'), JSON.stringify(searchEntries));
+console.log(`Indexed ${searchEntries.length} glossary terms.`);

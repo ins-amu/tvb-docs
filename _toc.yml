@@ -70,8 +70,14 @@ parts:
       - title: High Resolution
         sections:
           - file: content/user-guide/hr/classic.md
-          - file: content/user-guide/hr/hybrid.md
           - file: content/user-guide/hr/re-entry.md
+
+      - title: Hybrid Simulation
+        sections:
+          - file: content/user-guide/hybrid/hybrid-concepts.md
+          - file: content/user-guide/hybrid/hybrid-contracts.md
+          - file: content/user-guide/hybrid/hybrid-backends-and-sweeps.md
+          - file: content/user-guide/hybrid/hybrid-tutorials.md
 
   - caption: Model Zoo
     chapters:
@@ -82,13 +88,17 @@ parts:
           - file: content/model-zoo/intro-phenomenological.md
       - title: Model cards
         sections:
-          - file: content/model-zoo/cards/foo-bar.md
+          - file: content/model-zoo/cards/montbrio-pazo-roxin.md
           # add others
       - title: Adding a new model
         sections:
           - file: content/model-zoo/new-model-subclass.md
           - file: content/model-zoo/new-model-testing.md
           - file: content/model-zoo/new-model-notebook-phaseplane.md
+
+  - caption: Reference
+    chapters:
+      - file: content/reference/api/index.md
 
   - caption: Old Tutorials
     chapters:
@@ -160,7 +170,6 @@ parts:
   - caption: Old Reference
     chapters:
       - file: content/reference/index.md
-      - file: content/reference/api/index.md
       - title: Model cards
         sections:
           - file: content/reference/model-cards/wilson-cowan.md
@@ -173,7 +182,6 @@ parts:
           - file: content/reference/model-cards/generic-2d-oscillator.md
           - file: content/reference/model-cards/epileptor.md
           - file: content/reference/model-cards/epileptor-2d.md
-          - file: content/reference/model-cards/montbrio-pazo-roxin.md
           - file: content/reference/model-cards/coombes-byrne.md
           - file: content/reference/model-cards/coombes-byrne-2d.md
           - file: content/reference/model-cards/gast-smidt-knosche-sd.md
@@ -248,9 +256,7 @@ parts:
           - file: content/demos/sandbox/surface_stochastic.ipynb
 
   - caption: Glossary
-    chapters:
-      - file: content/glossary.md
+    file: content/glossary.md
 
   - caption: About
-    chapters:
-      - file: content/about/about-this-site.md
+    file: content/about/about-this-site.md

@@ -17,6 +17,8 @@ the steps and skip the teaching. If you are new here, start with the
 - **[Check an amortised posterior](../user-guide/inference/posterior-calibration.md)** — Parameter recovery, simulation-based calibration and coverage for simulation-based inference.
 - **[Fit an evoked-response model with a likelihood](../user-guide/inference/erp-likelihood.md)** — Optimisation, MCMC, the Laplace approximation and model comparison.
 - **[Writing a new model](write-a-model.md)** — Implementing and registering a custom neural mass model in TVB.
+- **[Keep a Jansen–Rit network in the alpha regime](jansen-rit-alpha-network.md)** — Bounding the network input and placing the input noise so that each region's input stays in the range Jansen & Rit used for alpha.
+- **[Simulate the Hopf whole-brain model](hopf-whole-brain-model.md)** — Stuart–Landau nodes at the bifurcation with diffusive coupling, noise and TR sampling in consistent units.
 
 ## Connectivity & Stimuli
 

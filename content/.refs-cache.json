@@ -1,10 +1,31 @@
 {
+  "10.1002/hbm.21479": {
+    "authors": [
+      "Opitz",
+      "Thielscher",
+      "Windhoff"
+    ],
+    "title": "Electric field calculations in brain stimulation based on finite elements: An optimized processing pipeline for the generation and usage of accurate individual head models",
+    "year": 2011
+  },
   "10.1007/978-1-4757-3978-7": {
     "authors": [
       "Kuznetsov"
     ],
     "title": "Elements of Applied Bifurcation Theory",
     "year": 2004
+  },
+  "10.1007/978-3-030-21293-3_1": {
+    "authors": [
+      "Antonenko",
+      "Madsen",
+      "Nielsen",
+      "Puonti",
+      "Saturnino",
+      "Thielscher"
+    ],
+    "title": "SimNIBS 2.1: A Comprehensive Pipeline for Individualized Electric Field Modelling for Transcranial Brain Stimulation",
+    "year": 2019
   },
   "10.1007/978-3-319-71048-8_1": {
     "authors": [
@@ -22,6 +43,15 @@
     "title": "Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns",
     "year": 1995
   },
+  "10.1007/BF00224863": {
+    "authors": [
+      "Brandt",
+      "Jansen",
+      "Zouridakis"
+    ],
+    "title": "A neurophysiologically-based mathematical model of flash visual evoked potentials",
+    "year": 1993
+  },
   "10.1007/BF00337367": {
     "authors": [
       "Kristiansson",
@@ -30,6 +60,14 @@
     ],
     "title": "Performance of a model for a local neuron population",
     "year": 1978
+  },
+  "10.1007/BF02476917": {
+    "authors": [
+      "Heppner",
+      "Plonsey"
+    ],
+    "title": "Considerations of quasi-stationarity in electrophysiological systems",
+    "year": 1967
   },
   "10.1007/BFB0013365": {
     "authors": [
@@ -72,6 +110,14 @@
     "title": "From Kuramoto to Crawford: exploring the onset of synchronization in populations of coupled oscillators",
     "year": 2000
   },
+  "10.1016/S0167-2789(96)00166-2": {
+    "authors": [
+      "Haken",
+      "Jirsa"
+    ],
+    "title": "A derivation of a macroscopic field theory of the brain from the quasi-microscopic neural dynamics",
+    "year": 1997
+  },
   "10.1016/S0925-2312(02)00740-3": {
     "authors": [
       "Breakspear",
@@ -106,6 +152,37 @@
     "title": "Dynamic causal modeling of evoked responses in EEG and MEG",
     "year": 2006
   },
+  "10.1016/j.neuroimage.2009.12.027": {
+    "authors": [
+      "Bullmore",
+      "Cocchi",
+      "Fornito",
+      "Harding",
+      "Pantelis",
+      "Yücel",
+      "Zalesky"
+    ],
+    "title": "Whole-brain anatomical networks: Does the choice of nodes matter?",
+    "year": 2010
+  },
+  "10.1016/j.neuroimage.2013.06.018": {
+    "authors": [
+      "Jirsa",
+      "Spiegler"
+    ],
+    "title": "Systematic approximations of neural fields through networks of neural masses in the virtual brain",
+    "year": 2013
+  },
+  "10.1016/j.neuroimage.2015.01.002": {
+    "authors": [
+      "Jirsa",
+      "Knock",
+      "Sanz-Leon",
+      "Spiegler"
+    ],
+    "title": "Mathematical framework for large-scale brain network modeling in The Virtual Brain",
+    "year": 2015
+  },
   "10.1016/j.neuroimage.2015.03.008": {
     "authors": [
       "Friston",
@@ -115,6 +192,67 @@
     "title": "Gradient-free MCMC methods for dynamic causal modelling",
     "year": 2015
   },
+  "10.1016/j.neuroimage.2015.03.055": {
+    "authors": [
+      "Jirsa",
+      "McIntosh",
+      "Ritter",
+      "Rothmeier",
+      "Schirner"
+    ],
+    "title": "An automated pipeline for constructing personalized virtual brains from multimodal neuroimaging data",
+    "year": 2015
+  },
+  "10.1016/j.neuroimage.2022.118973": {
+    "authors": [
+      "Akintoye",
+      "Amunts",
+      "Bjaalie",
+      "Blickensdörfer",
+      "Cepic",
+      "Deco",
+      "Diaz-Pier",
+      "Dickscheid",
+      "Domide",
+      "Flöel",
+      "Fousek",
+      "Hashemi",
+      "Hilgetag",
+      "Jirsa",
+      "Johnson",
+      "Klijn",
+      "Kusch",
+      "Langford",
+      "Mangin",
+      "Marinazzo",
+      "McIntosh",
+      "McMurtrie",
+      "Mersmann",
+      "Morgan",
+      "Nahm",
+      "Pai",
+      "Palmer",
+      "Perdikis",
+      "Petkoski",
+      "Peyser",
+      "Pleiter",
+      "Prodan",
+      "Ritter",
+      "Schirner",
+      "Schmid",
+      "Schuller",
+      "Stahl",
+      "Stefanovski",
+      "Triebkorn",
+      "Upton",
+      "Valean",
+      "Woodman",
+      "Zehl",
+      "van der Vlag"
+    ],
+    "title": "Brain simulation as a cloud service: The Virtual Brain on EBRAINS",
+    "year": 2022
+  },
   "10.1023/A:1008202821328": {
     "authors": [
       "Price",
@@ -122,6 +260,17 @@
     ],
     "title": "Differential Evolution – A Simple and Efficient Heuristic for global Optimization over Continuous Spaces",
     "year": 1997
+  },
+  "10.1038/s41540-025-00543-9": {
+    "authors": [
+      "Casellato",
+      "D’Angelo",
+      "Gandini Wheeler-Kingshott",
+      "Lorenzi",
+      "Palesi"
+    ],
+    "title": "Region-specific mean field models enhance simulations of local and global brain dynamics",
+    "year": 2025
   },
   "10.1038/s41598-017-03073-5": {
     "authors": [
@@ -178,6 +327,16 @@
     "title": "Modulation of excitatory synaptic coupling facilitates synchronization and complex dynamics in a biophysical model of neuronal dynamics",
     "year": 2003
   },
+  "10.1088/1741-2552/ab208d": {
+    "authors": [
+      "Bikson",
+      "Datta",
+      "Huang",
+      "Parra"
+    ],
+    "title": "Realistic volumetric-approach to simulate transcranial electric stimulation—ROAST—a fully automated open-source pipeline",
+    "year": 2019
+  },
   "10.1088/2632-2153/ad6230": {
     "authors": [
       "Fousek",
@@ -189,6 +348,141 @@
     ],
     "title": "Simulation-based inference on virtual brain models of disorders",
     "year": 2024
+  },
+  "10.1093/brain/awab362": {
+    "authors": [
+      "Adam",
+      "Adam",
+      "Aupy",
+      "Ayoubian",
+      "Barba",
+      "Barba",
+      "Barborica",
+      "Bartolomei",
+      "Bartolomei",
+      "Bhattacharjee",
+      "Biraben",
+      "Blauwblomme",
+      "Blauwblomme",
+      "Bouilleret",
+      "Bourgeois",
+      "Boyer",
+      "Brazdil",
+      "Catenoix",
+      "Chanteloup-Forêt",
+      "Chassoux",
+      "Chipaux",
+      "Chochois",
+      "Curot",
+      "Curot",
+      "Dan",
+      "David",
+      "Deman",
+      "Denuelle",
+      "Derambure",
+      "Doležalová",
+      "Dubeau",
+      "Dubeau",
+      "Dussaule",
+      "Francione",
+      "Francione",
+      "Gaily",
+      "Gang",
+      "Garcés",
+      "Garcés",
+      "George",
+      "Gotman",
+      "Guerrini",
+      "Hagmann",
+      "Hirsch",
+      "Hirsch",
+      "Hua",
+      "Hugues",
+      "Isnard",
+      "Jedynak",
+      "Job",
+      "Jonas",
+      "Kahane",
+      "Kahane",
+      "Kaminska",
+      "Kočvarová",
+      "Kuba",
+      "Landré",
+      "Landré",
+      "Lauronen",
+      "Lemaréchal",
+      "Lenge",
+      "Ley",
+      "Liu",
+      "Liu",
+      "Mai",
+      "Maillard",
+      "Maillard",
+      "Maria Petrescu",
+      "Masnou",
+      "McGonigal",
+      "Menard",
+      "Metsähonkala",
+      "Metsähonkala",
+      "Michel",
+      "Mindruta",
+      "Mindruta",
+      "Minotti",
+      "Montavont",
+      "Nabbout",
+      "Nacci",
+      "Navarro",
+      "Nica",
+      "Nica",
+      "Nobili",
+      "Pail",
+      "Pail",
+      "Paola Valenti",
+      "Peltola",
+      "Petrescu",
+      "Principe",
+      "Qiang",
+      "Quirins",
+      "Reyes Mejia",
+      "Rheims",
+      "Rheims",
+      "Rocamora",
+      "Rocamora",
+      "Ryvlin",
+      "Sartori",
+      "Saubat",
+      "Scholly",
+      "Schulze-Bonhage",
+      "Singh",
+      "Szurhaj",
+      "Szurhaj",
+      "Tadel",
+      "Tassi",
+      "Taussig",
+      "Taussig",
+      "Taussig",
+      "Tourbier",
+      "Trebaul",
+      "Trébuchon",
+      "Tuyisenge",
+      "Tyvaert",
+      "Valentin",
+      "Valentin",
+      "Valton",
+      "Vignal",
+      "Wang",
+      "Wang",
+      "Wei",
+      "Wensheng",
+      "Xi",
+      "Xiangshu",
+      "Yigang",
+      "Zhou",
+      "Zouglech",
+      "de Montaudoin"
+    ],
+    "title": "A brain atlas of axonal and synaptic delays based on modelling of cortico-cortical evoked potentials",
+    "year": 2021
   },
   "10.1093/brain/awu133": {
     "authors": [
@@ -211,6 +505,22 @@
     "title": "Individual brain structure and modelling predict seizure propagation",
     "year": 2017
   },
+  "10.1093/nsr/nwae079": {
+    "authors": [
+      "Breyton",
+      "Depannemaecker",
+      "Dollomaja",
+      "Hashemi",
+      "Jirsa",
+      "Lemarechal",
+      "Petkoski",
+      "Sorrentino",
+      "Triebkorn",
+      "Wang"
+    ],
+    "title": "Virtual brain twins: from basic neuroscience to clinical use",
+    "year": 2024
+  },
   "10.1098/rsif.2024.0880": {
     "authors": [
       "Baldy",
@@ -229,6 +539,14 @@
     "title": "A model of neuronal bursting using three coupled first order differential equations",
     "year": 1984
   },
+  "10.1103/PhysRevLett.77.960": {
+    "authors": [
+      "Haken",
+      "Jirsa"
+    ],
+    "title": "Field Theory of Electromagnetic Brain Activity",
+    "year": 1996
+  },
   "10.1103/PhysRevX.5.021028": {
     "authors": [
       "Montbrió",
@@ -238,6 +556,16 @@
     "title": "Macroscopic Description for Networks of Spiking Neurons",
     "year": 2015
   },
+  "10.1109/EMBC.2012.6347236": {
+    "authors": [
+      "Brooks",
+      "Dannhauer",
+      "MacLeod",
+      "Tucker"
+    ],
+    "title": "A pipeline for the simulation of transcranial direct current stimulation for realistic human head models using SCIRun/BioMesh3D",
+    "year": 2012
+  },
   "10.1109/JRPROC.1962.288235": {
     "authors": [
       "Arimoto",
@@ -246,6 +574,27 @@
     ],
     "title": "An Active Pulse Transmission Line Simulating Nerve Axon",
     "year": 1962
+  },
+  "10.1109/RBME.2025.3562951": {
+    "authors": [
+      "Athanasiadis",
+      "Breyton",
+      "Depannemaecker",
+      "Fousek",
+      "Hashemi",
+      "Jirsa",
+      "Petkoski",
+      "Rabuffo",
+      "Saggio",
+      "Sip",
+      "Sorrentino",
+      "Triebkorn",
+      "Wang",
+      "Woodman",
+      "Ziaeemehr"
+    ],
+    "title": "Principles and Operation of Virtual Brain Twins",
+    "year": 2026
   },
   "10.1109/TAC.1974.1100705": {
     "authors": [
@@ -276,6 +625,14 @@
     ],
     "title": "Active Subspace Methods in Theory and Practice: Applications to Kriging Surfaces",
     "year": 2014
+  },
+  "10.1162/neco.2006.18.12.3052": {
+    "authors": [
+      "Faugeras",
+      "Grimbert"
+    ],
+    "title": "Bifurcation Analysis of Jansen's Neural Mass Model",
+    "year": 2006
   },
   "10.1162/neco_a_01300": {
     "authors": [
@@ -344,6 +701,30 @@
     ],
     "title": "Estimating the Dimension of a Model",
     "year": 1978
+  },
+  "10.1371/journal.pbio.0060159": {
+    "authors": [
+      "Cammoun",
+      "Gigandet",
+      "Hagmann",
+      "Honey",
+      "Meuli",
+      "Sporns",
+      "Wedeen"
+    ],
+    "title": "Mapping the Structural Core of Human Cerebral Cortex",
+    "year": 2008
+  },
+  "10.1371/journal.pcbi.1000196": {
+    "authors": [
+      "Ghosh",
+      "Jirsa",
+      "Kötter",
+      "McIntosh",
+      "Rho"
+    ],
+    "title": "Noise during Rest Enables the Exploration of the Brain's Dynamic Repertoire",
+    "year": 2008
   },
   "10.1371/journal.pcbi.1000219": {
     "authors": [
@@ -423,6 +804,16 @@
     "title": "An Adaptive Metropolis Algorithm",
     "year": 2001
   },
+  "10.3389/fncom.2026.1973956": {
+    "authors": [
+      "Destexhe",
+      "D’Angelo",
+      "Gandini Wheeler-Kingshott",
+      "Jirsa"
+    ],
+    "title": "Virtual brain models: a roadmap towards effective brain digital twins",
+    "year": 2026
+  },
   "10.3389/fninf.2013.00010": {
     "authors": [
       "Domide",
@@ -435,6 +826,46 @@
     ],
     "title": "The Virtual Brain: a simulator of primate brain network dynamics",
     "year": 2013
+  },
+  "10.3390/brainsci13081142": {
+    "authors": [
+      "Aguila-Muñoz",
+      "Martínez-Ortiz",
+      "Pérez-Benítez"
+    ],
+    "title": "A Review of Formulations, Boundary Value Problems and Solutions for Numerical Computation of Transcranial Magnetic Stimulation Fields",
+    "year": 2023
+  },
+  "10.64898/2026.05.06.26352533": {
+    "authors": [
+      "Breyton",
+      "Buciuman",
+      "Casagrande",
+      "Chang",
+      "Cui",
+      "Depannemaecker",
+      "Domide",
+      "D’Angelo",
+      "Esmaeili",
+      "Feng",
+      "Fey",
+      "Guilhaumou",
+      "Hashemi",
+      "Jirsa",
+      "Koutsouleris",
+      "Petkoski",
+      "Preti",
+      "Prodan",
+      "Sacha",
+      "Sip",
+      "Sorrentino",
+      "Triebkorn",
+      "Wang",
+      "Woodman",
+      "Ziaeemehr"
+    ],
+    "title": "Virtual brain twins guide personalized treatment decision in schizophrenia",
+    "year": 2026
   },
   "10.7554/eLife.104249": {
     "authors": [

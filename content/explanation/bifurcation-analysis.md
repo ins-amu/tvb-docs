@@ -79,6 +79,68 @@ the frequency can be arbitrarily low. Models with this structure can oscillate
 slowly or fast; Hopf-based models instead have a minimum frequency at onset. The
 difference shows up immediately in what a parameter sweep produces.
 
+(jansen-rit-diagram)=
+## A worked example: the Jansen–Rit column
+
+The [Jansen–Rit model](../reference/model-cards/jansen-rit.md) shows several
+of these bifurcations along a single control parameter, the extrinsic input
+$p$. Grimbert & Faugeras mapped its diagram with the published parameters
+($v_0 = 6$ mV) [@grimbertFaugeras2006]. Computing the equilibria of TVB's
+`JansenRit` and the eigenvalues of its Jacobian recovers their Hopf and
+saddle-node points to within 0.01 pulses/s. The fold of limit cycles is taken
+from the paper.
+
+| $p$ [pulses/s] | bifurcation | consequence |
+|---|---|---|
+| 89.83 | supercritical Hopf on the upper branch of equilibria | a ~10 Hz limit cycle (alpha) appears |
+| 113.58 | saddle-node with a homoclinic orbit on the lower branch | the lower resting state vanishes; slow, large "spike" cycles appear |
+| 137.38 | fold of limit cycles | the spike cycles vanish |
+| 315.70 | second Hopf | the alpha cycle shrinks to zero; the upper equilibrium is stable again |
+
+The diagram explains the original simulations. Jansen & Rit drove the column
+with noise spread uniformly over 120–320 pulses/s [@jansenRit1995]. Most of
+that range lies between 137.38 and 315.70 pulses/s, where the alpha cycle is
+the only attractor, so the trajectory keeps winding around the cycle that
+belongs to the current input. Wendling and colleagues produced epileptic
+spikes with the same equations driven by Gaussian noise of mean 90 and
+standard deviation 30 pulses/s. As Grimbert & Faugeras point out, that input
+spends most of its time in the bistable rest region and the spike window
+[@grimbertFaugeras2006].
+
+The diagram is also fragile. Grimbert & Faugeras found that changing the
+parameters by as little as 5 % gives fairly different behaviour. TVB's default
+threshold, $v_0 = 5.52$ mV instead of 6, is an 8 % change. It leaves
+the lower saddle-node almost in place (about 112 pulses/s) but moves the
+upper Hopf to about 516 pulses/s. At the default input of 220 pulses/s the
+column then sits on a large ~7 Hz cycle rather than on the alpha cycle.
+Before reusing a published operating point, check which branch the defaults
+put the model on.
+
+(coupling-and-network-rest)=
+## Coupling decides what a network's resting state does
+
+The node's diagram is only half the story in a network, because the coupling
+function decides how neighbours perturb each node. The
+[SupHopf (Stuart–Landau) model](../reference/model-cards/suphopf.md) makes this
+explicit. Linearised around the all-quiet state, a network of $N$ identical
+nodes with weights $W$ and global coupling $G$ has growth rates
+
+- $a - G\,\ell_k$ with **diffusive** coupling, $G\sum_j w_{ij}(x_j - x_i)$,
+  where the $\ell_k$ are the eigenvalues of the graph Laplacian
+  $\mathrm{diag}(W\mathbf{1}) - W$;
+- $a + G\,\lambda_k(W)$ with **additive** coupling, $G\sum_j w_{ij}x_j$,
+
+where, for non-symmetric weights, the real parts of the eigenvalues count.
+The Laplacian eigenvalues have non-negative real parts, so around rest
+diffusive coupling can only add damping. Without delays and noise, a network
+of nodes with $a < 0$ stays at rest for any $G$. Deco et al. use diffusive
+coupling with their nodes at or near $a = 0$ [@deco2017]. In their model, the
+connectome mainly shapes how noise-driven fluctuations spread and synchronise.
+Additive coupling instead shifts the effective bifurcation parameter: once
+$G\,\lambda_{max}(W) > -a$, the network oscillates although no node would
+alone. Conduction delays change both cases, because a delayed neighbour is
+no longer in the same state.
+
 ## Why TVB modelers map the structure
 
 - **To choose an operating point.** A model near a bifurcation is sensitive and

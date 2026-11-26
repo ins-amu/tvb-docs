@@ -75,11 +75,7 @@ noise generator at the selected `dt`.
 ```{code-cell} ipython3
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 from tvb.simulator import integrators, models, noise
-
-figure_dir = Path("figures")
-figure_dir.mkdir(exist_ok=True)
 
 model = models.Generic2dOscillator()
 model.configure()
@@ -137,12 +133,8 @@ for ax, variable in zip(axes, model.state_variables):
 axes[0].legend(ncol=4, fontsize="small")
 axes[-1].set_xlabel("Time (ms)")
 fig.tight_layout()
-fig.savefig(figure_dir / "integrators-step-stability.png", dpi=160,
-            bbox_inches="tight")
-plt.close(fig)
+plt.show()
 ```
-
-![Both oscillator state variables calculated with six integrators at a coarse step, alongside a fine-step reference.](figures/integrators-step-stability.png)
 
 Euler departs visibly from the reference, particularly in $W$. The remaining
 trajectories nearly overlap at these sampling times. In an analysis, a useful
@@ -169,12 +161,9 @@ for name, method_class in comparison_methods:
 ax.set(xlabel="Time step dt (ms)", ylabel="Largest difference from reference",
        yscale="log")
 ax.legend(ncol=2)
-fig.savefig(figure_dir / "integrators-step-size-error.png", dpi=160,
-            bbox_inches="tight")
-plt.close(fig)
+fig.tight_layout()
+plt.show()
 ```
-
-![Largest difference from the fine-step reference as the time step increases.](figures/integrators-step-size-error.png)
 
 The adaptive solvers keep the local trajectory close to the reference over
 this range of steps. For a connected network, `dt` also determines how finely
@@ -235,12 +224,8 @@ for index, ax in enumerate(axes):
 axes[0].legend()
 axes[-1].set_xlabel("Time (ms)")
 fig.tight_layout()
-fig.savefig(figure_dir / "integrators-additive-noise.png", dpi=160,
-            bbox_inches="tight")
-plt.close(fig)
+plt.show()
 ```
-
-![Oscillator trajectories with additive noise at nsig 0.08 and 0.8, alongside the deterministic trajectory.](figures/integrators-additive-noise.png)
 
 The weaker forcing (`nsig=0.08`) visibly changes both variables. At
 `nsig=0.8`, $V$ makes much larger excursions and $W$ falls throughout much of
@@ -280,12 +265,8 @@ for ax, variable in zip(axes, model.state_variables):
 axes[0].legend(fontsize="small")
 axes[-1].set_xlabel("Time (ms)")
 fig.tight_layout()
-fig.savefig(figure_dir / "integrators-noise-types.png", dpi=160,
-            bbox_inches="tight")
-plt.close(fig)
+plt.show()
 ```
-
-![Both oscillator variables with additive and multiplicative noise.](figures/integrators-noise-types.png)
 
 The custom run is especially clear in $W$: its trace becomes smooth near
 $W=-2$, where $b(W)=1+0.5W$ approaches zero. The default $b(W)=W$ has a

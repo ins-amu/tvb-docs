@@ -27,6 +27,7 @@ This page covers three topics. Jump to whichever you need.
 Everything on this page is written from the point of view of a simulation that
 uses delays and a history buffer. The same concepts apply if you don't have
 delays: drop $\tau_{kj}$ and read the neighbourhood state at the current time.
+Same with any mentions to delayed state, without delays that becomes current state.
 Nothing else about the pipeline changes.
 :::
 
@@ -86,11 +87,11 @@ $$
 
 ### Only some state variables travel
 
-A model declares which of its state variables are exchanged over the network:
-its `cvar`. Only those enter the history buffer and therefore the coupling
-function. A model with `cvar = [0]` sends one variable; `SigmoidalJansenRit`
-and dynamic `PreSigmoidal` assume **two**, and will misbehave silently if the
-model provides fewer.
+A [model](bb-model.md) declares which of its state variables are exchanged over
+the network: its `cvar`. Only those enter the history buffer and therefore the
+coupling function. A model with `cvar = [0]` sends one variable.
+Some coupling functions expect two. `SigmoidalJansenRit` and dynamic `PreSigmoidal` assume **two**, and will
+misbehave if the model provides fewer.
 
 This matters when you swap coupling functions between models: the function is
 written against a specific number of coupling variables, not against the state
@@ -98,8 +99,8 @@ vector as a whole.
 
 ### Where the gain enters
 
-Nothing about "how strong the coupling is overall" lives in the simulator. The
-overall gain comes from exactly two places:
+Coupling functions regulate the gain, not the simulator. The
+overall gain comes from one of two places:
 
 - the `a` (or `G`, `cmax`) parameter of the coupling function, which scales the
   summed afferents, and
@@ -114,8 +115,7 @@ See [global coupling](#coupling-global) below for the double-counting trap.
 ## Description of the Coupling class
 
 `tvb.simulator.coupling.Coupling` is not a container of arrays like
-`Connectivity`. It is a small callable object with no data of its own beyond a
-handful of parameters.
+`Connectivity`. It is a callable object with no data of its own except for parameters.
 
 The simulator calls it as
 
@@ -124,8 +124,8 @@ node_coupling = sim.coupling(step, sim.history)
 ```
 
 and the base class implements that call as pre → weighted sum → post. A
-subclass therefore **should not override `__call__`**; it overrides `pre` and
-`post`.
+subclass therefore **should not override `__call__`**, 
+instead it should override `pre` and `post` methods.
 
 | Method | Receives | Returns | Default |
 |---|---|---|---|
@@ -152,7 +152,7 @@ must act *before* the weights are applied.
 
 `gx` is the weighted row sum; $N$ is the number of nodes.
 
-#### Choosing between them
+#### Choosing between the coupling functions
 
 - **`Linear` / `Scaling`** when the model itself does the nonlinearity. This is
   the default and the right choice for most neural mass models, including
@@ -165,6 +165,10 @@ must act *before* the weights are applied.
 - **`HyperbolicTangent` / `SigmoidalJansenRit` / `PreSigmoidal`** when the
   saturation belongs to the source, i.e. each connection carries a bounded
   amount of activity regardless of how many afferents hit the target.
+- `Sigmoidal` and `SigmoidalJansenRit` both put the sigmoid at different stages,
+which is the single most common source of confusion. `Sigmoidal` saturates the
+*weighted sum* (post); `SigmoidalJansenRit` saturates each *source's
+difference* first (pre) and only then sums.
 
 (parameters)=
 ### Parameters
@@ -172,48 +176,31 @@ must act *before* the weights are applied.
 All parameters are `NArray` attributes and may be scalars or arrays, so gain can
 vary per node or per mode.
 
-:::{warning}
+<!-- :::{warning}
 **Defaults are historical, not physical.** The `a` of `1/256` in `Linear` is a
 normalisation constant inherited from early 76-region simulations; `sigma = 230`
 in `Sigmoidal` comes from a model whose coupling variable is in a different
 range. Both are applied to whatever state your model produces. Set them against
 the scale of your model's `cvar`, not by inheritance.
-:::
+::: -->
 
-`Sigmoidal` and `SigmoidalJansenRit` both put the sigmoid at different stages,
-which is the single most common source of confusion. `Sigmoidal` saturates the
-*weighted sum* (post); `SigmoidalJansenRit` saturates each *source's
-difference* first (pre) and only then sums. Identical parameter values do not
-give identical behaviour.
 
 (coupling-global)=
 ### Global coupling
 
 There is no simulator-level global coupling parameter. An overall gain is
 expressed either as `a` in the coupling function or as the model's coupling
-term — and several models have their own (`G`, `J`, `c`…). Check which of the
-two your model expects before adding the other.
-
-:::{caution}
-`connectivity.scaled_weights('region')` and a coupling gain both scale the same
-row sums. Normalise weights *and* leave the gain at 1, or leave the weights
-raw *and* set the gain — not both. A network coupled twice over runs, looks
-plausible, and is wrong.
-:::
+term. Several models have their own (`G`, `J`, `c`…).
 
 Diagonal (self-connection) weights matter here too: they are not removed by
-default, so a large diagonal adds a term that no delay and no neighbour
-contributes to.
+default, and if present contribute to the overall dynamics (with zero delay).
 
 ### Sparse evaluation
 
 Most built-ins derive from `SparseCoupling` and evaluate only afferents with a
-non-zero weight; TVB 3.0 stores history sparsely for the same reason. The three
+non-zero weight; TVB 3.0 stores **history** sparsely for the same reason. The three
 sigmoids (`Sigmoidal`, `SigmoidalJansenRit`, `PreSigmoidal`) derive from the base
 class and touch the full $l \times l$ matrix.
-
-A custom coupling function should subclass `SparseCoupling` and implement
-`pre`/`post` — no other change is needed for it to be fast.
 
 ---
 
@@ -223,11 +210,11 @@ A custom coupling function should subclass `SparseCoupling` and implement
 ### 1. Pick the function for your model
 
 Ask where the nonlinearity already is. If the model equations contain a
-sigmoid, the coupling should not — use `Linear`. If the model is a phase
-oscillator, use `Difference` or `Kuramoto`. Only reach for a pre-synaptic
+sigmoid, the coupling might consider `Linear`. If the model is a phase
+oscillator, consider `Difference` or `Kuramoto`. Only reach for a pre-synaptic
 sigmoid when the source activity itself must be bounded.
 
-Check the number of coupling variables the model provides before choosing a
+If you model provides multiple coupling variables (`cvar`), consider a
 two-variable function.
 
 ### 2. Set the gain
@@ -240,8 +227,8 @@ coupling.Linear(a=np.array([0.004]))          # explicit gain
 ```
 
 Leave `b` at zero unless you deliberately want to inject a constant offset
-into every node — it is not a bias term of the model, it is added to the
-coupling input of all nodes at once.
+into every node. It acts essentially as a floor for the coupling, so even
+without neighbouring nodes having activity you get a coupling input.
 
 ### 3. Attach it to a simulation
 
@@ -253,7 +240,7 @@ conn.speed = np.array([3.0])
 
 sim = simulator.Simulator(
     connectivity=conn,
-    coupling=coupling.Linear(a=np.array([0.004])),
+    coupling=coupling.Linear(a=np.array([0.004])), # <----
     model=models.JansenRit(),
     integrator=integrators.HeunDeterministic(dt=0.1),
     monitors=[monitors.Raw(), monitors.AfferentCoupling()],
@@ -264,10 +251,10 @@ results = sim.run()
 
 Do not call `configure()` on the coupling function yourself. `Simulator.configure()` does it.
 
-### 4. Verify what arrives at the model
+### 4. How to verify coupling input
 
-Attach `monitors.AfferentCoupling()` and look at the recorded input before
-interpreting any dynamics. Its magnitude should be comparable to the terms the
+Attach `monitors.AfferentCoupling()` and look at the recorded input. 
+The magnitude should be comparable to the terms the
 model's equations expect — if the coupling input is orders of magnitude larger
 than the local dynamics, the gain is wrong and the network is being driven, not
 coupled.
@@ -280,7 +267,4 @@ coupling function agree on the weights convention.
 (coupling-api-reference)=
 ## API reference
 
-:::{note}
-**To do:** link to the generated API reference for `tvb.simulator.coupling`.
-Until it exists, this section carries the guidance.
-:::
+`tvb.simulator.coupling`

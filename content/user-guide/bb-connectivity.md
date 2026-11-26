@@ -265,7 +265,7 @@ Do not call `configure()` or `set_idelays()` yourself. `Simulator.configure()` d
 
 ## Local connectivity
 
-The high-resolution simulations have been available through local connectivity : zero-delay, surface-based connectivity with nodes derived from a cortical mesh with mapping to a parcellation regions. The weights form sparse matrix with weights computed by translationally invariant geodesic distance dependent kernel on the cortical surface mesh. This functionality is currently superseded by the [hybrid API](hybrid/hybrid-conncepts.md).
+In addition to the connectome-based connectivity, TVB has provided a way to define high-resolution simulations through local connectivity : zero-delay, surface-based connectivity with nodes derived from a cortical mesh with mapping to a parcellation regions. The weights form sparse matrix with weights computed by translationally invariant geodesic distance dependent kernel on the cortical surface mesh. This functionality is currently superseded by the [hybrid API](hybrid/hybrid-conncepts.md).
 
 ---
 

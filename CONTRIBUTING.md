@@ -37,7 +37,7 @@ Running bare `make` (or `python3 make.py`) runs the default `dev` task:
 make
 ```
 This automatically:
-1. Creates `.venv` if missing and verifies it matches `requirements/uv.lock` via `uv` (syncing if needed).
+1. Creates `.venv` if missing and verifies it matches `requirements/uv.lock` via `uv` (syncing if needed, unless `--no-ensure-uv-sync` or `./.no-ensure-uv-sync` is set).
 2. Incrementally stages downloadable `.ipynb` notebooks into `_build/notebooks/`.
 3. Starts a live-reloading MyST dev server + unified local router at [http://localhost:8000](http://localhost:8000) (automatically picking the next free port if 8000 is occupied, or reporting the URL if this repo's server is already running).
 
@@ -48,6 +48,7 @@ Visit:
 
 Useful flags for local editing:
 - `python3 make.py dev --no-execute` — skip notebook/cell execution for fast prose, CSS, or TOC edits.
+- `python3 make.py <task> --no-ensure-uv-sync` (or `touch ./.no-ensure-uv-sync`) — reuse an existing `.venv` without running `uv` sync checks (useful offline or on slow Wi-Fi so `make` / `make.py` won't try to rebuild your `.venv`).
 - `python3 make.py status` — show build freshness, active dev server, and what `make` will run next.
 - `python3 make.py serve --static` — preview the static `_build/html` build on port 8000 instead of live `myst start`.
 

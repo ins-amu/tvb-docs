@@ -1,4 +1,5 @@
 .venv/
+.no-ensure-uv-sync
 _build/
 execute/
 __pycache__/

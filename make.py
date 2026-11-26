@@ -27,10 +27,12 @@ ROOT = Path(__file__).resolve().parent
 STATE_FILE = ROOT / "_build" / ".state.json"
 DEV_SERVER_FILE = ROOT / "_build" / ".dev-server.json"
 VENV_LOCK_STAMP = ROOT / ".venv" / ".uv-lock-sha256"
+NO_ENSURE_UV_SYNC_FILE = ROOT / ".no-ensure-uv-sync"
 
 DRY_RUN = False
 FORCE = False
 NO_EXECUTE = False
+NO_ENSURE_UV_SYNC = False
 STATIC_SERVE = False
 PORT = 8000
 
@@ -503,7 +505,18 @@ def venv_in_sync() -> bool:
     return False
 
 
+def skip_uv_sync() -> bool:
+    return NO_ENSURE_UV_SYNC or NO_ENSURE_UV_SYNC_FILE.exists()
+
+
 def ensure_venv() -> None:
+    if skip_uv_sync():
+        if not venv_ready() and not DRY_RUN:
+            raise RuntimeError(
+                ".venv not found and uv sync is disabled (--no-ensure-uv-sync / .no-ensure-uv-sync). "
+                "Run `python make.py setup` once to create .venv."
+            )
+        return
     if venv_in_sync():
         return
     task_setup()
@@ -569,7 +582,7 @@ def task_help() -> None:
     for name, description in TASKS.items():
         print(f"  {cyan}{name:<14}{reset} {description}")
     print()
-    print("Options: -n/--dry-run, -f/--force, --no-execute, --static, --port PORT")
+    print("Options: -n/--dry-run, -f/--force, --no-execute, --no-ensure-uv-sync, --static, --port PORT")
 
 
 def task_setup() -> None:
@@ -704,7 +717,7 @@ def _run_full_lite_build() -> None:
             *(["--force"] if FORCE else []),
         ]
     )
-    prefix_arg = prefix_out or "_build/xeus-prefix/envs/xeus-kernel"
+    prefix_arg = (prefix_out.splitlines()[-1].strip() if prefix_out else "") or "_build/xeus-prefix/envs/xeus-kernel"
     run(
         [
             jupyter_cmd(),
@@ -902,8 +915,9 @@ def task_serve() -> None:
 
 def task_status() -> None:
     state = load_state()
+    skip_sync = skip_uv_sync()
     v_ready = venv_ready()
-    v_ok = venv_in_sync()
+    v_ok = v_ready if skip_sync else venv_in_sync()
     a_ok = _apidoc_outputs_ready() and state.get("apidoc") == fp_apidoc()
     r_ok = state.get("refs") == fp_refs()
     d_ok = (ROOT / "_build" / "html" / "index.html").is_file() and state.get("docs") == fp_docs()
@@ -918,7 +932,14 @@ def task_status() -> None:
     def fmt(ok: bool, yes: str = "up-to-date", no: str = "stale/missing") -> str:
         return yes if ok else no
 
-    v_label = "ready" if v_ok else ("out of date (needs uv pip sync)" if v_ready else "needs setup")
+    if skip_sync and v_ready:
+        v_label = "ready (uv sync skipped)"
+    elif v_ok:
+        v_label = "ready"
+    elif v_ready:
+        v_label = "out of date (needs uv pip sync)"
+    else:
+        v_label = "needs setup"
     print("TVB Docs Build Status:")
     print(f"  venv (.venv):      {v_label}")
     print(f"  apidoc:            {fmt(a_ok)}")
@@ -970,7 +991,7 @@ def task_clean_all() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    global DRY_RUN, FORCE, NO_EXECUTE, STATIC_SERVE, PORT
+    global DRY_RUN, FORCE, NO_EXECUTE, NO_ENSURE_UV_SYNC, STATIC_SERVE, PORT
     parser = argparse.ArgumentParser(
         prog="make.py",
         description="Cross-platform, incremental task runner for the TVB docs build.",
@@ -980,6 +1001,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-n", "--dry-run", action="store_true", help="print commands without running them")
     parser.add_argument("-f", "--force", action="store_true", help="ignore freshness checks and rebuild")
     parser.add_argument("--no-execute", action="store_true", help="skip notebook/cell execution")
+    parser.add_argument(
+        "--no-ensure-uv-sync",
+        action="store_true",
+        help="skip automatic uv sync checks when .venv exists (or create ./.no-ensure-uv-sync)",
+    )
     parser.add_argument("--static", action="store_true", help="serve static _build/html instead of live myst start")
     parser.add_argument("--port", type=int, default=8000, help="port for dev/serve HTTP server (default: 8000)")
     parser.add_argument("-h", "--help", action="store_true", help="show this help message")
@@ -992,6 +1018,7 @@ def main(argv: list[str] | None = None) -> int:
     DRY_RUN = args.dry_run
     FORCE = args.force
     NO_EXECUTE = args.no_execute
+    NO_ENSURE_UV_SYNC = args.no_ensure_uv_sync
     STATIC_SERVE = args.static
     PORT = args.port
 

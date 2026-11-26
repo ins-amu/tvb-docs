@@ -1,6 +1,7 @@
 # Pinned runtime environment for building and executing the MyST docs.
 # Regenerate the lock with:
-#   uv pip compile --universal --generate-hashes requirements/base.txt -o requirements/uv.lock
+#   uv pip compile --universal --generate-hashes --emit-index-url --index-strategy unsafe-best-match requirements/base.txt -o requirements/uv.lock
+--extra-index-url https://ins-amu.github.io/tvb-wheels/simple/
 mystmd==1.11.0
 jupyter-server==2.21.1
 ipykernel==7.4.0
@@ -9,7 +10,7 @@ ipywidgets==8.1.9
 ipympl==0.10.0
 anywidget==0.11.0
 jupytext==1.19.6
-tvb-library @ git+https://github.com/the-virtual-brain/tvb-root.git@8241da2b95eb28f1b6224e6e1fe38bbf10231e1d#subdirectory=tvb_library
+tvb-library==3.0.0a1.post1
 tvb-data
 tvb-phaseplane==0.1.0
 matplotlib==3.11.2

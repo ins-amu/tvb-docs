@@ -13,28 +13,36 @@ import os
 from pathlib import Path
 import shutil
 import sys
-import yaml
 
-from jupyterlite_xeus.create_conda_env import create_conda_env_from_env_file
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        while chunk := f.read(1024 * 1024):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def compute_env_hash(env_file: Path, yaml_content: dict) -> str:
     h = hashlib.sha256()
     h.update(env_file.read_bytes())
 
-    # If a local-channel is referenced in channels (e.g., CI wasm recipes), hash its packages too.
+    # If a local-channel is referenced in channels (e.g., CI wasm recipes), hash its packages by content
+    # so restored caches across CI runners match reliably regardless of file mtimes.
     for channel in yaml_content.get("channels") or []:
         if isinstance(channel, str) and "local-channel" in channel:
             local_dir = Path(channel.removeprefix("file://"))
             if local_dir.is_dir():
                 for item in sorted(local_dir.rglob("*")):
                     if item.is_file():
-                        st = item.stat()
-                        h.update(f"{item.relative_to(local_dir).as_posix()}:{st.st_size}:{st.st_mtime_ns}\n".encode())
+                        h.update(f"{item.relative_to(local_dir).as_posix()}:{_sha256_file(item)}\n".encode())
     return h.hexdigest()
 
 
 def build_or_reuse_prefix(env_file: Path, cache_dir: Path, *, force: bool = False) -> Path:
+    import yaml
+    from jupyterlite_xeus.create_conda_env import create_conda_env_from_env_file
+
     yaml_content = yaml.safe_load(env_file.read_text(encoding="utf-8"))
     env_name = yaml_content["name"]
     prefix_dir = cache_dir / "envs" / env_name

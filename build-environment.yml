@@ -9,5 +9,6 @@ dependencies:
   - jupyterlab >=4.6,<4.7
   - jupyterlite-xeus >=4
   - jupyterlite-terminal
+  - jupytext
   # host-side builder for emscripten-wasm32 packages (tvb-gdist)
   - rattler-build >=0.67,<0.68

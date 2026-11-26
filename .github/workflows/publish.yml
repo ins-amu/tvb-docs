@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,19 +52,67 @@ jobs:
           CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
         run: python make.py refs
 
-      - name: Build MyST HTML, check glossary, and stage JupyterLite contents
+      - name: Build MyST HTML, check glossary, and stage notebooks
         run: python make.py docs
 
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: _build/html
+          include-hidden-files: true
+          retention-days: 1
+
+  build-lite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract TVB git revision from environment.yml
+        id: tvb_rev
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import re
+          from pathlib import Path
+
+          text = Path("environment.yml").read_text(encoding="utf-8")
+          m = re.search(r"tvb-library\s*@\s*git\+(https://[^\s@\"]+)@([^\s#\"]+)", text)
+          if m:
+              print(f"url={m.group(1)}")
+              print(f"rev={m.group(2)}")
+          PY
+
+      - name: Cache built JupyterLite site
+        id: cache-lite
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build/lite
+            _build/lite_contents
+            _build/.state.json
+            .jupyterlite.doit.db
+          key: lite-site-${{ runner.os }}-${{ hashFiles('build-environment.yml', 'environment.yml', 'wasm-tests/recipes/**', 'mcp-hub-extension/**', 'extensions/**', 'jupyter_lite_config.json', 'jupyter-lite.json', 'overrides.json', 'cockle-config.json', 'tools/build_xeus_prefix.py') }}-${{ hashFiles('content/**', 'README.md', 'tools/stage_lite.py', 'tools/patch_lite_runtime.py', 'make.py') }}
+          restore-keys: |
+            lite-site-${{ runner.os }}-${{ hashFiles('build-environment.yml', 'environment.yml', 'wasm-tests/recipes/**', 'mcp-hub-extension/**', 'extensions/**', 'jupyter_lite_config.json', 'jupyter-lite.json', 'overrides.json', 'cockle-config.json', 'tools/build_xeus_prefix.py') }}-
+
       - name: Install mamba
-        if: github.event_name != 'pull_request'
-        uses: mamba-org/setup-micromamba@v1
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.8-0'
           environment-file: build-environment.yml
           cache-environment: true
 
+      - name: Cache WASM packages (local-channel)
+        id: cache-wasm
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: local-channel
+          key: wasm-pkgs-${{ runner.os }}-${{ hashFiles('wasm-tests/recipes/**') }}-${{ steps.tvb_rev.outputs.rev }}
+
       - name: Build the tvb-gdist wasm package
-        if: github.event_name != 'pull_request'
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-wasm.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           mkdir -p "$GITHUB_WORKSPACE/local-channel"
@@ -80,22 +128,13 @@ jobs:
             -m wasm-tests/recipes/variant.yaml
 
       - name: Build the tvb-cpp-hybrid wasm package
-        if: github.event_name != 'pull_request'
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-wasm.outputs.cache-hit != 'true'
         shell: bash -l {0}
+        env:
+          TVB_ROOT_GIT_URL: ${{ steps.tvb_rev.outputs.url }}
+          TVB_ROOT_GIT_REV: ${{ steps.tvb_rev.outputs.rev }}
         run: |
           mkdir -p "$GITHUB_WORKSPACE/local-channel"
-          eval "$(python - <<'PY'
-          import re
-          import shlex
-          from pathlib import Path
-
-          text = Path("environment.yml").read_text()
-          m = re.search(r"tvb-library\s*@\s*git\+(https://[^\s@\"]+)@([^\s#\"]+)", text)
-          if m:
-              print(f"export TVB_ROOT_GIT_URL={shlex.quote(m.group(1))}")
-              print(f"export TVB_ROOT_GIT_REV={shlex.quote(m.group(2))}")
-          PY
-          )"
           rattler-build build \
             --recipe wasm-tests/recipes/tvb-cpp-hybrid \
             --target-platform emscripten-wasm32 \
@@ -108,7 +147,7 @@ jobs:
             -m wasm-tests/recipes/variant.yaml
 
       - name: Add tvb-gdist and tvb-cpp-hybrid to the kernel environment
-        if: github.event_name != 'pull_request'
+        if: steps.cache-lite.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           python - <<'PY'
@@ -130,8 +169,24 @@ jobs:
           Path("environment.ci.yml").write_text("\n".join(out) + "\n")
           PY
 
+      - name: Cache MCP hub JupyterLite extension
+        id: cache-mcp-ext
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            mcp-hub-extension/node_modules
+            extensions/@tvbl/jupyterlite-mcp-hub
+          key: mcp-hub-ext-${{ runner.os }}-${{ hashFiles('mcp-hub-extension/**') }}
+
+      - name: Setup Node for MCP hub extension
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-mcp-ext.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Build the MCP hub JupyterLite extension
-        if: github.event_name != 'pull_request'
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-mcp-ext.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           cd mcp-hub-extension
@@ -139,12 +194,64 @@ jobs:
           jlpm build
           ls -R ../extensions/@tvbl/jupyterlite-mcp-hub | head -20
 
+      - name: Cache xeus WASM prefix
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: _build/xeus-prefix
+          key: xeus-prefix-${{ runner.os }}-${{ hashFiles('environment.yml', 'wasm-tests/recipes/**', 'tools/build_xeus_prefix.py') }}
+
       - name: Build the JupyterLite site and apply runtime patches
-        if: github.event_name != 'pull_request'
+        if: steps.cache-lite.outputs.cache-hit != 'true'
         shell: bash -l {0}
         env:
           CMAKE_ARGS: -DTVB_CPP_BUILD_EXTENSION=OFF
         run: python make.py lite
+
+      - name: Upload JupyterLite artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lite-site
+          path: _build/lite
+          include-hidden-files: true
+          retention-days: 1
+
+  assemble:
+    needs: [build-docs, build-lite]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download docs HTML artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: _build/html
+
+      - name: Verify docs artifact does not contain stale lite output
+        run: test ! -e _build/html/lite
+
+      - name: Download JupyterLite artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lite-site
+          path: _build/html/lite
+
+      - name: Finalize static site tree
+        run: |
+          touch _build/html/.nojekyll
+          test -f _build/html/index.html
+          test -f _build/html/site-search-manifest.json
+          test -d _build/html/notebooks
+          test -f _build/html/lite/lab/index.html
+          test -f _build/html/lite/xeus/kernels.json
+
+      - name: Upload static site preview artifact
+        if: github.event_name == 'pull_request' || github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-site
+          path: _build/html
+          include-hidden-files: true
+          retention-days: 5
 
       - name: Setup Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -158,7 +265,7 @@ jobs:
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
+    needs: assemble
     runs-on: ubuntu-latest
     environment:
       name: github-pages

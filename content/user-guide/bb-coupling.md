@@ -56,6 +56,34 @@ $u_{kj}$ the weight **from $j$ onto $k$** (rows are targets, see
 The result $I_k(t)$ is exactly the `coupling` argument that the model receives
 in `dfun()`.
 
+In a less formal fashion:
+
+Written over all $l$ regions at once, with $U=(u_{kj})$ the weight matrix and
+$\Psi_{\text{delayed}}$ the vector of delayed neighbour states (these delays may differ between nodes), that pipeline is
+the matrix product
+
+$$
+f_{\text{post}}\!\left(\sum_{over\ rows}
+\begin{pmatrix}
+u_{11} & u_{12} & \cdots & u_{1l} \\
+u_{21} & u_{22} & \cdots & u_{2l} \\
+\vdots & \vdots & \ddots & \vdots \\
+u_{l1} & u_{l2} & \cdots & u_{ll}
+\end{pmatrix}
+\cdot f_{\text{pre}}\!\begin{pmatrix}
+\Psi_{1\_\mathrm{delayed}} \\
+\Psi_{2\_\mathrm{delayed}} \\
+\vdots \\
+\Psi_{l\_\mathrm{delayed}}
+\end{pmatrix}\right)=
+\begin{pmatrix}
+\dot \Psi_{1} \\
+\dot \Psi_{2} \\
+\vdots \\
+\dot \Psi_{l}
+\end{pmatrix}
+$$
+
 ### Only some state variables travel
 
 A model declares which of its state variables are exchanged over the network:

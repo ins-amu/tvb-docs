@@ -150,8 +150,9 @@ def jupyter_cmd() -> str:
 
 def lite_python() -> str:
     jcmd = jupyter_cmd()
-    if jcmd != "jupyter":
-        jpath = Path(jcmd)
+    jresolved = jcmd if jcmd != "jupyter" else shutil.which("jupyter")
+    if jresolved:
+        jpath = Path(jresolved)
         for name in ("python", "python3", "python.exe"):
             candidate = jpath.parent / name
             if candidate.is_file() and os.access(candidate, os.X_OK):
@@ -329,13 +330,23 @@ def save_state(updates: dict) -> None:
     os.replace(tmp, STATE_FILE)
 
 
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fp:
+        while chunk := fp.read(1024 * 1024):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def _hash_tree(
     paths: list[str],
     *,
     exclude_content_generated: bool = False,
     exclude_content_dirs: tuple[str, ...] = (),
     extra_tokens: list[str] | None = None,
+    content_hash: bool | None = None,
 ) -> str:
+    use_content_hash = is_ci() if content_hash is None else content_hash
     h = hashlib.sha256()
     if extra_tokens:
         for tok in extra_tokens:
@@ -367,8 +378,11 @@ def _hash_tree(
                 if rel_posix.startswith("content/reference/api/") and rel_posix != "content/reference/api/index.md":
                     continue
         try:
-            st = f.stat()
-            h.update(f"{rel_posix}:{st.st_size}:{st.st_mtime_ns}\n".encode("utf-8"))
+            if use_content_hash:
+                h.update(f"{rel_posix}:{_sha256_file(f)}\n".encode("utf-8"))
+            else:
+                st = f.stat()
+                h.update(f"{rel_posix}:{st.st_size}:{st.st_mtime_ns}\n".encode("utf-8"))
         except OSError:
             pass
     return h.hexdigest()
@@ -414,16 +428,19 @@ def fp_docs() -> str:
 
 
 def fp_lite_env() -> str:
-    return _hash_tree(
-        [
-            lite_env(),
-            "jupyter_lite_config.json",
-            "jupyter-lite.json",
-            "overrides.json",
-            "cockle-config.json",
-            "extensions",
-        ]
-    )
+    paths = [
+        lite_env(),
+        "build-environment.yml",
+        "jupyter_lite_config.json",
+        "jupyter-lite.json",
+        "overrides.json",
+        "cockle-config.json",
+        "extensions",
+        "tools/build_xeus_prefix.py",
+    ]
+    if (ROOT / "local-channel").is_dir():
+        paths.append("local-channel")
+    return _hash_tree(paths)
 
 
 def fp_lite_tvbl() -> str:
@@ -746,21 +763,27 @@ def _lite_has_xeus_config() -> bool:
         return False
 
 
-def task_lite() -> None:
-    ensure_venv()
-    ensure_lite_env()
+def _python_has_module(py: str, module: str) -> bool:
+    if DRY_RUN:
+        return True
+    res = subprocess.run([py, "-c", f"import {module}"], capture_output=True, check=False)
+    return res.returncode == 0
 
-    run(
-        [
-            venv_python(),
-            "tools/stage_lite.py",
-            "--output",
-            "_build/lite_contents",
-            "--notebooks-dir",
-            "_build/notebooks",
-            *(["--force"] if FORCE else []),
-        ]
-    )
+
+def _stage_lite_python() -> str:
+    if venv_ready():
+        if not skip_uv_sync():
+            ensure_venv()
+        return venv_python()
+    lite_py = lite_python()
+    if _python_has_module(lite_py, "jupytext"):
+        return lite_py
+    ensure_venv()
+    return venv_python()
+
+
+def task_lite() -> None:
+    ensure_lite_env()
 
     state = load_state()
     cur_env = fp_lite_env()
@@ -774,7 +797,6 @@ def task_lite() -> None:
 
     if (
         not FORCE
-        and not is_ci()
         and xeus_ready
         and _lite_has_xeus_config()
         and state.get("lite_env") == cur_env
@@ -782,9 +804,24 @@ def task_lite() -> None:
         and state.get("lite_contents") == cur_contents
     ):
         print("JupyterLite up to date.", flush=True)
-    elif (
+        copy(".nojekyll", "_build/html/.nojekyll")
+        sync_tree(LITE_DIR, "_build/html/lite")
+        return
+
+    run(
+        [
+            _stage_lite_python(),
+            "tools/stage_lite.py",
+            "--output",
+            "_build/lite_contents",
+            "--notebooks-dir",
+            "_build/notebooks",
+            *(["--force"] if FORCE else []),
+        ]
+    )
+
+    if (
         not FORCE
-        and not is_ci()
         and xeus_ready
         and _lite_has_xeus_config()
         and state.get("lite_env") == cur_env
@@ -796,7 +833,6 @@ def task_lite() -> None:
         run([python_cmd(), "tools/patch_lite_runtime.py", LITE_DIR])
     elif (
         not FORCE
-        and not is_ci()
         and xeus_ready
         and doit_ready
         and _lite_has_xeus_config()
@@ -819,8 +855,11 @@ def task_lite() -> None:
         if not DRY_RUN and not _lite_has_xeus_config():
             print("Warning: incremental Lite build dropped xeus config; running full Lite build.", flush=True)
             _run_full_lite_build()
-        elif state.get("lite_tvbl") != cur_tvbl:
-            run([python_cmd(), "tools/patch_lite_runtime.py", LITE_DIR])
+        else:
+            if (ROOT / LITE_THEME_SRC).is_dir():
+                copy_tree(LITE_THEME_SRC, LITE_THEME_DST)
+            if state.get("lite_tvbl") != cur_tvbl or is_ci():
+                run([python_cmd(), "tools/patch_lite_runtime.py", LITE_DIR])
     else:
         _run_full_lite_build()
 

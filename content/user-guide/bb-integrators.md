@@ -16,7 +16,7 @@ solution is approximated and how long the calculation takes.
 
 TVB provides deterministic and stochastic integrators. The stochastic methods
 use a noise object to generate increments during integration; its parameters
-set the amplitude and temporal correlation of the forcing [@sanzleon2013].
+set the amplitude and temporal correlation of the noise [@sanzleon2013].
 In a network simulation, each step also updates the history of activity used
 to evaluate delayed connections. Thus `dt` controls the resolution of both
 the local dynamics and the long-range delays [@sanzleon2013; @sanzleon2015].
@@ -40,7 +40,7 @@ Euler is the simplest scheme and makes the effect of step size easy to inspect.
 For continuous-time neural mass models, Heun is a practical starting point.
 TVB configures `HeunDeterministic` by default; for stochastic simulations with
 additive noise, `HeunStochastic` is generally a good first choice
-[TVB simulator API](https://docs.thevirtualbrain.org/api/tvb.simulator.simulator.html).
+([TVB simulator API](https://docs.thevirtualbrain.org/api/tvb.simulator.simulator.html)).
 For the generally nonstiff equations used in many virtual brain twin studies,
 the deterministic part of stochastic Heun is second order and its stochastic
 part is first order [@hashemi2025].
@@ -49,12 +49,12 @@ Fourth-order Runge–Kutta provides a useful deterministic comparison.
 `Dopri5` and `Dop853` call SciPy's adaptive Dormand–Prince solvers, which are
 well suited to nonstiff deterministic equations. SciPy recommends DOP853 for
 high-precision solutions
-[SciPy solver guidance](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html).
+([SciPy solver guidance](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html)).
 In their stochastic TVB variants, the ODE solver handles the deterministic
 part of each step before a noise increment is added. The higher ODE order
 does not carry over to the stochastic solution, so their greater cost may
-bring little benefit in a noisy simulation
-[TVB integrator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/integrators.html).
+bring little benefit in a stochastic simulation
+([TVB integrator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/integrators.html)).
 
 Choose `dt` to resolve the fastest response relevant to the analysis. A coarse
 step can alter the amplitude or period of an oscillation, miss a brief
@@ -66,7 +66,7 @@ Smaller steps have a computational cost. In a regional TVB benchmark, halving
 `dt` approximately doubled the running time [@sanzleon2013]. It also increased
 the number of past states needed to represent a given delay [@sanzleon2015].
 
-The examples use TVB's `Generic2dOscillator` in one brain region, with
+The examples below use TVB's `Generic2dOscillator` in one brain region, with
 coupling set to zero. Its state variables, $V$ and $W$, start at $0.5$ and
 $-0.2$ respectively. The following function records both variables at every
 step of a 40 ms run. For stochastic methods, `configure_white` prepares the
@@ -173,22 +173,21 @@ be repeated with the intended connectivity and delays
 
 ## Noise type and amplitude
 
-TVB represents stochastic forcing with a noise object.
+In TVB, a noise object specifies the type and parameters of the stochastic
+increment.
 {term}`Additive noise <Additive noise>` (`noise.Additive`) has an amplitude
 independent of the current state. For
 {term}`multiplicative noise <Multiplicative noise>` (`noise.Multiplicative`),
 a diffusion function $b(x)$ scales the fluctuation according to the state.
 The default $b(x)=x$ makes that fluctuation vanish at $x=0$ and increase in
 magnitude as $|x|$ grows
-[TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html).
+([TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html)).
 
-Stochastic forcing can represent fluctuations that the local population model
-does not resolve. Its effect depends on the variables to which it is applied.
+Noise generates fluctuations in local population activity. Its effect depends on the variables to which it is applied.
 
 The parameter `ntau` controls temporal correlation: `ntau=0` gives
 {term}`white noise <White noise>`, while `ntau>0` gives exponentially
-correlated {term}`coloured noise <Coloured noise>`. Dispersion `nsig` sets the
-forcing strength, and `noise_seed` makes the random sequence reproducible
+correlated {term}`coloured noise <Coloured noise>`. Dispersion `nsig` sets the noise amplitude, and `noise_seed` makes the random sequence reproducible
 [@sanzleon2013; @sanzleon2015]. TVB accepts one dispersion for the whole
 state or separate values by state variable, brain region, or both; the
 [noise API](https://docs.thevirtualbrain.org/api/tvb.simulator.noise.html)
@@ -198,7 +197,7 @@ The scale of an appropriate `nsig` depends on the model and the variables
 receiving noise. In the following comparison, both $V$ and $W$ receive the
 same dispersion. The initial state, `dt`, and seed are held fixed while
 `nsig` changes. For white noise, `dt` also affects each random increment
-[TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html).
+([TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html)).
 
 ```{code-cell} ipython3
 baseline_time, baseline_state = run_local(integrators.HeunDeterministic(dt=0.1))
@@ -227,16 +226,15 @@ fig.tight_layout()
 plt.show()
 ```
 
-The weaker forcing (`nsig=0.08`) visibly changes both variables. At
-`nsig=0.8`, $V$ makes much larger excursions and $W$ falls throughout much of
-the 40 ms interval. To assess whether this behaviour persists, extend the run
-and repeat it with several seeds. One strongly displaced trace cannot
-establish sustained divergence.
+At `nsig=0.08`, noise modifies both the variables. At `nsig=0.8`, $V$
+makes much larger excursions and $W$ falls throughout much of the 40 ms
+interval. Noise at this level dominates the trajectories in this example indicating the value is above the permitted limit for this example.
+The appropriate `nsig` depends on the model and the variables receiving noise.
 
 The diffusion function changes the pattern of fluctuations as well as their
-size. With TVB's default $b(x)=x$, each variable receives less forcing near
+size. With purely multiplicative noise $b(x)=x$, each variable receives less noise near
 zero and more as its magnitude grows. We compare that choice with additive
-noise and with $b(x)=1+0.5x$, which retains a nonzero amplitude at $x=0$.
+noise and with custom multiplicative noise $b(x)=1+0.5x$, which retains a nonzero amplitude at $x=0$.
 All three runs use the same initial state and seed. The custom coefficients
 are illustrative.
 
@@ -268,11 +266,6 @@ fig.tight_layout()
 plt.show()
 ```
 
-The custom run is especially clear in $W$: its trace becomes smooth near
-$W=-2$, where $b(W)=1+0.5W$ approaches zero. The default $b(W)=W$ has a
-different state dependence and produces a different trajectory, even with
-the same `nsig` and seed.
-
 Each noise object has its own pseudorandom stream. To reproduce a run, create
 a new object with the same `noise_seed` and keep the initial state and other
 settings fixed. Reusing an object continues its stream. Seed `7` is used
@@ -280,32 +273,28 @@ above; seed `11` would give another realisation. Changing `dt` also changes
 the increments. Across step sizes or seeds, compare summary measures such
 as variance and the frequency of large excursions. Record `dt`, `nsig`,
 `ntau`, every seed tested, and which variables received noise
-[TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html).
+([TVB noise source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/noise.html)).
 
 ## Runtime with the same model
 
-For a small runtime comparison, we place the same `Generic2dOscillator` in 16
-uncoupled brain regions. Each method starts from the same states and performs
-150 steps at `dt=0.2` ms. The stochastic runs use white additive noise with
-`nsig=0.08` and seed `7`. We time the state updates, including evaluations of
-the model and noise generation, after configuring each integrator.
+For a small runtime comparison, we run the one-region `Generic2dOscillator`
+16 times for each method. Every run starts from $V=0.5$ and $W=-0.2$ and
+advances 150 steps at `dt=0.2` ms. Stochastic runs use white additive noise
+with `nsig=0.08` and seed `7`. We time the state updates, including model
+evaluations and noise generation, after configuring the integrators.
 
-Each measurement is repeated three times and summarized by its median.
 `Identity` and `IdentityStochastic` are omitted because they return the model
 function's result directly; they do not integrate these differential
 equations. TVB has no stochastic fourth-order Runge–Kutta class.
 
 ```{code-cell} ipython3
-from statistics import median
 from time import perf_counter
 
-initial_state = np.zeros((2, 16, 1))
-initial_state[0, :, 0] = np.linspace(-0.5, 0.5, 16)
-initial_state[1, :, 0] = np.linspace(-0.1, 0.1, 16)
-zero_coupling = np.zeros((1, 16, 1))
+benchmark_initial_state = np.array([0.5, -0.2]).reshape(2, 1, 1)
+zero_coupling = np.zeros((1, 1, 1))
 
 # Warm the model implementation before measuring the integration loop.
-model.dfun(initial_state, zero_coupling, 0.0)
+model.dfun(benchmark_initial_state, zero_coupling, 0.0)
 
 benchmark_methods = (
     ("Euler", integrators.EulerDeterministic, integrators.EulerStochastic),
@@ -317,9 +306,9 @@ benchmark_methods = (
 )
 
 
-def time_updates(method_class, stochastic=False, repeats=3, steps=150):
-    timings = []
-    for _ in range(repeats):
+def time_updates(method_class, stochastic=False, steps=150):
+    runs = []
+    for _ in range(16):
         settings = {"dt": 0.2}
         if stochastic:
             settings["noise"] = noise.Additive(
@@ -328,16 +317,19 @@ def time_updates(method_class, stochastic=False, repeats=3, steps=150):
         method = method_class(**settings)
         method.configure()
         if stochastic:
-            method.noise.configure_white(method.dt, initial_state.shape)
+            method.noise.configure_white(method.dt, benchmark_initial_state.shape)
+        runs.append((method, benchmark_initial_state.copy()))
 
-        state = initial_state.copy()
-        start = perf_counter()
+    final_states = []
+    start = perf_counter()
+    for method, state in runs:
         for _ in range(steps):
             state = method.scheme(state, model.dfun, zero_coupling, 0.0, 0.0)
-        timings.append(1000 * (perf_counter() - start))
-        if not np.all(np.isfinite(state)):
-            raise ValueError(f"{method_class.__name__} produced a non-finite state")
-    return median(timings)
+        final_states.append(state)
+    elapsed_ms = 1000 * (perf_counter() - start)
+    if not all(np.all(np.isfinite(state)) for state in final_states):
+        raise ValueError(f"{method_class.__name__} produced a non-finite state")
+    return elapsed_ms
 
 
 deterministic_ms = {}
@@ -354,18 +346,6 @@ for name, _, _ in benchmark_methods:
     )
     print(f"{name:<8} {deterministic_ms[name]:>20.1f} {stochastic_time:>18}")
 ```
-
-One run on the documentation machine gave the following times, in
-milliseconds. Rerunning the cell above gives timings for your machine.
-
-| Method | Deterministic | Stochastic |
-| --- | ---: | ---: |
-| Euler | 1.7 | 2.3 |
-| Heun | 3.1 | 6.1 |
-| RK4 | 5.6 | — |
-| VODE | 1.2 | 2.9 |
-| Dopri5 | 20.4 | 34.4 |
-| Dop853 | 36.5 | 41.9 |
 
 These measurements cover only the local integration loop. A connected
 simulation also computes coupling, maintains delayed history, and records

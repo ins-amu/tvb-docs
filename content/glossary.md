@@ -6,7 +6,7 @@
 
 :::{glossary}
 Additive noise
-: Stochastic forcing applied during integration with an amplitude independent of the current state.
+: Noise added during integration with an amplitude independent of the current state.
 
 Adjacency matrix
 : A matrix whose entries indicate or weight edges between pairs of network nodes.
@@ -52,7 +52,7 @@ Brain atlas
 
 :::{glossary}
 Coloured noise
-: Temporally correlated stochastic forcing; TVB generates exponentially correlated noise when `ntau` is positive.
+: Temporally correlated noise; TVB generates exponentially correlated noise when `ntau` is positive.
 
 Conduction speed
 : The assumed speed of signal propagation along a tract, used with {term}`tract length <Tract length>` to calculate a delay.
@@ -96,7 +96,7 @@ Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
 Dynamical noise
-: Stochastic forcing $g(\psi_i)\xi_i(t)$ applied during integration; $g$ sets its amplitude and can depend on the node's state.
+: A noise term $g(\psi_i)\xi_i(t)$ applied during integration; $g$ sets its amplitude and can depend on the node's state.
 
 Dynamical system
 : A set of states together with a rule specifying how the state evolves over time.
@@ -167,7 +167,7 @@ Homogeneous connectivity
 : A connectivity rule whose coupling depends on spatial separation and is invariant under translation across the cortical sheet.
 
 History
-: The record of a node's past states over its {term}delay <Delay>, allowing states from previous integration steps to influence neighbouring nodes.
+: The record of a node's past states over its {term}`delay <Delay>`, allowing states from previous integration steps to influence neighbouring nodes.
 
 Hopf bifurcation
 : A {term}`bifurcation <Bifurcation>` in which a fixed point changes stability and a nearby periodic orbit appears or disappears.
@@ -220,7 +220,7 @@ Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
 Multiplicative noise
-: Stochastic forcing applied during integration with an amplitude that depends on the current state.
+: Noise added during integration with an amplitude that depends on the current state.
 
 :::
 

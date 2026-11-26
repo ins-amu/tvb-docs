@@ -238,6 +238,11 @@ MEG
 Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
+Mode
+: A component of a local model's state representation at each node; reduced-set models can evolve several modes per node.
+
+  [Building Blocks: Simulator](user-guide/bb-simulator.md)
+
 Multiplicative noise
 : Stochastic forcing applied during integration with an amplitude that depends on the current state.
 
@@ -358,6 +363,11 @@ Simulation-based inference
 : Inference that uses simulations to learn about unknown parameters when evaluating the likelihood directly is difficult.
 
   [Inference overview](user-guide/inference.md)
+
+Simulator
+: TVB component that coordinates connectivity, local dynamics, coupling, integration, delayed history, and monitors to generate activity over time.
+
+  [Building Blocks: Simulator](user-guide/bb-simulator.md)
 
 Sparse coupling
 : A representation or computation that stores or evaluates only the connections present in the network.

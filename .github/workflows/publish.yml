@@ -37,6 +37,10 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          # tvb-library compiles _cpp_hybrid with -march=native; caching wheels
+          # across heterogeneous x86-64 runners causes SIGILL on older CPUs.
+          enable-cache: false
 
       - name: Install pinned dependencies
         run: python make.py setup

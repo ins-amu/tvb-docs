@@ -58,6 +58,9 @@ Brain atlas
 ## C–D
 
 :::{glossary}
+CEM
+: Acronym or Computational Electromagnetics. The branch of scientific computing dealing with the numerical solution of Maxwell's equations.
+
 Coloured noise
 : Temporally correlated stochastic forcing; TVB generates exponentially correlated noise when `ntau` is positive.
 
@@ -253,6 +256,9 @@ Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
 
   [Explanation: Neural mass models](explanation/neural-mass-models.md)
+
+NIBS
+: Acronym for Non-Invasive Brain Stimulation.
 
 Node
 : A unit in a network; in regional TVB simulations it commonly corresponds to a brain parcel.

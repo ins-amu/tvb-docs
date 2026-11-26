@@ -153,3 +153,33 @@ Since this tutorial is not about *CEM*, we will not describe the above methods i
 | **Unbounded domains** | Requires truncation of the computational domain and the application of appropriate boundary conditions at the artificial boundaries. | Can handle unbounded domains naturally, without artificial domain truncation or termination boundary conditions. |
 | **Material properties** | Can accommodate spatially varying and inhomogeneous material properties. | Typically assumes homogeneous or piecewise-homogeneous material properties within each subdomain. |
 | **Field evaluation** | Provides potentials and electric fields throughout the discretized volume; field values at arbitrary points can be obtained through interpolation. | Field values inside the solution domain are obtained through post-processing, typically by evaluating integrals over the discretized boundaries. |
+
+## Open source software for non-invasive brain stimulation
+
+Currently the most popular, actively or partially maintained open source **CEM** solvers for **NIBS** are all using the FEM method. A list with the most important candidates is found below:
+
+| Name | Main application domain | MRI-to-FEM geometry preprocessing included? | Underlying FEM library / method | Reference paper | Maintenance status |
+|---|---|---|---|---|---|
+| [SimNIBS](https://simnibs.github.io/simnibs/build/html/) | TES and TMS electric-field modelling and optimization | Yes. CHARM provides automated MRI segmentation and tetrahedral head meshing | Native FEM implementation; Gmsh for mesh generation. Older versions used getDP | @Windhoff2013; @saturnino2019simnibs | Actively maintained; SimNIBS 4.6.0 released in March 2026 |
+| [ROAST](https://www.parralab.org/roast/) | TES/tDCS electric-field modelling and optimization | Yes. Automated MRI segmentation, electrode placement and tetrahedral meshing | getDP FEM solver; iso2mesh for mesh generation | @Huang2019 | Maintained; ROAST 4.0 released in September 2025 |
+| [SCIRun / BrainStimulator](https://github.com/SCIInstitute/BrainStimulator) | TES/tDCS and TMS simulation workflows | Partially. Geometry preparation is supported through external tools such as Seg3D and BioMesh3D; not a fully automated MRI-to-head-model pipeline | SCIRun's native FEM modules and linear-system solvers | @Dannhauer2012 | Mixed: SCIRun remains actively developed, but maintenance of the BrainStimulator-specific package is unclear |
+
+# Interfacing stimulation field data with TVB
+
+The coupling between electromagnetic fields and neural mass models (i.e., the nodes of a TVB network) remains an active area of research. Several challenges contribute to this:
+
+- **Population-level biophysical modelling:** The mechanisms by which externally applied electric fields interact with heterogeneous populations of neurons, and how these interactions should be represented at the neural-mass level, are not yet fully understood. Simplified approaches exist, but their assumptions and applicability across different neuronal populations remain open questions.
+- **Spatial heterogeneity within network nodes:** Depending on the anatomical extent of each TVB node, the electric-field distribution may exhibit substantial spatial variations in both magnitude and direction. Consequently, reducing the field distribution to a single representative value or vector for each node may overlook relevant local variations.
+- **Neuronal orientation:** The interaction between an external electric field and neuronal activity depends strongly on the orientation of the field relative to neuronal structures. In simplified models, membrane polarization is often assumed to be greatest when the field is aligned with the principal neuronal axis. However, defining a representative neuronal orientation can be challenging in anatomically heterogeneous regions, including many subcortical structures.
+- **Tissue-specific effects:** Gray and white matter may exhibit different field–neuron coupling properties due to differences in cellular composition, neuronal and axonal organization, and electrical conductivity. In particular, the anisotropic conductivity and highly organized fibre architecture of white matter can influence both the local electric-field distribution and its interaction with neural structures.
+
+As an entry point to applying stimulation fields on TVB simulations we will assume that the user has already obtained an electric field dataset in the form of a NIfTI file in the native T1-space of the subject, containing for each voxel the three components of the electric field $(E_x, E_y, E_z)$. This effectively means that we know the electric field vector $\vec{E}(\vec{r})$ in every point $\vec{r}$ in the white and gray matter.
+
+Let us assume for now that we have chosen a neural mass model whose  first state equation imparts the meaning of electrical current onto the additive stimulus signal $S(t)$. Depending on the model, we are still **not allowed** to identify it directly with the ohmic current induced by the stimulation, whose density is given by $\vec{J}=\sigma\vec{E}$. The user must define a biophysical model that converts the electric field distribution $\vec{E}(\vec{r})$ to a stimulation current $I_i$ in each parcel $i$. I.e .we need a functional $\mathcal{F}$ that maps the field $\vec{E}(\vec{r})$ defined on the parcel $i$ ($\vec{r}\in V_i$) onto a single scalar positive value (current):
+$$
+\mathcal{F}:L^2(V_i;\mathbb{R}^3)\to\mathbb{R}_+
+$$
+such that
+$$
+\mathcal{F}[\vec{E}]=I_i
+$$

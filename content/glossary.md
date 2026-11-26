@@ -48,6 +48,9 @@ Brain atlas
 ## C–D
 
 :::{glossary}
+CEM
+: Acronym or Computational Electromagnetics. The branch of scientific computing dealing with the numerical solution of Maxwell's equations.
+
 Conduction speed
 : The assumed speed of signal propagation along a tract, used with {term}`tract length <Tract length>` to calculate a delay.
 
@@ -204,6 +207,9 @@ Neural mass model
 : A dynamical model of aggregate neuronal population activity, typically using variables such as mean firing rate or mean membrane potential.
 
   [Explanation: Neural mass models](explanation/neural-mass-models.md)
+
+NIBS
+: Acronym for Non-Invasive Brain Stimulation.
 
 Node
 : A unit in a network; in regional TVB simulations it commonly corresponds to a brain parcel.

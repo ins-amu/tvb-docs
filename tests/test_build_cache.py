@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import tempfile
@@ -87,6 +88,72 @@ class TestBuildCacheHashing(unittest.TestCase):
                 mock.patch("shutil.which", return_value=str(jup)),
             ):
                 self.assertEqual(make.lite_python(), str(py))
+
+    def test_fp_exec_env_ignores_mtime_and_tracks_content(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            (tmp_path / "requirements").mkdir()
+            (tmp_path / "content" / "_code").mkdir(parents=True)
+            lock = tmp_path / "requirements" / "uv.lock"
+            helper = tmp_path / "content" / "_code" / "helper.py"
+            lock.write_text("pkg==1.0\n", encoding="utf-8")
+            helper.write_text("x = 1\n", encoding="utf-8")
+
+            with mock.patch.object(make, "ROOT", tmp_path):
+                h1 = make.fp_exec_env()
+                os.utime(helper, ns=(1_700_000_000_000_000_000, 1_700_000_000_000_000_000))
+                self.assertEqual(h1, make.fp_exec_env())
+
+                helper.write_text("x = 2\n", encoding="utf-8")
+                self.assertNotEqual(h1, make.fp_exec_env())
+
+    def test_exec_cache_hydrate_persist_and_disable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = tmp_path / "repo"
+            cache_base = tmp_path / "shared-cache"
+            (repo / "requirements").mkdir(parents=True)
+            (repo / "content" / "_code").mkdir(parents=True)
+            (repo / "requirements" / "uv.lock").write_text("pkg==1.0\n", encoding="utf-8")
+            (repo / "content" / "_code" / "helper.py").write_text("x = 1\n", encoding="utf-8")
+            exec_dir = repo / "_build" / "execute"
+            exec_dir.mkdir(parents=True)
+            nb = exec_dir / "abc123.ipynb"
+            nb.write_text('{"cells": []}', encoding="utf-8")
+
+            with (
+                mock.patch.object(make, "ROOT", repo),
+                mock.patch.object(make, "DRY_RUN", False),
+                mock.patch.dict(os.environ, {"TVB_DOCS_EXEC_CACHE": str(cache_base)}),
+            ):
+                self.assertEqual(make.persist_exec_cache(), 1)
+                nb.unlink()
+                self.assertFalse(nb.exists())
+                self.assertEqual(make.hydrate_exec_cache(), 1)
+                self.assertTrue(nb.is_file())
+
+            with (
+                mock.patch.object(make, "ROOT", repo),
+                mock.patch.dict(os.environ, {"TVB_DOCS_EXEC_CACHE": "off"}),
+            ):
+                self.assertIsNone(make.exec_cache_dir())
+
+    def test_trajecturtle_installed_editable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "trajecturtle").mkdir()
+            dist_info = repo / ".venv" / "lib" / "python3.12" / "site-packages" / "tvb_phaseplane-0.1.0.dist-info"
+            dist_info.mkdir(parents=True)
+
+            with mock.patch.object(make, "ROOT", repo):
+                self.assertFalse(make._trajecturtle_installed_editable())
+
+                direct_url = dist_info / "direct_url.json"
+                direct_url.write_text(
+                    json.dumps({"url": (repo / "trajecturtle").resolve().as_uri(), "dir_info": {"editable": True}}),
+                    encoding="utf-8",
+                )
+                self.assertTrue(make._trajecturtle_installed_editable())
 
 
 if __name__ == "__main__":

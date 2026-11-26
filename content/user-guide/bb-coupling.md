@@ -7,7 +7,7 @@ bibliography:
 # Coupling
 
 The {term}`coupling function <Coupling function>` is the rule that turns
-activity arriving over the long-range {term}`connectivity <Connectivity>` into
+activity arriving over the long-range [connectivity](bb-connectivity.md) into
 input to a node's local dynamics. The {term}`connectome` decides *who* talks to
 whom and how strongly; the coupling function decides *how* the arriving signal
 is transformed before it enters the {term}`neural mass model`.

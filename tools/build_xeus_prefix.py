@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -54,11 +55,21 @@ def build_or_reuse_prefix(env_file: Path, cache_dir: Path, *, force: bool = Fals
         shutil.rmtree(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    create_conda_env_from_env_file(
-        cache_dir,
-        yaml_content,
-        env_file.parent.resolve(),
-    )
+    # Redirect OS fd 1 -> 2 while building so subprocesses (rattler/pip)
+    # stream to stderr and stdout emits only the resulting prefix path.
+    sys.stdout.flush()
+    saved_stdout_fd = os.dup(1)
+    try:
+        os.dup2(2, 1)
+        create_conda_env_from_env_file(
+            cache_dir,
+            yaml_content,
+            env_file.parent.resolve(),
+        )
+    finally:
+        sys.stdout.flush()
+        os.dup2(saved_stdout_fd, 1)
+        os.close(saved_stdout_fd)
 
     if not (prefix_dir / "conda-meta" / "history").is_file():
         raise RuntimeError(f"Expected conda-meta/history missing in {prefix_dir}")

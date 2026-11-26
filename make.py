@@ -693,7 +693,7 @@ def _run_full_lite_build() -> None:
             *(["--force"] if FORCE else []),
         ]
     )
-    prefix_arg = prefix_out or "_build/xeus-prefix/envs/xeus-kernel"
+    prefix_arg = (prefix_out.splitlines()[-1].strip() if prefix_out else "") or "_build/xeus-prefix/envs/xeus-kernel"
     run(
         [
             jupyter_cmd(),

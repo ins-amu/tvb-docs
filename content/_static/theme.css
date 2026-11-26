@@ -288,3 +288,40 @@ dt[id^="term-"] {
 dt[id^="term-"]:target {
   background: var(--myst-color-accent-surface);
 }
+
+/* ------------------------------------------------------------------ *
+ * Trajecturtle (tvb-phaseplane) theme integration & modal layering
+ * ------------------------------------------------------------------ */
+.ppw-widget {
+  --ppw-bg: var(--myst-color-surface-header);
+  --ppw-surface: var(--myst-color-surface);
+  --ppw-plot-bg: var(--myst-color-bg);
+  --ppw-text: var(--myst-color-text);
+  --ppw-muted: var(--myst-color-text-secondary);
+  --ppw-border: var(--myst-color-bg-secondary);
+  --ppw-grid: var(--myst-color-bg-secondary);
+  --ppw-accent: var(--myst-color-primary);
+  margin: 1rem auto;
+}
+
+html.dark .ppw-widget {
+  --ppw-bg: var(--myst-color-surface-header);
+  --ppw-surface: var(--myst-color-surface);
+  --ppw-plot-bg: var(--myst-color-bg);
+  --ppw-text: var(--myst-color-text);
+  --ppw-muted: var(--myst-color-text-secondary);
+  --ppw-border: #2e3440;
+  --ppw-grid: #2a303a;
+  --ppw-accent: var(--myst-color-primary);
+}
+
+dialog.ppw-expanded-workspace {
+  z-index: 9999;
+  margin: auto;
+  color: var(--ppw-text);
+  background: var(--ppw-bg);
+}
+
+dialog.ppw-expanded-workspace::backdrop {
+  background: rgba(15, 20, 28, 0.65);
+}

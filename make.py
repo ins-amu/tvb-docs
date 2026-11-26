@@ -592,6 +592,8 @@ def task_setup() -> None:
             cmd.append("--clear")
         run(cmd)
     run(["uv", "pip", "sync", "requirements/uv.lock"])
+    if (ROOT / "trajecturtle" / "pyproject.toml").is_file():
+        run(["uv", "pip", "install", "--no-deps", "-e", "./trajecturtle"])
     if not DRY_RUN and (ROOT / ".venv").is_dir():
         VENV_LOCK_STAMP.write_text(_uv_lock_sha256() + "\n", encoding="utf-8")
 
@@ -657,6 +659,15 @@ def task_docs() -> None:
     run(myst_cmd)
     run(["node", "tools/build_glossary.mjs"])
     run(["node", "tools/build_site_search.mjs"])
+    run(
+        [
+            venv_python(),
+            "-c",
+            "from tvb_card_widgets import export_static_assets; export_static_assets('_build/html/trajecturtle')",
+        ],
+        env=build_env({"PYTHONPATH": "content/_code"}),
+    )
+    run(["node", "tools/stage_phaseplane.mjs"])
     run(
         [
             venv_python(),

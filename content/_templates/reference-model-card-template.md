@@ -46,6 +46,16 @@ Describe the dynamical regimes accessible by the model under standard parameter 
 - **Oscillatory regime:** Crossing a supercritical Hopf / saddle-node on invariant circle (SNIC) bifurcation leads to limit-cycle oscillations at `<frequency>` Hz.
 - **Bistability / Excitability:** In the intermediate regime, perturbations evoke transient burst responses or state transitions.
 
+## Interactive Phase Plane
+
+Register the model in `content/_code/tvb_card_widgets.py` (`MODEL_CARD_SPECS["<model_key>"]`)
+and embed it here using the `{phaseplane}` directive:
+
+````markdown
+```{phaseplane} <model_key>
+```
+````
+
 ## Paper Reference
 
 - [@citationKey] — Author, A., & Author, B. (Year). Title of the seminal paper. *Journal Name*, Vol(Issue), Pages. DOI: [10.xxxx/xxxxx](https://doi.org/10.xxxx/xxxxx)

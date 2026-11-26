@@ -34,6 +34,8 @@ Bifurcation
 Bifurcation analysis
 : The study of how equilibria, oscillations, or other solutions appear, disappear, or change stability as parameters vary.
 
+  [Explanation: Bifurcation analysis](explanation/bifurcation-analysis.md)
+
 Biophysical model
 : A model whose equations represent specified physiological mechanisms, such as membrane currents or ion exchange.
 
@@ -299,7 +301,7 @@ Pulse-to-wave transform
 
 :::
 
-## R–S
+## R–Q
 
 :::{glossary}
 Reduced model
@@ -369,6 +371,9 @@ Summary statistic
 Synaptic time constant
 : A characteristic timescale controlling the rise, decay, or filtering of a synaptic response.
 
+Quadratic integrate-and-fire neurons
+: neuron model with quadratic function describing the evolution of membrane voltage $V$. Spike occurs at threshold $V_t$, followed by a reset to $V_r$.
+ 
 :::
 
 ## T–W

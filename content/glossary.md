@@ -239,7 +239,7 @@ Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
 Mode
-: A component of a local model's state representation at each node; reduced-set models can evolve several modes per node.
+: An index for parallel components of a local model at each node; reduced-set models use several modes to represent population heterogeneity.
 
   [Building Blocks: Simulator](user-guide/bb-simulator.md)
 
@@ -334,6 +334,9 @@ R-hat
 
 Reduced model
 : A simplified model that retains selected behaviour while using fewer variables, parameters, or mechanisms.
+
+Reduced-set model
+: A low-dimensional approximation of a heterogeneous neuronal population obtained by projecting its dynamics onto a small set of modes.
 
 Resting state
 : Brain activity without an instructed task. In dynamical-system discussions, the phrase can also refer to a stable baseline regime.

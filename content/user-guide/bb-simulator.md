@@ -10,37 +10,28 @@ bibliography:
 
 # Simulator
 
-The {term}`Simulator` brings the parts of a TVB simulation together. The
-connectome links brain regions, a neural mass model describes the activity
-within each region, and coupling determines how activity arriving from other
-regions enters the model. The integrator solves the resulting equations, while
-monitors record selected signals. The simulator also retains the past activity
-needed for transmission delays. Together, these components turn the
-[mathematical framework](mathematical-framework.md) into simulated time series
-[@sanzleon2013; @hashemi2025].
+The {term}`Simulator` assembles the components described in the
+[mathematical framework](mathematical-framework.md). A neural mass model
+governs activity in each brain region, while the connectome and coupling
+function determine how regions interact. The integrator advances the model,
+and monitors record its activity. The simulator also stores past states for
+connections with transmission delays [@sanzleon2013; @hashemi2025].
 
 ## Initial conditions
 
-The simulator needs an {term}`initial condition` and, for delayed connections,
-activity from before the start of the run. When `initial_conditions` is omitted,
-TVB draws this history from the model's `state_variable_range`. For the
-`Generic2dOscillator`, $V$ is drawn uniformly from $[-2,4]$ and $W$ from
-$[-6,6]$. There is no single default starting state; the seed before
-`configure()` makes the draws repeatable
+The simulator needs an {term}`initial condition` and, when connections have
+delays, a history of activity before the run begins. If `initial_conditions`
+is omitted, TVB samples that history from the model's `state_variable_range`.
+For the `Generic2dOscillator`, it draws $V$ uniformly from $[-2,4]$ and $W$
+from $[-6,6]$. Set the random seed before `configure()` to reproduce the draw
 ([model source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/models/oscillator.html),
 [initialisation source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/models/base.html)).
 
-To choose a starting state, supply a four-dimensional array ordered as
-**time × state variable × brain region × mode**. A {term}`mode <Mode>` is one
-component of the local model's state representation at each region. The
-`Generic2dOscillator` has one mode containing both $V$ and $W$. TVB's
-reduced-set FitzHugh–Nagumo and Hindmarsh–Rose models have three: their modes
-are components of a reduced
-description of a heterogeneous neuronal population, with a value of each state
-variable in each mode
-([Stefanescu–Jirsa model source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/models/stefanescu_jirsa.html)).
-The model determines the size of this axis. The example below starts every
-region at $V=-0.5$ and $W=0$:
+An explicit history is a four-dimensional array with axes **time × state
+variable × brain region × mode**. The model sets the length of the
+{term}`mode <Mode>` axis through `number_of_modes`. The `Generic2dOscillator`
+has one mode, so each region has one $V$ and one $W$ value at each time point.
+Here we start every region at $V=-0.5$ and $W=0$:
 
 ```{code-cell} ipython3
 import numpy as np
@@ -49,6 +40,7 @@ from tvb.simulator import integrators, models, monitors, simulator
 
 model = models.Generic2dOscillator()
 conn = connectivity.Connectivity.from_file()
+print(f"Modes per region: {model.number_of_modes}")
 for variable in model.state_variables:
     print(f"{variable} initial draw range: {model.state_variable_range[variable]}")
 initial_history = np.zeros((1, model.nvar, len(conn.region_labels), model.number_of_modes))
@@ -68,35 +60,43 @@ print(f"History points needed for delays: {sim_with_ic.good_history_shape[0]}")
 print(f"First region's starting state: {sim_with_ic.current_state[:, 0, 0]}")
 ```
 
-This prepares an alternative run with chosen starting values. The 300 ms run
-below uses model-drawn history.
+This configures `sim_with_ic` with the supplied starting state. The 300 ms
+run below uses a separate simulator with model-drawn history.
 
-The single supplied time point sets the state at the start of a run. Here
-the longest propagation delay requires more history than that, so TVB fills
-the earlier points using the model's default sampling ranges. To specify the
-entire history, supply enough time points to cover that delay. TVB checks the
-state-variable, region, and mode dimensions; a mismatch raises `Incorrect
-history sample shape` during `configure()`
+The array above supplies one time point: the state at the start of the run. The
+longest propagation delay requires earlier states, which TVB draws from the
+model's sampling ranges. Supplying enough time points to cover that delay
+lets you set the full history. During `configure()`, TVB checks the state
+variable, region, and mode dimensions. A mismatch raises `Incorrect history
+sample shape`
 ([history source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/history.html)).
 
-The `state_variable_range` governs default sampling; it does not restrict
-values supplied in `initial_conditions`. Models can separately define
-`state_variable_boundaries` that the integrator enforces. A supplied state
-outside the sampling range therefore need not produce a warning, but an
-implausible start can lead to overflow, invalid-value warnings, or non-finite
-trajectories. Check the model's ranges and dynamics, the supplied history,
-and the integration step if that happens
+TVB uses `state_variable_range` to draw default history. It accepts supplied
+initial values outside that range. Some models also define
+`state_variable_boundaries`, which the integrator enforces. Starting far
+outside the model's usual range can produce overflow, invalid-value warnings,
+or non-finite trajectories. If that happens, inspect the model's ranges, the
+supplied history, and the integration step
 ([model source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/models/base.html),
 [integrator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/integrators.html)).
 
-## A regional simulation
+### Models with multiple modes
 
-This example uses TVB's 76-region connectome and the `Generic2dOscillator`.
-We set a 0.1 ms integration step and use a `Raw` monitor to sample the model's
-observed variables at every step. The simulator uses its default `Linear`
-coupling and draws its initial history from the model's ranges. The requested
-300 ms is simulated time; the time taken to run the code on a computer will be
-different.
+In TVB's {term}`reduced-set models <Reduced-set model>`, a few modes describe
+the collective dynamics of many nonidentical excitatory and inhibitory
+oscillators. The FitzHugh–Nagumo and Hindmarsh–Rose implementations have
+three modes per region, each with its own values of the model's state variables
+[@stefanescu2008]
+([Stefanescu–Jirsa model source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/models/stefanescu_jirsa.html)).
+An initial history for either model has a mode axis of length three for each
+state variable and region.
+
+## Whole-brain simulation
+
+We now run a `Generic2dOscillator` at each of the 76 regions in TVB's default
+connectome. The simulation uses the default `Linear` coupling and a history
+drawn from the model's ranges. We set `dt=0.1` ms and record every step with a
+`Raw` monitor. The run covers 300 ms of simulated time.
 
 ```{code-cell} ipython3
 import numpy as np
@@ -118,33 +118,28 @@ print(f"Samples: {len(time)}; last time: {time[-1]:g} ms")
 print(f"Recorded array shape: {activity.shape}")
 ```
 
-The three printed lines identify the connectome size and describe the returned
-data. `run()` gives one `(time, activity)` pair for each monitor; `[0]` selects
-the `Raw` output. Here `activity.shape` is `(3000, 1, 76, 1)`: **time ×
-recorded variable × brain region × mode**. The samples span 0.1 to 300 ms.
-The model has two state variables, but its default
-`variables_of_interest` contains only $V$, so the recorded-variable dimension
-has length one
+`sim.run()` returns one `(time, activity)` pair per monitor. We have one `Raw`
+monitor, selected by `[0]`. Its `activity` array has shape `(3000, 1, 76, 1)`:
+**time × recorded variable × brain region × mode**. The 3000 samples span
+0.1 to 300 ms. The model evolves $V$ and $W$; its default
+`variables_of_interest` records $V$ alone
 ([Generic2dOscillator API](https://docs.thevirtualbrain.org/api/tvb.simulator.models.html)).
+The final dimension has length one for this model. With a multimode model,
+`activity[:, variable, region, mode]` selects a time series for one mode.
 
-TVB can write diagnostic messages alongside these three lines. With `INFO`
-logging enabled, its memory, storage, and runtime estimates describe the
-expected cost of the run. The final *elapsed* time is the measured time on
-your computer; *x real time* is that time divided by 300 ms. Neither is a
-simulated signal. Depending on the installation, you may also see warnings:
-`hemispheres not found` means that the example connectome has no hemisphere
-annotations, and `Geodesic distance module is unavailable` concerns surface
-calculations, which this regional example does not use. Current TVB versions
-may warn `random_state supplied for non-stochastic integration` because the
-run loop calls the integrator's random-state method even for deterministic
-Heun; this does not add noise
+With `INFO` logging enabled, TVB also prints estimates of memory, storage,
+and runtime. After the run, *elapsed* gives the measured wall-clock time;
+*x real time* compares it with the 0.3 s of simulated time. A warning about
+`random_state supplied for non-stochastic integration` may appear: the run
+loop calls the integrator's random-state method even for deterministic Heun.
+The integration remains deterministic
 ([Simulator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/simulator.html),
 [Integrator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/integrators.html)).
 
-Here is $V$ in the first three brain regions. The traces are model activity;
-EEG, MEG, and fMRI require different monitors to produce their respective
-signals. In this run, the trajectories start at different values and settle
-towards the same level over the 300 ms window.
+The following plot shows $V$ in the first three brain regions. These are
+model trajectories; EEG, MEG, and fMRI signals require the appropriate
+monitors. The three traces begin at different values and approach a similar
+level during the 300 ms run.
 
 ```{code-cell} ipython3
 import matplotlib.pyplot as plt
@@ -162,34 +157,31 @@ plt.show()
 
 ## What happens during a run
 
-`configure()` prepares the components to work together. For example, TVB
-converts tract lengths and conduction speed into delays measured in integration
-steps, allocates the activity history needed for those delays, and configures
-the monitor. It uses a supplied initial history when present and calls the
-model's initialisation method otherwise.
+`configure()` converts tract lengths and conduction speed into delays measured
+in integration steps. It allocates the history needed for those delays,
+initialises the model state, and configures the monitor. If an initial history
+was supplied, TVB uses it when setting up the history buffer.
 
-During `run()`, the simulator reads each region's connected sources from the
-appropriate points in that history. It evaluates the coupling, passes it to
-the local model, and asks the integrator for the next state. That state is
-written back to the history and offered to the monitors. The loop repeats for
-the requested simulation length
+During `run()`, the simulator reads delayed source activity from the history
+buffer, evaluates the coupling, and passes it to the local model. The
+integrator computes the next state, which TVB adds to the history and passes
+to the monitors. This sequence continues for the requested simulation length
 ([Simulator source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/simulator.html)).
-TVB's default `ReferenceBackend` supplies NumPy operations used by the
-simulator; the chosen integrator performs the state update
+TVB's default `ReferenceBackend` supplies the NumPy operations used by the
+simulator. The integrator performs the state update
 ([reference backend source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/backend/ref.html)).
 
-The `Simulator` can also take a different coupling function, conduction speed,
-initial conditions, a stimulus, or a cortical surface. Their effects depend
-on the model and the spatial scale of the simulation; the
-[Simulator API](https://docs.thevirtualbrain.org/api/tvb.simulator.simulator.html)
-lists the available arguments. In this example, the explicit inputs are the
-connectome, model, integrator, and monitor.
+The example specifies a connectome, model, integrator, and monitor. Other
+`Simulator` arguments let you change the coupling function or conduction
+speed, supply initial conditions or a stimulus, and include a cortical
+surface. The [Simulator API](https://docs.thevirtualbrain.org/api/tvb.simulator.simulator.html)
+lists them all.
 
-`run()` collects each monitor's samples into arrays, as above. For a longer
-simulation, `sim(simulation_length=...)` yields monitor samples as they become
-available, so they can be processed without retaining the whole recording in
-memory. Another call on the same configured simulator continues from its
-current state and history; make a new simulator for an independent run.
+`run()` collects each monitor's samples into arrays. For a longer simulation,
+`sim(simulation_length=...)` yields samples as they become available, allowing
+you to process them without storing the full recording. Another call on the
+same configured simulator continues from its current state and history. For
+an independent run, create a new simulator.
 
 The [connectivity](bb-connectivity.md), [model](bb-model.md),
 [coupling](bb-coupling.md), [integrator](bb-integrators.md), and

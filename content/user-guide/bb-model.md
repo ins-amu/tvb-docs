@@ -258,6 +258,8 @@ does not. Scalars broadcast fine; a per-node parameter must already have shape
 `(nnodes, 1)` to align with `(nvar, nnodes, M)`. A flat `(nnodes,)` array
 broadcasts along the wrong axis and produces silently wrong dynamics.
 
+TODO verify this behavior
+
 ```python
 import numpy as np
 
@@ -265,10 +267,7 @@ jr = JansenRit(mu=np.array([[0.0]] * 38))   # per-node, shape (38, 1)
 jr = JansenRit(mu=np.array([0.1]))          # single value, broadcasts
 ```
 
-**Configure before use.** `model.configure()` fills derived parameters (the
-`Aik`/`Bik` matrices of `ReducedSet*`, transfer tables of `CerebellarMF`,
-`observe`). `Subnetwork.configure()` does it for you; calling `configure()`
-twice is harmless.
+**Configure before use.** `model.configure()` fills derived parameters, but `Subnetwork.configure()` does it for you.
 
 Parameter sweeps address models by subnetwork-qualified name, e.g.
 `cortex.mu`, through the unified sweep API described in
@@ -282,6 +281,15 @@ share one instance share that state, and any later `configure()` overwrites
 it. Instantiate per subnetwork, exactly as you would for integrators:
 
 ```python
+jansen_rit = JansenRit() # WRONG, sharing instance
+
+cortex = Subnetwork(name="cortex", model=jansen_rit, scheme=HeunDeterministic(dt=0.1), nnodes=38)
+thalamus = Subnetwork(name="thalamus", model=jansen_rit, scheme=HeunDeterministic(dt=0.1), nnodes=38)
+```
+
+```python
+# CORRECT, individual instance per Subnetwork
+
 cortex = Subnetwork(name="cortex", model=JansenRit(), scheme=HeunDeterministic(dt=0.1), nnodes=38)
 thalamus = Subnetwork(name="thalamus", model=JansenRit(), scheme=HeunDeterministic(dt=0.1), nnodes=38)
 ```
@@ -293,30 +301,9 @@ thalamus = Subnetwork(name="thalamus", model=JansenRit(), scheme=HeunDeterminist
 
 ### 1. Pick one model per subnetwork
 
-Decide the mechanism each block must carry, then the smallest model that
-carries it. Write down each model's `n`, `M` and slot count before writing
-projection code — the projections are shaped by those numbers.
+Decide the mechanism each block must carry. Write down each model's `n`, `M` and slot count before writing projection code — the projections are shaped by those numbers.
 
-### 2. Read the declarations, don't guess them
-
-```python
-from tvb.simulator.models import JansenRit, ReducedSetFitzHughNagumo
-
-for model in (JansenRit(), ReducedSetFitzHughNagumo()):
-    model.configure()                       # required before reading cvar-derived fields
-    slots = [model.state_variables[int(i)] for i in model.cvar]
-    print(type(model).__name__,
-          "nvar =", model.nvar,
-          "modes =", model.number_of_modes,
-          "slots =", slots)
-# JansenRit nvar = 6 modes = 1 slots = ['y1', 'y2']
-# ReducedSetFitzHughNagumo nvar = 4 modes = 3 slots = ['xi', 'alpha']
-```
-
-Then confirm which slots `dfun` actually reads. A slot that is declared and
-never used accepts projections without effect.
-
-### 3. Attach the model to a subnetwork
+### 2. Attach the model to a subnetwork
 
 ```python
 import numpy as np
@@ -355,7 +342,7 @@ model's `configure()` and also configures the integrator boundaries that
 depend on the model. Call `model.configure()` yourself only to inspect
 declarations.
 
-### 4. Verify what the model actually received
+### 3. Verify what the model actually received
 
 Attach an `AfferentCoupling` monitor to the subnetwork. It records the summed
 coupling array — all slots, external plus intra plus stimuli — rather than the

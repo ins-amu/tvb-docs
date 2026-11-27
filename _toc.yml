@@ -129,6 +129,8 @@ parts:
       - file: content/howtos/index.md
       - file: content/howtos/custom-stimulus.md
       - file: content/howtos/write-a-model.md
+      - file: content/howtos/jansen-rit-alpha-network.md
+      - file: content/howtos/hopf-whole-brain-model.md
       - title: Connectivity & Stimuli
         sections:
           - file: content/demos/using_your_own_connectivity.ipynb

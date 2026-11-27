@@ -43,6 +43,15 @@
     "title": "Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns",
     "year": 1995
   },
+  "10.1007/BF00224863": {
+    "authors": [
+      "Brandt",
+      "Jansen",
+      "Zouridakis"
+    ],
+    "title": "A neurophysiologically-based mathematical model of flash visual evoked potentials",
+    "year": 1993
+  },
   "10.1007/BF00337367": {
     "authors": [
       "Kristiansson",
@@ -616,6 +625,14 @@
     ],
     "title": "Active Subspace Methods in Theory and Practice: Applications to Kriging Surfaces",
     "year": 2014
+  },
+  "10.1162/neco.2006.18.12.3052": {
+    "authors": [
+      "Faugeras",
+      "Grimbert"
+    ],
+    "title": "Bifurcation Analysis of Jansen's Neural Mass Model",
+    "year": 2006
   },
   "10.1162/neco_a_01300": {
     "authors": [

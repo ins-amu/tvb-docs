@@ -3391,17 +3391,17 @@ tvb-data==3.0.0 \
     --hash=sha256:681e9fb1fd807b57f9b55c7fd147ac7563ded90c978d42eeae1bb150adab0b12 \
     --hash=sha256:6cadd8b0c7757bd367d1eb8b7c107c6d933d7528b0917440d4e57e646e82a3d1
     # via -r requirements/base.txt
-tvb-library==3.0.0a1.post3 \
-    --hash=sha256:11e368b5e4ecfb339e73df3641684df105f401a71abe2bd030c9a54f01549220 \
-    --hash=sha256:2a4d97204ff4e2c63bd144645accd7a91588ee14372171bbf0c45e7b320b97eb \
-    --hash=sha256:7bd14c6e2296377990fdd5f7360db3158da4e7a50278e65ecf4d6a4d44cbf45f \
-    --hash=sha256:7c36fd31563f33265ffba77e3557b122786d7fb4464d6966c2fd37c4570e9ef3 \
-    --hash=sha256:93a0fcde8cae26b030c2302242b6e05748c5040e0a2f8db556ecaeb5d48dd805 \
-    --hash=sha256:9f355a064804e84d0d751bc7a871853c7fade12fb00e7eac67a1601d08502d15 \
-    --hash=sha256:b504d21b06b8f461e0826db39150e028318eef18952501992e95449fc984f6cd \
-    --hash=sha256:c5ca6030bfd1f86cca608a8f6cc11153717f0f536c649968664166796eef5c5b \
-    --hash=sha256:f2ba024f23bb89a3b1c214430f82e17f948eee30db2915fe803c587e0e419d59 \
-    --hash=sha256:f3bac0fbafb73766b526a81aa31588d0d3946459510c24052ea2a518d8904c58
+tvb-library==3.0.0a1.post4 \
+    --hash=sha256:08c7ad4a39a4d6abf20653865f114e6fdcbf09d49a5c90664a9def0e55ce5c5e \
+    --hash=sha256:42ef405101fb8834b5b33195ac990f5e41c718840288f57e1610f0a5836a2e99 \
+    --hash=sha256:5c038eaab42aaefd74e51927e9924643a78efa4b68230481127b260b1ce06946 \
+    --hash=sha256:6c24b4081d3040bd3c803ecfca673b7ea2eb0cd56cc3fd2ac644d108f475b51b \
+    --hash=sha256:6e0f32ea80b18be3482678c00ac9865e70f9a46c587e95b41df4259d866757d8 \
+    --hash=sha256:7c9156d47976888ca2c9057467441566b8fdb04a689050f2f648b235836d5334 \
+    --hash=sha256:b9987fbc6eda774d40e5a6eebdf7b59c6c38ca0a5b3c66da7e4c629a61c1c749 \
+    --hash=sha256:d386abbc1377683f66404f3aed458d208f9a29334a5ff9174bb9993c4f9d841b \
+    --hash=sha256:f28eb45c79067591cacfb6f1daa55202e890e8f6d174419a3bf170c537e04072 \
+    --hash=sha256:f61169a333b168ee43c3fbce94f7ac11ad2c3cc2f8999a9585472f9a5de1e72b
     # via -r requirements/base.txt
 tvb-phaseplane==0.1.0 \
     --hash=sha256:195064edc146a497aeac9fdf4d9023108fd120885e5d12a41a8e5eb86458233d \
@@ -3415,8 +3415,10 @@ typing-extensions==4.16.0 \
     #   anyio
     #   anywidget
     #   beautifulsoup4
+    #   exceptiongroup
     #   fastmcp-slim
     #   google-genai
+    #   httpx2
     #   jupyter-client
     #   logfire
     #   mcp
@@ -3429,6 +3431,8 @@ typing-extensions==4.16.0 \
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
+    #   referencing
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.4 \
     --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \

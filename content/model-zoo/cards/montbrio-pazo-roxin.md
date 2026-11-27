@@ -55,4 +55,4 @@ Based on the parameter settings, the model dynamics are organized around three f
 
 ![](figures/montbrio_bifurcation.png)
 
-See [bifurcation](../../user-guide/sweep/bifurcation.md) page for more details on how to perform bifurcation analysis yourself.
+See [bifurcation](../../user-guide/sweep/bifurcation.ipynb) page for more details on how to perform bifurcation analysis yourself.

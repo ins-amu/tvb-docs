@@ -8,18 +8,12 @@ bibliography:
 
 The model is the local dynamics of one subnetwork: the equations solved at
 every node, every step. The `Subnetwork` decides *which* nodes and *which*
-integrator; the model decides everything else — how many
-{term}`state variables <State variable>` it carries, how many
-{term}`modes <Mode>`, which variables it exchanges with the rest of the
-network, and where its initial conditions and parameter values live.
+integrator; the model decides how many {term}`state variables <State variable>` 
+it carries, how many {term}`modes <Mode>` and which variables are used for coupling.
 
-A {term}`hybrid simulation <Hybrid simulation>` has no single model: it has one
+The {term}`hybrid simulation <Hybrid simulation>` has no single model: it has one
 per subnetwork, and they may differ. A `NetworkSet` can mix 1-mode and 3-mode
-models, and subnetworks can run at different time steps. There is no
-hybrid-specific model class — the framework consumes
-`tvb.simulator.models.Model` unchanged, so `JansenRit`, `WilsonCowan` or
-`ReducedSetFitzHughNagumo` run identically in classic TVB and inside a
-subnetwork.
+models, and subnetworks can run at different time steps.
 
 This page covers what the model does in the simulation, what it declares,
 and how to pick, attach and verify one.

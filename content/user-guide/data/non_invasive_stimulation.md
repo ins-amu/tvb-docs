@@ -175,7 +175,98 @@ The coupling between electromagnetic fields and neural mass models (i.e., the no
 
 As an entry point to applying stimulation fields on TVB simulations we will assume that the user has already obtained an electric field dataset in the form of a NIfTI file in the native T1-space of the subject, containing for each voxel the three components of the electric field $(E_x, E_y, E_z)$. This effectively means that we know the electric field vector $\vec{E}(\vec{r})$ in every point $\vec{r}$ in the white and gray matter.
 
-Let us assume for now that we have chosen a neural mass model whose  first state equation imparts the meaning of electrical current onto the additive stimulus signal $S(t)$. Depending on the model, we are still **not allowed** to identify it directly with the ohmic current induced by the stimulation, whose density is given by $\vec{J}=\sigma\vec{E}$. The user must define a biophysical model that converts the electric field distribution $\vec{E}(\vec{r})$ to a stimulation current $I_i$ in each parcel $i$. I.e .we need a functional $\mathcal{F}$ that maps the field $\vec{E}(\vec{r})$ defined on the parcel $i$ ($\vec{r}\in V_i$) onto a single scalar positive value (current):
+The crucial steps for coupling the external E-field with the TVB are:
+
+- Identify the equations of the **neural mass model** that accept a stimulation input
+- Determine the way the electric field distribution inside the volume represented by a neural mass maps onto the stimulus terms on the r.h.s. of he state equations.
+
+## How to identify and set which state equations can be stimulated
+
+### Classic `Simulator`: you target the equation directly
+
+In the classic framework, the model itself declares which state variables receive external input through the `stvar` attribute. It holds indices into `state_variables`, and if you leave it unset the model falls back to `cvar` during configuration:
+
+```python
+if self.stvar is None:
+    self.stvar = self.cvar.copy()
+```
+
+To choose a target, assign the attribute before calling `run()`. Note that `stvar` is a plain class attribute rather than a validated trait, so nothing checks your indices until the simulation actually indexes the array:
+
+```python
+model.stvar = numpy.r_[4]        # stimulus is added to d(y4)/dt
+```
+
+The simulator then writes the stimulus into the derivative array at those rows, and the integrator adds it to the state update:
+
+```python
+stimulus[self.model.stvar, :, :] = self.stimulus(stim_step).reshape((1, -1, 1))
+...
+X_next = X + self.dt * (self.dX + stimulus)
+```
+
+Because the stimulus is injected at the derivative level, you can reach **any** state variable in the range `0 .. nvar-1`. An out-of-range index raises an `IndexError` at runtime, so mistakes are loud rather than silent.
+
+---
+
+### Hybrid `Subnetwork`: you target a coupling slot
+
+In the hybrid framework the situation is different, because the integrator's stimulus channel is not used at all. Instead, stimuli are added to the subnetwork's coupling buffer, and the model's `dfun` decides which equation that buffer row feeds.
+
+To identify what you can stimulate, inspect the model's `dfun` and look for the coupling rows it actually reads (for example `coupling[0, :]`). The number of allocated slots equals `len(model.cvar)`, but the number of *usable* slots equals `len(coupling_terms)`, and these two counts do not always agree.
+
+To choose a target, set `Stim.target_cvar`, or pass `stimulus_cvar=` to `add_stimulus()`. The value is a coupling slot index, not a state variable index:
+
+```python
+subnet.add_stimulus(stimulus=pat, stimulus_cvar=np.r_[0])   # slot 0, not state 0
+```
+
+The subnetwork adds the stimulus into the coupling buffer and then hands the combined coupling to `dfun`. Note that the final two arguments of the integrator call are hardcoded to zero, which is why `stvar` has no effect here:
+
+```python
+internal_c[stim.target_cvar] += stim_coupling
+nx = self.scheme.scheme(x, self.model.dfun, total_c, 0.0, 0.0)   # stimulus=0.0
+```
+
+Consequently, you can only stimulate equations that the model already wires to a coupling slot. I checked every hybrid module and backend, and `stvar` appears zero times, so setting it in a hybrid simulation has no effect whatsoever.
+
+---
+
+### Side-by-side comparison
+
+| | Classic | Hybrid |
+|---|---|---|
+| Attribute to set | `Model.stvar` | `Stim.target_cvar` |
+| Index space | state variables | coupling slots |
+| Valid range | `0 .. nvar-1` | `0 .. len(cvar)-1` |
+| Failure mode | `IndexError` (loud) | silent no-op if `dfun` ignores the slot |
+| Granularity | any equation | only equations wired to a slot |
+
+---
+
+### Model cheat-sheet
+
+| Model | `cvar` | `coupling_terms` | Slots `dfun` reads | Stimulable equations |
+|---|---|---|---|---|
+| `JansenRit` | `[1, 2]` | 1 | `0` | `y4` only |
+| `WilsonCowan` | `[0, 1]` | 1 | `0` | `E` only |
+| `Generic2dOscillator` | `[0]` | 1 | `0` | `V` |
+| `ReducedWongWang` | `[0]` | 1 | `0` | `S` |
+| `SupHopf` | `[0, 1]` | 2 | `0, 1` | `x`, `y` |
+| `CerebellarMF` | `[0, 1]` | 2 | `0, 1` | mossy, parallel |
+| `ReducedSetFitzHughNagumo` | `[0, 2]` | — | `0, 1` | 2 of 4 |
+
+---
+
+### How to decide
+
+If you need to hit a specific ordinary differential equation in any model, use the classic `stvar`, because it gives you direct access to every state variable. If the model already exposes the pathway you need as a coupling slot, the hybrid `target_cvar` is the natural choice and keeps you inside the hybrid architecture. If the equation you want is not wired to any slot, you have two options: extend `cvar` and make `dfun` read the new slot, or fall back to the classic simulator.
+
+One caveat is worth repeating. For seven shipped models (`JansenRit`, `WilsonCowan`, `CoombesByrne`, `DumontGutkin`, `GastSchmidtKnosche_SD` and `_SF`), `len(cvar)` is larger than `len(coupling_terms)`. The hybrid validator only checks that the index is below `len(cvar)`, so `target_cvar=1` on `JansenRit` passes validation and then does nothing at all.
+
+## Determining the influence of the E-field
+
+Let us assume for now that we have chosen a neural mass model containing a single equation with an additive external current (e.g. Montbrio-Montbrió–Pazó–Roxin or MPR for short). Depending on the model, we are still **not allowed** to identify it directly with the ohmic current induced by the stimulation, whose density is given by $\vec{J}=\sigma\vec{E}$. The user must define a biophysical model that converts the electric field distribution $\vec{E}(\vec{r})$ to a stimulation current $I_i$ in each parcel $i$. I.e .we need a functional $\mathcal{F}$ that maps the field $\vec{E}(\vec{r})$ defined on the parcel $i$ ($\vec{r}\in V_i$) onto a single scalar positive value (current):
 $$
 \mathcal{F}:L^2(V_i;\mathbb{R}^3)\to\mathbb{R}_+
 $$

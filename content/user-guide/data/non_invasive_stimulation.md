@@ -272,11 +272,11 @@ The temporal part of the coupling is rarely controversial: under the quasi-stati
 |---|---|---|---|---|---|---|
 | [F1](#insertion-1) | Signed normal projection, membrane offset ($\lambda$-$E$) | $w_i=\lambda\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit, Wendling | tDCS, tACS | voltage offset added to the mean membrane potential of each subpopulation, inside its sigmoid | [@ruffini2013tcs; @merlet2013oscillatory; @molaeeardekani2013tdcs] |
 | [F2](#insertion-2) | Signed normal projection, firing-rate shift | $w_i=\dfrac{\lambda}{A h_e}\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit | tDCS | additive mean firing rate entering the pyramidal population via the excitatory interneuron path | [@kunze2016tdcs] |
-| [F3](#insertion-3) | Vector dipole projection | $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$ | MPR / NMM2 | tACS, tDCS | additive current $I_E$ in the mean-potential equation | [@ruffini2022exact; @clusella2023comparison] |
+| [F3](#insertion-3) | Vector dipole projection | $w_i=\big\langle\boldsymbol{\lambda}\cdot\vec{E}_0\big\rangle_{V_i}$ with $\boldsymbol{\lambda}=\lambda\,\hat{\mathbf{n}}$ | MPR / NMM2 | tACS, tDCS | additive current $I_E$ in the mean-potential equation | [@ruffini2022exact; @clusella2023comparison] |
 | [F4](#insertion-4) | Frequency-dependent transfer | $w_i(f)=\hat{Z}_i(f)\,\tilde{E}_i(f)$ from a ball-and-stick cable | AdEx / EIF mean field | tACS | additive current to an AdEx/EIF mean field | [@aspart2016extending; @cakan2020biophysically] |
-| [F5](#insertion-5) | Distribution-aware functional | $w_i=\big\langle f(\boldsymbol{\lambda}\cdot\vec{E}_0)\big\rangle_{V_i}$ over an orientation distribution | MPR / NMM2 | tACS, tDCS | not an additive drive: absorbed into the quenched-noise width $\Delta$ of the Lorentzian | [@ruffini2022exact; @clusella2023comparison] |
+| [F5](#insertion-5) | Distribution-aware functional (proposed, not implemented) | $w_i=\big\langle f(\boldsymbol{\lambda}\cdot\vec{E}_0)\big\rangle_{V_i}$ over an orientation distribution | MPR / NMM2 | tACS, tDCS | not an additive drive: absorbed into the quenched-noise width $\Delta$ of the Lorentzian | [@ruffini2022exact; @clusella2023comparison] |
 | [F6](#insertion-6) | Signed normal projection, gating modulation | $w_i=\lambda\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Reduced Wong–Wang (Deco MFM) | tDCS | additive term $\theta(i)=k\,w_i\,s(t)$ in the synaptic gating equation | [@dong2025tdcs] |
-| [F7](#insertion-7) | Spherical-harmonic response, per-population offset | $w_i=\lambda_i\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ with $\lambda_i$ from $\Phi(\theta,\varphi)$ | Wendling / Lopez-Sola (162 VEP parcels) | tDCS | voltage offset added to each subpopulation's membrane potential, scaled by a calibrated gain $G_E$ | [@mercadal2026wholebrain] |
+| [F7](#insertion-7) | Spherical-harmonic response, per-population offset | $w_{i,p}=\lambda_p\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ with $\lambda_p$ from $\Phi(\theta,\varphi)$ | Wendling / Lopez-Sola (162 VEP parcels) | tDCS | voltage offset added to each subpopulation's membrane potential, scaled by a calibrated gain $G_E$ | [@mercadal2026wholebrain] |
 
 ### Spatial resolution
 
@@ -304,13 +304,24 @@ The seven insertion points below correspond one-to-one to the rows of the table:
    $$
    \tau_m\dot{v}=\eta-(\pi r\tau_m)^2+v^2+\tau_m Js+I_E(t),
    $$
-   with $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$. In TVB, `MontbrioPazoRoxin` defaults to `stvar = [1]`, which is exactly this equation, so no change is needed. The closure stays exact because $I_E$ is common to all neurons — a condition that the parcel reduction imposes by construction, not one that the field satisfies. If the field varies over $V_i$, that variation is discarded rather than resolved. The field shifts the centre $v$ of the distribution but not its half-width; retaining per-neuron heterogeneity instead requires the distribution of $\boldsymbol{\lambda}\cdot\vec{E}$ to be Lorentzian, which is the assumption behind F5 [@montbrio2015; @ruffini2022exact; @clusella2023comparison].
+   with
+   $$
+   w_i=\big\langle\boldsymbol{\lambda}(\vec{r})\cdot\vec{E}_0(\vec{r})\big\rangle_{V_i},
+   \qquad \boldsymbol{\lambda}(\vec{r})=\lambda\,\hat{\mathbf{n}}(\vec{r}).
+   $$
+   $\boldsymbol{\lambda}$ is the **dipole coupling vector** of a neuron: its magnitude is the coupling constant $\lambda$ discussed under Magnitudes below, and its direction is the cell's preferred axis — for cortical pyramidal cells the somato-dendritic axis, close to the cortical surface normal. The average is over the **product**, because $\hat{\mathbf{n}}$ belongs to each neuron, not to the parcel.
+
+   [@ruffini2022exact] and [@clusella2023comparison] assume that all neurons in a population are equally oriented, which makes $\boldsymbol{\lambda}$ constant and the field term independent of the neuron index — the condition the mean-field closure requires. Under that assumption the field merely translates the distribution of $\eta_j$ and leaves $\Delta$ unchanged, so the reduction is exact.
+
+   For folded cortex the assumption fails, and collapsing the field to one scalar $w_i$ replaces the distribution of $\boldsymbol{\lambda}\cdot\vec{E}_0$ by its mean. That is an approximation, because the rate is a nonlinear function of the input; it becomes exact only if the distribution is Lorentzian, in which case the spread can be absorbed into $\Delta$ rather than discarded — that is [F5](#insertion-5). Separately, where $\hat{\mathbf{n}}$ reverses inside $V_i$ the signed average cancels, since opposite sulcal walls polarize in opposite directions; only a finer parcellation or sub-parcel orientation binning fixes that.
+
+   In TVB, `MontbrioPazoRoxin` defaults to `stvar = [1]`, which is exactly this equation, so no change is needed [@montbrio2015; @ruffini2022exact; @clusella2023comparison].
 
 (insertion-4)=
 4. **Additive input current in a linear–nonlinear cascade (F4).** Convert the field to an equivalent somatic current through the cable transfer function, then add it to the input of the excitatory population. The transfer function is frequency-dependent, so $w_i$ is a function of the stimulation frequency, $w_i(f)$. For a single-frequency protocol this is still one number per parcel; for broadband or multi-frequency stimulation it is not, and you must either evaluate it per frequency component or precompute it on a grid. [@aspart2016extending] derive the equivalent current analytically from a ball-and-stick cable neuron model and show that its amplitude grows with field frequency while the somatic sensitivity decreases; [@cakan2020biophysically] propagate it to an AdEx mean field and apply it to the excitatory population only.
 
 (insertion-5)=
-5. **Widening of heterogeneity in the rate equation (F5).** Do not add a term; change a parameter. Let $\boldsymbol{\lambda}$ be the dipole coupling vector of a neuron, so that $\boldsymbol{\lambda}\cdot\vec{E}_0$ is its field-induced input, and let $\Delta_\lambda$ be the half-width of the distribution of that input across the population. If that distribution is Lorentzian, the total input stays Lorentzian and its half-width becomes $\Delta+\Delta_\lambda$, since Lorentzian half-widths add under convolution. Set $\Delta\to\Delta+\Delta_\lambda$; $\eta$, the centre of the distribution, is unchanged. In TVB, either set `Delta` directly, which is the faithful option, or set `stvar = [0]` and inject $\Delta_\lambda/(\pi\tau^2)$ into the rate equation, which is algebraically equivalent. Note that the default `stvar = [1]` targets the wrong equation for this case. The location shift is a separate matter and is independent of $\Delta_\lambda$: it vanishes only if orientations are isotropically distributed, whereas $\Delta_\lambda$ can be large or small either way. Note that for a Lorentzian the location parameter is the median, not the mean, since the Cauchy distribution has no finite mean [@ruffini2022exact; @clusella2023comparison].
+5. **Widening of heterogeneity in the rate equation (F5).** Do not add a term; change a parameter. This row is a generalisation that the cited authors propose but do not carry out: both assume a single orientation for the whole population, which is what makes F3 valid. It applies once that assumption is dropped. Let $\boldsymbol{\lambda}$ be the dipole coupling vector of a neuron, so that $\boldsymbol{\lambda}\cdot\vec{E}_0$ is its field-induced input, and let $\Delta_\lambda$ be the half-width of the distribution of that input across the population. If that distribution is Lorentzian, the total input stays Lorentzian and its half-width becomes $\Delta+\Delta_\lambda$, since Lorentzian half-widths add under convolution. Set $\Delta\to\Delta+\Delta_\lambda$; $\eta$, the centre of the distribution, is unchanged. In TVB, either set `Delta` directly, which is the faithful option, or set `stvar = [0]` and inject $\Delta_\lambda/(\pi\tau^2)$ into the rate equation, which is algebraically equivalent. Note that the default `stvar = [1]` targets the wrong equation for this case. The location shift is a separate matter and is independent of $\Delta_\lambda$: it vanishes only if orientations are isotropically distributed, whereas $\Delta_\lambda$ can be large or small either way. Note that for a Lorentzian the location parameter is the median, not the mean, since the Cauchy distribution has no finite mean [@ruffini2022exact; @clusella2023comparison].
 
 (insertion-6)=
 6. **Modulation of a gating variable (F6).** Add $\theta(i)=k\,w_i\,s(t)$ to the gating ODE, $\dot{S}_i=-S_i/\tau_S+\gamma(1-S_i)H(x_i)+\sigma v_i(t)+\theta(i)$, with $w_i=\lambda\vec{E}_{\text{normal}}(i)$. In TVB, `ReducedWongWangExcInh` exposes `I_ext`, but that parameter enters the excitatory drive $x_{ek}$, not the gating equation, so setting `I_ext` does not reproduce this coupling. The bias voltage here is a derived quantity that never enters a membrane-potential equation, which is why this is a distinct insertion point from point 1 rather than a variant of it [@deco2013resting; @dong2025tdcs].
@@ -333,7 +344,7 @@ With typical tES field strengths of $0.2$–$2\ \text{V/m}$ [@ruffini2013tcs], t
 Averaging a field over a parcel is often described as if it were a single problem, but there are two, and they call for different remedies.
 
 - **Geometric cancellation.** The surface normal $\hat{\mathbf{n}}(\mathbf{r})$ reverses between gyral crowns and sulcal walls. A *signed* average of $\hat{\mathbf{n}}\cdot\vec{E}_0$ over a parcel that spans both can therefore cancel, even when the local field is large everywhere. Remedies are finer parcellation, sub-parcel orientation binning, or a fibre-aligned projection that does not rely on the cortical normal [@colella2025effective].
-- **Rectification.** Because the map from field to membrane displacement is rectifying, $\langle f(\hat{\mathbf{n}}\cdot\vec{E}_0)\rangle_{V_i}\neq f(\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i})$. A vanishing mean field therefore does not imply a vanishing $w_i$. The correct procedure is to average the *response*, not the field, which is what the spherical-harmonic representation makes explicit [@galan2023spherical].
+- **Rectification.** The map from field to membrane displacement is linear in $\vec{E}_0$, so $\lambda$ factors out and the averaging order is immaterial to first order (see [point 3](#insertion-3)). Once the map is genuinely nonlinear — as in the spherical-harmonic response, where the polarization is not proportional to the projected field — $\langle f(\hat{\mathbf{n}}\cdot\vec{E}_0)\rangle_{V_i}\neq f(\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i})$, and a vanishing mean field no longer implies a vanishing $w_i$. The response must then be averaged rather than the field, which is what the spherical-harmonic representation makes explicit [@galan2023spherical].
 
 Orientation dispersion interacts with the mean-field closure in a way that is easy to overstate. Dispersion does not by itself break the Lorentzian ansatz, but it does not leave it untouched either: the closure survives only if the resulting distribution of $\boldsymbol{\lambda}\cdot\vec{E}_0$ across the population is itself Lorentzian, in which case it can be absorbed into the quenched-noise width as described under [F5](#insertion-5). For other orientation distributions — including the isotropic case, which produces a uniform rather than a Lorentzian distribution of the projected field — the closure is broken and the reduction no longer holds exactly [@ruffini2022exact; @clusella2023comparison].
 
@@ -347,3 +358,220 @@ Two conventions deserve to be fixed explicitly in any implementation:
 
 - **Polarity.** A functional that takes the field magnitude rather than a signed projection discards the sign, so $w_i\ge 0$ by construction. That is fatal for tDCS, where the anodal/cathodal distinction is the entire effect.
 - **Normal orientation.** The sign convention of $\hat{\mathbf{n}}$ must be stated explicitly. Reversing it flips the sign of the stimulation contribution, turning an intended depolarization into a hyperpolarization. This is the most common source of inverted results across the papers cited above.
+
+## Worked example: F3 with the MPR model
+
+This section walks through the full pipeline for F3 — the vector dipole projection into the mean-potential equation of MPR — starting from a NIfTI field map and ending with a configured `Simulator`. The case is tDCS, so the field is constant in time and the temporal profile is a constant.
+
+### Inputs
+
+Two NIfTI files in the same space, sharing header and affine:
+
+- `E_field.nii.gz` — 4D, shape `(M, N, L, 3)`. The last axis holds the Cartesian components $(E_x, E_y, E_z)$ of the field in V/m.
+- `parcellation.nii.gz` — 3D integer labels, one value per atlas parcel, `0` for background.
+
+The parcellation must use the same label values as the region ordering of your TVB `Connectivity`. If your atlas is numbered 1..N and TVB expects 0..N-1, shift the labels.
+
+### Step 1 — load the field and the parcellation
+
+```python
+import numpy as np
+import nibabel as nib
+
+efield_img = nib.load("E_field.nii.gz")
+parc_img = nib.load("parcellation.nii.gz")
+
+# (M, N, L, 3) float array, V/m
+E = efield_img.get_fdata()
+# (M, N, L) integer labels; get_fdata() always returns float64
+labels = parc_img.get_fdata().astype(int)
+
+assert E.shape[:3] == labels.shape, "field and parcellation must share a grid"
+assert np.allclose(efield_img.affine, parc_img.affine), "affines must match"
+```
+
+The affine check matters: if the two files were resampled independently, the voxel indices no longer refer to the same anatomical location and every downstream average is silently wrong.
+
+### Step 2 — load the cortical surface and its normals
+
+F3 projects the field onto the dipole coupling vector of the population. For a cortical parcel the dominant direction is the cortical surface normal, so we take the normals from the FreeSurfer surface rather than estimating them from the parcellation.
+
+The FreeSurfer pipeline produces, per hemisphere, a triangulated surface (`?h.white`, `?h.pial`) and a per-vertex annotation of the cortical parcellation (`?h.aparc.annot`). Vertex normals are not stored on disk. Rather than computing them by hand, read the surface with `pyvista`, which computes them from the mesh geometry:
+
+```python
+import pyvista as pv
+from nibabel.freesurfer.io import read_annot
+
+def load_surface(subject, hemi):
+    """Surface mesh with vertex normals, plus per-vertex parcel labels."""
+    mesh = pv.read(f"{subject}/surf/{hemi}.white")
+    mesh.compute_normals(point_normals=True, cell_normals=False, inplace=True)
+
+    labels, _, names = read_annot(f"{subject}/label/{hemi}.aparc.annot")
+    return mesh, labels, names
+```
+
+`compute_normals` returns area-weighted vertex normals, which is what you want: each triangle contributes in proportion to its area, so large triangles count more than slivers. The result is available as `mesh.point_data["Normals"]`, and the vertex coordinates as `mesh.points`.
+
+```python
+mesh, labels, names = load_surface(subject, "lh")
+coords = mesh.points                      # (n_vert, 3), mm, RAS
+vn = mesh.point_data["Normals"]           # (n_vert, 3), unit length
+```
+
+The vertex coordinates are in FreeSurfer surface space (mm, RAS). They must be in the same space as the field, so check the transform before using them — see step 3.
+
+### Step 3 — map the surface onto the field grid
+
+The surface vertices and the field voxels live in different coordinate systems unless you have resampled one onto the other. The mapping is a voxel lookup: transform each vertex into voxel indices with the field's affine, round, and read the field there.
+
+```python
+def vertices_to_voxels(coords, img):
+    """FreeSurfer surface coords -> nearest voxel indices in img."""
+    # FreeSurfer surface space is RAS; nibabel affines are RAS too,
+    # so the inverse affine maps world mm -> voxel indices directly.
+    inv = np.linalg.inv(img.affine)
+    homog = np.c_[coords, np.ones(len(coords))]
+    vox = (inv @ homog.T).T[:, :3]
+    return np.rint(vox).astype(int)
+```
+
+If your FreeSurfer subject was reconstructed from the same T1 that the field was computed on, this is exact up to rounding. If the two were processed separately, register them first — a mismatch here silently misassigns every vertex.
+
+Guard against vertices that fall outside the field volume:
+
+```python
+vox = vertices_to_voxels(coords, efield_img)
+inside = np.all((vox >= 0) & (vox < np.array(E.shape[:3])), axis=1)
+```
+
+Vertices outside the grid are usually a sign of a space mismatch rather than a genuinely out-of-brain vertex, so check the count before dropping them.
+
+### Step 4 — project per vertex, then average over each parcel
+
+The reduction is over the vertices belonging to each label. Project the field onto each vertex normal first, then average the resulting scalars:
+
+```python
+def parcel_projection(E, vox, vn, labels, n_parcels, inside):
+    """Signed normal projection of the field, averaged per parcel."""
+    E_vert = E[vox[inside, 0], vox[inside, 1], vox[inside, 2]]   # (n_vert, 3)
+    n_vert = vn[inside]
+    lab = labels[inside]
+
+    w = np.zeros(n_parcels)
+    for p in range(n_parcels):
+        m = lab == p
+        if not m.any():
+            continue
+        # project per vertex, then average the scalars
+        w[p] = np.mean(np.einsum("vd,vd->v", E_vert[m], n_vert[m]))
+    return w
+```
+
+This computes $\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ directly. Because $\lambda$ is a scalar constant it factors out, and is applied in step 5.
+
+What this step cannot fix is a parcel whose normals genuinely oppose each other. There the signed average cancels, because the underlying effect cancels: opposite walls of a sulcus are polarized in opposite directions. If that matters for your question, the remedy is a finer parcellation or sub-parcel orientation binning.
+
+### Step 5 — apply the coupling constant
+
+```python
+LAMBDA = 0.13          # mV per (V/m); see the Magnitudes section
+N_PARCELS = int(labels.max()) + 1
+
+w = LAMBDA * parcel_projection(E, vox, vn, labels, N_PARCELS, inside)
+```
+
+At this point `w` is the stimulation weight per parcel, in mV. Two checks are worth running before going further:
+
+```python
+print("parcels with no vertices:", np.sum(w == 0))
+print("w range (mV):", w.min(), w.max())
+```
+
+A large number of empty parcels usually means the annotation labels and the connectivity region ordering disagree. A `w` range far outside ±4 mV means `LAMBDA` is wrong for your units.
+
+### Step 6 — fix the normal orientation
+
+The sign of `w` determines whether a parcel is depolarized or hyperpolarized, so the normal convention must be pinned down. FreeSurfer surface normals are not consistently oriented outwards, so this step is not optional.
+
+The physically motivated choice is that the normal points from white matter towards the cortical surface, so that a field along it depolarizes the pyramidal cells. `pyvista` can orient the mesh consistently for you:
+
+```python
+mesh = pv.read(f"{subject}/surf/{hemi}.white")
+mesh.compute_normals(point_normals=True, cell_normals=False,
+                     consistent_normals=True, auto_orient_normals=True,
+                     inplace=True)
+vn = mesh.point_data["Normals"]
+```
+
+`auto_orient_normals` orients the mesh so that normals point outwards from the enclosed volume, which is the convention we want. If you prefer to anchor the orientation to the white-to-pial direction instead, `pyvista` also exposes `mesh.flip_normals()` for a global flip, and you can select the vertices to flip yourself:
+
+```python
+pial = pv.read(f"{subject}/surf/{hemi}.pial")
+outward = pial.points - mesh.points
+flip = np.einsum("vd,vd->v", vn, outward) < 0
+vn[flip] *= -1
+```
+
+The white-to-pial reference is more trustworthy than orienting relative to a brain centroid, which fails near the midline and in deep sulci.
+
+State whichever convention you use, and check the sign of `w` in a parcel where you know the expected polarity.
+
+### Step 7 — build the stimulus
+
+tDCS is constant in time, so the temporal profile is a constant. `StimuliRegion` expects a weight of shape `(n_regions, 1)`:
+
+```python
+import numpy as np
+from tvb.datatypes import patterns, equations
+from tvb.simulator.lab import connectivity
+
+conn = connectivity.Connectivity.from_file("connectivity_76.zip")
+conn.configure()
+
+assert conn.number_of_regions == N_PARCELS, (
+    f"connectivity has {conn.number_of_regions} regions, "
+    f"parcellation has {N_PARCELS}"
+)
+
+weights = w.reshape(-1, 1)          # (n_regions, 1)
+
+stimulus = patterns.StimuliRegion(
+    temporal=equations.Linear(parameters={"a": 0.0, "b": 1.0}),   # constant 1.0
+    connectivity=conn,
+    weight=weights,
+)
+```
+
+`equations.Linear` with `a=0, b=1` evaluates to a constant `1.0` at every time step, which is what a DC field requires. The field magnitude is already folded into `w`, so the temporal factor must be unity; changing `b` rescales the whole stimulation.
+
+### Step 8 — configure the simulator
+
+MPR's `stvar` defaults to `[1]`, which is the mean-potential equation — exactly the target for F3. No change is needed:
+
+```python
+from tvb.simulator.lab import models, simulator, integrators, monitors
+
+model = models.MontbrioPazoRoxin()
+assert list(model.stvar) == [1], "F3 targets the V equation"
+
+sim = simulator.Simulator(
+    model=model,
+    connectivity=conn,
+    integrator=integrators.HeunDeterministic(dt=0.1),
+    monitors=[monitors.TemporalAverage(period=1.0)],
+    stimulus=stimulus,
+).configure()
+
+# the stimulus is now applied to dV/dt in every parcel
+```
+
+### What this pipeline does and does not do
+
+It implements F3: a vector dipole projection, averaged over the parcel, entering the mean-potential equation as a common input. It does not resolve intra-parcel field variation, and it reduces each parcel to a single orientation — both are the approximations discussed in the preceding sections.
+
+Three things to watch:
+
+- **Units.** `LAMBDA` is in mV per (V/m). If your NIfTI stores V/mm, multiply by 1000 before step 5.
+- **Sign.** The result is only as good as the normal convention in step 6. Verify against a montage with a known polarity before trusting the sign of any downstream effect.
+- **Space.** Steps 3 and 6 both assume the FreeSurfer surface and the field share a coordinate system. If they were reconstructed or resampled independently, register them first; a mismatch misassigns every vertex without raising an error.

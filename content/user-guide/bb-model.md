@@ -56,15 +56,18 @@ happens to its output.
 
 ### The coupling array `dfun` receives
 
-Its first axis is **coupling slots**, not state-variable indices. Slot `i`
-corresponds to `model.cvar[i]`: a model declaring `cvar = [0, 3]` has two slots,
+The array `c`, in `dfun(x, c)`, has the shape `(len(cvar), nnodes, modes)`.
+Its first axis is coupling slots, not state-variable indices. 
+Slot `i` corresponds to `model.cvar[i]`: a model declaring `cvar = [0, 3]` has two slots,
 and slot `1` maps to state index `3`.
 
-This distinction is the most common silent bug in hybrid models. Some models
-declare two slots but read only the first — `JansenRit` has `cvar = [1, 2]`
-and its `dfun` uses only `c[0]`, so projecting into slot `1` of a `JansenRit`
-target changes nothing. See [API contracts](hybrid/hybrid-contracts.md) for
-the resolution rules and the `source_cvar` / `target_cvar` asymmetry.
+Declaring a slot is not the same as reading it. `JansenRit` declares
+`cvar = [1, 2]`, giving it two slots — slot `0` for `y1`, slot `1` for `y2` —
+but its `dfun` reads only `c[0]`. A projection with `target_cvar=1` therefore
+writes into the `y2` slot and changes nothing. Use `target_cvar=0` (or
+`target_cvar="y1"`) to drive a `JansenRit` target. See
+[API contracts](hybrid/hybrid-contracts.md) for the resolution rules and the
+`source_cvar` / `target_cvar` asymmetry.
 
 ### Only declared variables cross a boundary
 

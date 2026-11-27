@@ -119,4 +119,5 @@ Measured benchmarks on Apple A18 Pro demonstrate dramatic speedups:
 
 - Review the [Conceptual model](hybrid-concepts.md) for architectural foundations.
 - Consult [API contracts and common pitfalls](hybrid-contracts.md) for debugging tips.
+- Explore excitability, local coupling, and three long-range connections on a 128-site ring, with activity maps and sweep timings, in [A sparse 1D field](hybrid-1d-field.ipynb).
 - Explore hands-on tutorials in [Hands-on tutorials](hybrid-tutorials.md) and standalone demo notebooks ([C++ SIMD sweep](../../demos/cpp_hybrid_sweep.ipynb), [Multirate stepping](../../demos/simulate_hybrid_multi_dt.ipynb)).

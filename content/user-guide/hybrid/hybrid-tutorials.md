@@ -18,6 +18,12 @@ Run these tutorials interactively in your browser with zero installation:
 
 This page walks through five end-to-end hybrid simulation workflows: mixed-model coupling, localized stimulation and per-subnetwork recording, multi-slot cerebellar pathway routing, stochastic dynamics with BOLD observation, and accelerated parameter sweeps with multirate stepping.
 
+For a self-contained spatial example without connectome data, work through
+[A sparse 1D field with three long-range connections](hybrid-1d-field.ipynb).
+It builds a 128-site ring, checks a below-onset operating point, and sweeps
+excitability, local coupling, and non-local coupling across 128 combinations,
+with activity maps, a stability boundary, and a brief performance summary.
+
 ## Setup and imports
 
 ```{code-cell} ipython3

@@ -73,6 +73,7 @@ parts:
         sections:
           - file: content/user-guide/hr/classic.md
           - file: content/user-guide/hr/re-entry.md
+          - file: content/user-guide/hybrid/hybrid-1d-field.ipynb
 
       - title: Hybrid Simulation
         sections:

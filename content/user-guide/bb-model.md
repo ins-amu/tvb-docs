@@ -160,15 +160,10 @@ Points worth knowing beyond the table:
   `KIonEx`, `CerebellarMF`, `CoombesByrne*`, `DecoBalancedExcInh`,
   `DumontGutkin`, `Gast*`. Clamping is a post-hoc clip of the state, not a
   constraint inside `dfun`.
-- **`variables_of_interest` defaults to all state variables** where the model
-  defines it. If it is empty, `observe` returns an empty array and monitors
-  record nothing.
-- **`nvar` is a plain attribute each model sets by hand** (`_nvar = 6` next to
-  `state_variables = ('y0', …)`); read it via the `model.nvar` property after
-  `configure()`. `Hopfield` rewrites `_nvar` and `cvar` inside `configure()`
-  when `dynamic=True` — read those attributes *after* configuring, never from
-  the class.
-- **`coupling_terms` is the naming trap.** `CerebellarMF` names its slots
+- **`variables_of_interest` has a per-model default, usually a subset.** The
+  model decides what monitors see. The base class default is empty. Set the list yourself when the default is not what you want to measure.
+- **`nvar` is a plain attribute each model sets by hand** `Hopfield` rewrites `_nvar` and `cvar` inside `configure()` when `dynamic=True` — read those attributes *after* configuring, never from the class.
+- **`coupling_terms` in `CerebellarMF`** names its slots
   `["mossy", "parallel"]`, but string resolution looks at `cvar`, i.e.
   `["GrC", "GoC"]`. Pass integer slots `0` and `1` for that model.
 

@@ -4,7 +4,7 @@ bibliography:
 ---
 # Montbrió–Pazo–Roxin
 
-The Montbrió–Pazo–Roxin model is an exact macroscopic representation of an
+The Montbrió–Pazo–Roxin [@montbrio2015] model is an exact macroscopic representation of an
 infinite, all-to-all coupled population of quadratic integrate-and-fire (QIF)
 neurons based on Ott-Antonsen reduction. Using mean firing rate and
 mean membrane potential as macroscopic descriptive quantities, it reproduces

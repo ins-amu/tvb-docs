@@ -198,8 +198,7 @@ causality across scales. It is kept for reference only: TVB 3.0 supersedes it.
 :::
 
 Short-range connections on a cortical surface are treated as instantaneous within one integration step. Their
-influence spreads one step at a time. See [local connectivity
-page](bb-local-connectivity.md) for more information.
+influence spreads one step at a time.
 
 ---
 

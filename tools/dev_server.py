@@ -585,8 +585,14 @@ def main() -> int:
             "(use `python3 make.py dev --no-execute` for prose-only edits)."
         )
 
+    myst_env = os.environ.copy()
+    if "JUPYTER_CONFIG_DIR" not in myst_env:
+        jupyter_cfg = root / "_build" / "jupyter_config"
+        jupyter_cfg.mkdir(parents=True, exist_ok=True)
+        myst_env["JUPYTER_CONFIG_DIR"] = str(jupyter_cfg)
     popen_kwargs: dict = {
         "cwd": root,
+        "env": myst_env,
         "stdout": subprocess.PIPE,
         "stderr": subprocess.STDOUT,
         "text": True,

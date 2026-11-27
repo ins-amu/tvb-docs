@@ -1,6 +1,6 @@
 ---
 title: Installation
-date: 2026-11-24
+date: "2026-11-24"
 kernelspec:
   name: python3
   display_name: Python 3
@@ -91,4 +91,4 @@ If this prints a version number without errors, TVB is installed correctly.
 
 ## Next steps
 
-Continue with the [](quickstart-guide.md) to run your first simulation.
+Continue with the [quickstart guide](quickstart-guide.ipynb) to run your first simulation.

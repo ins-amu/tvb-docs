@@ -115,7 +115,7 @@ import matplotlib.pyplot as plt
 
 t = numpy.arange(0.0, 2000.0, 0.5)
 plt.plot(t, stimulus.temporal.evaluate(t))
-plt.xlabel("t (ms)"); plt.ylabel("stimulus"); plt.title("Ramp waveform")
+plt.xlabel("t (ms)"); plt.ylabel("stimulus"); plt.title("Ramp waveform");
 ```
 
 ### Using it in a hybrid simulation
@@ -204,7 +204,7 @@ stim.configure_time(numpy.arange(0.0, 2000.0, 0.5)[numpy.newaxis, :])
 
 wave = numpy.squeeze(stim(temporal_indices=slice(None)))   # (n_regions, t)
 plt.plot(stim.time[0], wave[0])
-plt.xlabel("t (ms)"); plt.ylabel("stimulus (region 0)"); plt.title("WaveformStimulus")
+plt.xlabel("t (ms)"); plt.ylabel("stimulus (region 0)"); plt.title("WaveformStimulus");
 ```
 
 This is also the right shape for **state-dependent** stimuli: keep an internal

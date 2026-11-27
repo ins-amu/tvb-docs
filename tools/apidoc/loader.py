@@ -109,8 +109,10 @@ def _extract_star_exports(module: griffe.Module) -> dict[str, str]:
 def load_tvb_package(search_path: Path, scope: str | None = None) -> LoadedPackage:
     """Load `tvb` statically via `griffe`, filtering private/broken modules and resolving re-exports."""
     griffe_logger = logging.getLogger("griffe")
-    prev_level = griffe_logger.level
+    griffelib_logger = logging.getLogger("griffelib")
+    prev_levels = (griffe_logger.level, griffelib_logger.level)
     griffe_logger.setLevel(logging.ERROR)
+    griffelib_logger.setLevel(logging.ERROR)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", SyntaxWarning)
@@ -121,7 +123,8 @@ def load_tvb_package(search_path: Path, scope: str | None = None) -> LoadedPacka
                 allow_inspection=False,
             )
     finally:
-        griffe_logger.setLevel(prev_level)
+        griffe_logger.setLevel(prev_levels[0])
+        griffelib_logger.setLevel(prev_levels[1])
 
     all_modules: dict[str, griffe.Module] = {}
     _collect_real_modules(root, all_modules, set())

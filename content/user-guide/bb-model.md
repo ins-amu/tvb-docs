@@ -114,14 +114,17 @@ A stimulus targets one of the model's `cvar` slots and arrives inside `c`, so th
 
 ### `local_coupling` is always zero
 
-The `local_coupling` argument `dfun` receives is always `0.0` in a hybrid
-simulation. Any model whose equations contain a local term — `JansenRit`'s `local_coupling * (y1 - y2)`,
+`local_coupling` is effectively deprecated with this version of TVB. The `local_coupling` argument `dfun` receives is always `0.0`. 
+If you need local coupling, express it as an
+`IntraProjection` over the neighbourhood weights (for a surface simulation,
+the local connectivity matrix), with its own coupling function.
+
+Any model whose equations contain a local term — `JansenRit`'s `local_coupling * (y1 - y2)`,
 the `LarterBreakspear` and `Zerlaut` local drives — silently loses it inside a
 hybrid simulation.
 
-There is no flag to turn it on. If you need that term, express it as an
-`IntraProjection` over the neighbourhood weights (for a surface simulation,
-the local connectivity matrix), with its own coupling function.
+TODO @maedoc how is this fixed?
+
 
 ---
 

@@ -61,6 +61,27 @@ def test_rst_to_myst_conversions() -> None:
     assert "```python\n>>> x = 1 + 1" in out
 
 
+def test_rst_math_block_nested_env_and_balloon_typo() -> None:
+    raw = r"""
+    .. math::
+        \dot{x} &=& y \\
+        \dot{z} &=&
+        \begin{cases}
+            a & \text{if } x < 0 \\
+            b & \text{if } x \geq 0
+        \end{cases}
+
+    .. math::
+        \frac{dq}{dt} &= f - v^{&/\alpha} \frac{q}{v}
+    """
+    out = rst_to_myst(raw)
+    assert "\\begin{aligned}" in out
+    assert "&=&" not in out
+    assert "\\dot{x} &= y" in out
+    assert "v^{1/\\alpha}" in out
+    assert "v^{&/\\alpha}" not in out
+
+
 def test_sphinx_param_and_numpy_docstring_rendering() -> None:
     ds_text = """
     Do something.

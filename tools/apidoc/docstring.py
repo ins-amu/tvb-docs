@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import textwrap
 from collections.abc import Callable
 from typing import Any
 
 import griffe
+
+_OUTER_MATH_ENV_RE = re.compile(
+    r"^\\begin\{(?:aligned|align\*?|equation\*?|gather\*?|split|multline\*?|eqnarray\*?)\}"
+)
 
 XrefResolver = Callable[[str, str | None], str | None]
 
@@ -55,8 +60,15 @@ def _format_math_block(lines: list[str]) -> list[str]:
     dedented = textwrap.dedent("\n".join(lines)).strip("\n")
     if not dedented.strip():
         return []
-    needs_aligned = ("&" in dedented or "\\\\" in dedented) and "\\begin{" not in dedented
-    body = f"\\begin{{aligned}}\n{dedented}\n\\end{{aligned}}" if needs_aligned else dedented
+    # Work around upstream tvb-library typo in BalloonModel.balloon_dfun (`v^{&/\alpha}`).
+    dedented = dedented.replace("v^{&/\\alpha}", "v^{1/\\alpha}")
+    has_outer_env = bool(_OUTER_MATH_ENV_RE.match(dedented.lstrip()))
+    needs_aligned = ("&" in dedented or "\\\\" in dedented) and not has_outer_env
+    if needs_aligned:
+        dedented = dedented.replace("&=&", "&=")
+        body = f"\\begin{{aligned}}\n{dedented}\n\\end{{aligned}}"
+    else:
+        body = dedented
     return ["", "$$", body, "$$", ""]
 
 
@@ -355,7 +367,17 @@ def render_docstring(
 
     h = "#" * heading_level
     chunks: list[str] = []
-    parsed: list[Any] = docstring.parsed
+    # Griffe parses docstrings lazily on `.parsed`; silence parameter-mismatch warnings from upstream docstrings.
+    griffe_logger = logging.getLogger("griffe")
+    griffelib_logger = logging.getLogger("griffelib")
+    prev_levels = (griffe_logger.level, griffelib_logger.level)
+    griffe_logger.setLevel(logging.ERROR)
+    griffelib_logger.setLevel(logging.ERROR)
+    try:
+        parsed: list[Any] = docstring.parsed
+    finally:
+        griffe_logger.setLevel(prev_levels[0])
+        griffelib_logger.setLevel(prev_levels[1])
 
     for section in parsed:
         kind = section.kind

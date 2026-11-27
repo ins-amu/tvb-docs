@@ -170,6 +170,26 @@ class TestBuildCacheHashing(unittest.TestCase):
                 h2 = make._hash_tree(["content"], exclude_content_generated=True)
                 self.assertEqual(h1, h2)
 
+    def test_build_env_isolates_jupyter_config_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            env_clean = {k: v for k, v in os.environ.items() if k != "JUPYTER_CONFIG_DIR"}
+            with (
+                mock.patch.object(make, "ROOT", tmp_path),
+                mock.patch.dict(os.environ, env_clean, clear=True),
+            ):
+                res = make.build_env()
+                expected = tmp_path / "_build" / "jupyter_config"
+                self.assertEqual(res["JUPYTER_CONFIG_DIR"], str(expected))
+                self.assertTrue(expected.is_dir())
+
+            with (
+                mock.patch.object(make, "ROOT", tmp_path),
+                mock.patch.dict(os.environ, {"JUPYTER_CONFIG_DIR": "/custom/jup"}, clear=True),
+            ):
+                res = make.build_env()
+                self.assertEqual(res["JUPYTER_CONFIG_DIR"], "/custom/jup")
+
 
 if __name__ == "__main__":
     unittest.main()

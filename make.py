@@ -125,6 +125,11 @@ def build_env(extra: dict[str, str] | None = None) -> dict[str, str]:
     if is_ci():
         for var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
             env.setdefault(var, "1")
+    if "JUPYTER_CONFIG_DIR" not in env:
+        jupyter_cfg = ROOT / "_build" / "jupyter_config"
+        if not DRY_RUN:
+            jupyter_cfg.mkdir(parents=True, exist_ok=True)
+        env["JUPYTER_CONFIG_DIR"] = str(jupyter_cfg)
     if extra:
         env.update(extra)
     return env

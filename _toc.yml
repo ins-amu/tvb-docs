@@ -18,7 +18,6 @@ parts:
       - title: Building Blocks
         sections:
           - file: content/user-guide/bb-connectivity.md
-          - file: content/user-guide/bb-local-connectivity.md
           - file: content/user-guide/bb-model.md
           - file: content/user-guide/bb-coupling.md
           - file: content/user-guide/bb-integrators.md

@@ -1,5 +1,6 @@
 # Glossary
 
+(search-glossary)=
 [Search glossary terms and definitions](#search-glossary), or browse the entries below. Hover over a green link to preview its definition.
 
 ## A–B

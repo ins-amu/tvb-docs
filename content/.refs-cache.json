@@ -8,6 +8,23 @@
     "title": "Electric field calculations in brain stimulation based on finite elements: An optimized processing pipeline for the generation and usage of accurate individual head models",
     "year": 2011
   },
+  "10.1006/nimg.1998.0419": {
+    "authors": [
+      "Glover"
+    ],
+    "title": "Deconvolution of Impulse Response in Event-Related BOLD fMRI1",
+    "year": 1999
+  },
+  "10.1006/nimg.2000.0630": {
+    "authors": [
+      "Friston",
+      "Mechelli",
+      "Price",
+      "Turner"
+    ],
+    "title": "Nonlinear Responses in fMRI: The Balloon Model, Volterra Kernels, and Other Hemodynamics",
+    "year": 2000
+  },
   "10.1007/978-1-4757-3978-7": {
     "authors": [
       "Kuznetsov"
@@ -152,6 +169,17 @@
     "title": "Dynamic causal modeling of evoked responses in EEG and MEG",
     "year": 2006
   },
+  "10.1016/j.neuroimage.2007.07.040": {
+    "authors": [
+      "Drysdale",
+      "Friston",
+      "Robinson",
+      "Stephan",
+      "Weiskopf"
+    ],
+    "title": "Comparing hemodynamic models with DCM",
+    "year": 2007
+  },
   "10.1016/j.neuroimage.2009.12.027": {
     "authors": [
       "Bullmore",
@@ -260,6 +288,17 @@
     ],
     "title": "Differential Evolution – A Simple and Efficient Heuristic for global Optimization over Continuous Spaces",
     "year": 1997
+  },
+  "10.1038/35084005": {
+    "authors": [
+      "Augath",
+      "Logothetis",
+      "Oeltermann",
+      "Pauls",
+      "Trinath"
+    ],
+    "title": "Neurophysiological investigation of the basis of the fMRI signal",
+    "year": 2001
   },
   "10.1038/s41540-025-00543-9": {
     "authors": [

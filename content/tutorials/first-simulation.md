@@ -54,11 +54,11 @@ print(len(white_matter.region_labels), "regions connected by",
 
 ## Local dynamics, coupling, and integration
 
-Each region runs a `Generic2dOscillator` — a simple two-dimensional
-excitable oscillator with sensible defaults. Regions are joined by a `Linear`
-coupling (for this model and connectome a slope of `a = 0.0154` gives
-realistic amplitudes), and time is stepped forward with the deterministic
-Heun scheme at `dt = 2**-6` ms.
+Each region runs a `Generic2dOscillator`, a two-dimensional excitable
+oscillator, with its default parameters. Regions are joined by a `Linear`
+coupling with slope `a = 0.0154`, the value used in TVB's region-simulation
+demos, and time is stepped forward with the deterministic Heun scheme at
+`dt = 2**-6` ms.
 
 ```{code-cell} ipython3
 oscillator = models.Generic2dOscillator()
@@ -68,10 +68,12 @@ heunint = integrators.HeunDeterministic(dt=2 ** -6)
 
 ## Monitors
 
-Monitors observe the simulation. The `Raw` monitor returns the state
-variables as they are; the `TemporalAverage` monitor averages over a sampling
-period, like a measuring device. A monitor's period must be an integer
-multiple of the integration `dt` (TVB does not interpolate monitor output).
+Monitors observe the simulation. With TVB's default simulator, used on this
+page, the `Raw` monitor returns the model's variables of interest at every
+integration step, and the `TemporalAverage` monitor averages them over each
+sampling period, which should be a whole multiple of the integration `dt`.
+[Monitors](../user-guide/bb-monitors) describes these and the other monitors,
+and how to choose a period.
 
 ```{code-cell} ipython3
 mon_raw = monitors.Raw()
@@ -118,27 +120,29 @@ print("raw batches:", RAW.shape, "temporal-average batches:", TAVG.shape)
 ## Look at the results
 
 The monitors return batches of `(time, data)`; stitching them into arrays
-gives time series with dimensions *time × 1 × regions × state-variables*.
-Here is the raw activity of the first state variable at every region:
+gives time series with dimensions *time × variable of interest × region ×
+mode*. The oscillator records one variable of interest, $V$, and has one mode,
+so both of those axes have length 1. Here is the raw activity of $V$ at every
+region:
 
 ```{code-cell} ipython3
 plt.figure(figsize=(10, 3))
 plt.plot(raw_time, RAW[:, 0, :, 0], lw=0.5)
 plt.xlabel("time [ms]")
-plt.ylabel("state variable $x_0$")
+plt.ylabel("$V$")
 plt.title("Raw monitor — all 76 regions")
 plt.tight_layout()
 plt.show()
 ```
 
-And the temporally averaged signal — smoother, and what most monitors hand to
-analysis code:
+The temporally averaged signal is smoother, with one sample every 0.25 ms
+instead of every 0.015625 ms:
 
 ```{code-cell} ipython3
 plt.figure(figsize=(10, 3))
 plt.plot(tavg_time, TAVG[:, 0, :, 0], lw=0.8)
 plt.xlabel("time [ms]")
-plt.ylabel("state variable $x_0$")
+plt.ylabel("$V$")
 plt.title("TemporalAverage monitor (period $2^{-2}$ ms) — all 76 regions")
 plt.tight_layout()
 plt.show()
@@ -149,7 +153,7 @@ structural connectome and observed by monitors.
 
 ## Next steps
 
-- Return to [](getting-started.md) for the concepts behind these components.
+- Return to [Getting started](getting-started.md) for the concepts behind these components.
 - [How-to guides](../howtos/index.md) for task recipes, such as configuring a
   simulation or exporting results.
 - [Reference](../reference/index.md) for the exact model parameters.

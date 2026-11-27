@@ -21,6 +21,7 @@ project:
     - content/_static/phase-plane-standalone.html
     - _static/the-hillside.jpg
     - _static/the-goat.jpg
+    - _static/goat.opus
 
 site:
   title: TVB Simulation Documentation

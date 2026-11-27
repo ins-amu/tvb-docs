@@ -94,11 +94,11 @@ The two ends need not match in size, so:
   `SigmoidalJansenRit` and dynamic `PreSigmoidal` both expect two and misbehave
   with fewer. See [coupling functions](bb-coupling.md).
 
-### Stimuli enter through coupling slots, not `stvar`
+### Stimuli enter through coupling slots
 
 A stimulus targets one of the model's `cvar` slots and arrives inside `c`, so the model's equations see it as coupling.
 
-### Modes belong to the model, not the simulator
+### Modes
 
 `model.number_of_modes` is read per subnetwork. Three things follow:
 
@@ -112,7 +112,7 @@ A stimulus targets one of the model's `cvar` slots and arrives inside `c`, so th
 - **`dfun_mode`.** `ReducedSet*` models must keep the default
   `dfun_mode = "combined"`; accelerated backends reject the alternatives.
 
-### `local_coupling` is always zero
+### Local coupling is always zero
 
 `local_coupling` is effectively deprecated with this version of TVB. The `local_coupling` argument `dfun` receives is always `0.0`. 
 If you need local coupling, express it as an

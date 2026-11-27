@@ -93,6 +93,7 @@ parts:
         sections:
           - file: content/model-zoo/cards/montbrio-pazo-roxin.md
           # add others
+          - file: content/model-zoo/cards/adex-mean-field.md
       - title: Adding a new model
         sections:
           - file: content/model-zoo/new-model-subclass.md

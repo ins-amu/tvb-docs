@@ -19,6 +19,9 @@ Amortised inference
 
   [Tutorial: simulation-based inference](user-guide/inference/npe-montbrio.md)
 
+Asynchronous irregular state
+: A network regime with irregular interspike intervals and low pairwise spike synchrony, typically arising from balanced excitation and inhibition, so that spiking is fluctuation-driven.
+
 Attractor
 : A set of states that nearby trajectories approach over time.
 
@@ -60,6 +63,9 @@ Brain atlas
 :::{glossary}
 Coloured noise
 : Temporally correlated stochastic forcing; TVB generates exponentially correlated noise when `ntau` is positive.
+
+Conductance-based synapse
+: A synapse whose input changes a membrane conductance, so its current scales with the distance between membrane potential and reversal potential.
 
 Conduction speed
 : The assumed speed of signal propagation along a tract, used with {term}`tract length <Tract length>` to calculate a delay.
@@ -358,6 +364,9 @@ Simulation-based inference
 : Inference that uses simulations to learn about unknown parameters when evaluating the likelihood directly is difficult.
 
   [Inference overview](user-guide/inference.md)
+
+Sparse connectivity
+: A network in which each neuron receives connections from only a small fraction of the others.
 
 Sparse coupling
 : A representation or computation that stores or evaluates only the connections present in the network.

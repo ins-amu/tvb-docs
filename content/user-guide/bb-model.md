@@ -6,113 +6,100 @@ bibliography:
 
 # Model
 
-The model is the local dynamics of one subnetwork.
-The `Subnetwork` decides *which* nodes and *which* integrator; the model decides
-*how many* {term}`state variables <State variable>` it carries, how many modes,
-which variables it exchanges with the rest of the network, and what shape of
-input its `dfun` accepts. Projections, integrators, stimuli and monitors are all
-built around those declarations.
+The model is the local dynamics of one subnetwork: the equations solved at
+every node, every step. The `Subnetwork` decides *which* nodes and *which*
+integrator; the model decides everything else — how many
+{term}`state variables <State variable>` it carries, how many
+{term}`modes <Mode>`, which variables it exchanges with the rest of the
+network, and where its initial conditions and parameter values live.
 
 A {term}`hybrid simulation <Hybrid simulation>` has no single model: it has one
-per subnetwork, and they may differ in dimension, time step and mode count.
-There is also no hybrid-specific model class — the framework consumes
+per subnetwork, and they may differ. A `NetworkSet` can mix 1-mode and 3-mode
+models, and subnetworks can run at different time steps. There is no
+hybrid-specific model class — the framework consumes
 `tvb.simulator.models.Model` unchanged, so `JansenRit`, `WilsonCowan` or
 `ReducedSetFitzHughNagumo` run identically in classic TVB and inside a
 subnetwork.
 
-This page covers three topics. Jump to whichever you need.
-
-- **[What the model does in a hybrid simulation](#hybrid-model-role)**.
-- **[How to choose and attach a model](#hybrid-model-setup-guide)**.
-- **[API reference and model contract](#hybrid-model-api-reference)**, with
-  commentary and common pitfalls.
+This page covers what a model declares, what happens to it during a hybrid
+run, and how to pick, attach and verify one.
 
 ---
 
 (hybrid-model-role)=
-## What the model does in a hybrid simulation
+## What happens to the model each step
 
-:::{note}
-Everything on this page is written for a subnetwork that owns its own `dt`,
-its own history buffers and its own projection set. Nothing assumes a
-homogeneous network: a `NetworkSet` may mix 1-mode and 3-mode models, and
-subnetworks may run at different integer-multiple time steps.
+The state of a subnetwork always has shape `(nvar, nnodes, modes)` — modes is
+`model.number_of_modes`, `1` everywhere except `ReducedSetFitzHughNagumo` and
+`ReducedSetHindmarshRose`, which use `3`. Every step:
 
-The state of a subnetwork always has shape `(nvar, nnodes, number_of_modes)`.
-:::
-
-The pipeline is always the same six steps:
-
-1. **Intra coupling.** Every `IntraProjection` attached to the subnetwork reads
-   (possibly delayed) source states from its own history buffer and writes into
-   the subnetwork's coupling slots.
-2. **Inter coupling.** Every `InterProjection` addressed at the subnetwork adds
-   afferents from other subnetworks into the **target's** coupling slots.
-3. **Stimuli.** Stimuli owned by the subnetwork add into their designated
-   slot.
-4. **`dfun`.** The model is called as `dfun(x, total_c)`; the integrator's own
-   `local_coupling` and `stimulus` arguments are passed as `0.0`, because
-   stimuli were already folded into a slot at step 3.
-5. **Integration.** The subnetwork's own `scheme` advances the state and then
-   applies the model's boundaries and clamps.
+1. **Intra coupling.** Each `IntraProjection` reads (possibly delayed) source
+   states from its own history buffer and writes into the subnetwork's
+   coupling slots.
+2. **Inter coupling.** Each `InterProjection` addressed at the subnetwork adds
+   afferents from other subnetworks into the target's coupling slots.
+3. **Stimuli.** Stimuli owned by the subnetwork add into their designated slot.
+4. **`dfun`.** The model runs as `dfun(x, total_c)`. The integrator's
+   `local_coupling` and `stimulus` arguments are `0.0`: stimuli were already
+   folded into a slot at step 3.
+5. **Integration.** The subnetwork's `scheme` advances the state, then applies
+   the model's boundaries and clamps.
 6. **Observation.** `model.observe(nx)` selects `variables_of_interest`. Local
-   `Recorder`s see per-subnetwork state; global monitors see mode-summed output.
+   `Recorder`s see per-subnetwork state; global monitors see mode-summed
+   output.
 
-In one line, for subnetwork $b$:
+Steps 1–3 all write into the same array, and that array — nothing else — is
+what `dfun` receives as its second argument.
 
-$$
-\dot{x}_b = f_b\!\left(x_b,\; c_b\right),
-\qquad
-c_b = \sum_{p\,\rightarrow\, b} P_p\!\left(x_{\text{src}}(t-\tau_p)\right) + c_b^{\text{stim}},
-$$
+### The coupling array `dfun` receives
 
-where $P_p$ is the projection (weights, delays, {term}`coupling function
-<Coupling function>`), $f_b$ is `model.dfun`, and $c_b$ is a stack of coupling
-slots with shape $\left(\lvert \text{cvar}_b \rvert,\; n_b,\; M_b\right)$.
+Its first axis is **coupling slots**, not state-variable indices. Slot `i`
+corresponds to `model.cvar[i]`: a model declaring `cvar = [0, 3]` has two slots,
+and slot `1` maps to state index `3`.
 
-Steps 1–3 all write into the same array. That array, and nothing else, is what
-`dfun` receives as its second argument.
-
-### The coupling array the model receives
-
-The first axis of $c_b$ is **coupling slots**, not state-variable indices. Slot
-$i$ corresponds to `model.cvar[i]` and lives in $0 \ldots \lvert
-\text{cvar}_b \rvert - 1$. A model that declares `cvar = [0, 3]` has two slots;
-slot `1` maps to state index `3`.
-
-This distinction is the single most common silent bug in hybrid models. Some
-models declare two slots but read only the first — `JansenRit` has `cvar =
-[1, 2]` and its `dfun` uses only `c[0]`. Projecting into slot `1` of a
-`JansenRit` target therefore changes nothing. See
-[API contracts](hybrid-contracts.md) for the resolution rules and for the
-`source_cvar` / `target_cvar` asymmetry.
+This distinction is the most common silent bug in hybrid models. Some models
+declare two slots but read only the first — `JansenRit` has `cvar = [1, 2]`
+and its `dfun` uses only `c[0]`, so projecting into slot `1` of a `JansenRit`
+target changes nothing. See [API contracts](hybrid/hybrid-contracts.md) for
+the resolution rules and the `source_cvar` / `target_cvar` asymmetry.
 
 ### Only declared variables cross a boundary
 
 A model declares which of its state variables travel: its `cvar`. As a
 **source**, `cvar` selects entries of the history buffer, so only those
 variables can be routed out. As a **target**, the same declaration fixes how
-many slots exist.
+many slots exist. Two consequences when mixing models:
 
-Two consequences when mixing models:
-
-- A projection from a 1-slot source into a 2-slot target can only fill one slot;
-  the other receives nothing unless a second projection or a stimulus supplies
-  it.
+- A projection from a 1-slot source into a 2-slot target fills one slot; the
+  other receives nothing unless a second projection or a stimulus supplies it.
 - Coupling functions are written against a fixed number of coupling variables.
-  `SigmoidalJansenRit` and dynamic `PreSigmoidal` expect **two**, and misbehave
+  `SigmoidalJansenRit` and dynamic `PreSigmoidal` expect **two** and misbehave
   when the target model supplies fewer. See
-  [coupling functions](../bb-coupling.md).
+  [coupling functions](bb-coupling.md).
+
+### Stimuli enter through coupling slots, not `stvar`
+
+In classic TVB, a stimulus is written into the state variables listed in
+`model.stvar` and added to the state by the integrator. A hybrid simulation
+never reads `stvar`. Stimuli are `hybrid.stimulus.Stim` objects that add into
+coupling slots:
+
+```python
+internal_c[stim.target_cvar] += stim.get_coupling(step)
+```
+
+so a stimulus must target a `cvar` slot — it reaches `dfun` inside `total_c`,
+unlike in classic TVB. `KIonEx`, `InfiniteTheta` and `GastSollaKennedy`
+override `stvar` for classic use; inside a hybrid simulation that override is
+ignored.
 
 ### Modes belong to the model, not the simulator
 
-`model.number_of_modes` is read per subnetwork. `ReducedSetFitzHughNagumo` and
-`ReducedSetHindmarshRose` carry $M = 3$; almost everything else carries $M = 1$.
-Three things follow:
+`model.number_of_modes` is read per subnetwork. Three things follow:
 
-- **`mode_map` on inter-projections.** It defaults to an all-ones
-  $(M_a, M_b)$ matrix, so a 1-mode source is replicated into all $M_b$ target
-  modes. `ReducedSet*` then sums incoming slots across modes, multiplying the
+- **`mode_map` on inter-projections** defaults to an all-ones $(M_a, M_b)$
+  matrix, so a 1-mode source is replicated into all $M_b$ target modes.
+  `ReducedSet*` targets then sum incoming slots across modes, multiplying the
   effective gain by $M_b$.
 - **Monitors sum over modes.** `NetworkSet.observe` calls
   `model.observe(x).sum(axis=-1)`, so global monitors never show individual
@@ -123,59 +110,79 @@ Three things follow:
 ### `local_coupling` is always zero
 
 `Subnetwork.step` calls the integrator as `scheme(x, dfun, total_c, 0.0, 0.0)`.
-The fourth argument is `local_coupling`, and it is hardwired to zero. Any model
-whose equations contain a local term — `JansenRit`'s
-`local_coupling * (y1 - y2)`, the `LarterBreakspear` and `Zerlaut` local drives
-— silently loses it inside a hybrid simulation.
+The fourth argument is `local_coupling`, hardwired to zero. Any model whose
+equations contain a local term — `JansenRit`'s `local_coupling * (y1 - y2)`,
+the `LarterBreakspear` and `Zerlaut` local drives — silently loses it inside a
+hybrid simulation.
 
 There is no flag to turn it on. If you need that term, express it as an
-`IntraProjection` over the neighbourhood weights (for a surface simulation, the
-local connectivity matrix), with its own coupling function. It then enters
-through a coupling slot, and the model's own local term stays at zero.
+`IntraProjection` over the neighbourhood weights (for a surface simulation,
+the local connectivity matrix), with its own coupling function.
 
 ---
 
 (hybrid-model-class)=
-## Description of the model inside a `Subnetwork`
-
-`Subnetwork.model` is declared as `t.Attr(Model)`: any `tvb.simulator.models`
-instance is accepted, and `Subnetwork.configure()` calls `model.configure()`
-before anything else.
-
-```python
-from tvb.simulator.hybrid import Subnetwork
-from tvb.simulator.integrators import HeunDeterministic
-from tvb.simulator.models import JansenRit
-
-cortex = Subnetwork(
-    name="cortex",
-    model=JansenRit(),                    # <----
-    scheme=HeunDeterministic(dt=0.1),
-    nnodes=38,
-).configure()
-```
+## What a model declares
 
 Everything the hybrid framework needs from a model is a class-level or
-configure-time declaration. The table lists what is read and when.
+configure-time declaration. `Subnetwork.model` accepts any
+`tvb.simulator.models` instance, and `Subnetwork.configure()` calls
+`model.configure()` before anything else.
 
-| Declaration | Read when | Used for |
-|---|---|---|
-| `state_variables`, `nvar` | `configure()`, buffer setup | State array shape `(nvar, nnodes, M)`, history ring layout |
-| `cvar` | projection validation, buffer setup | Number of coupling slots; source variables that may be routed |
-| `number_of_modes` | buffer setup, `observe` | Mode axis; `mode_map` shape; mode summation in monitors |
-| `stvar` | buffer setup | Variables actually stored in history (defaults to `cvar`) |
-| `non_integrated_variables`, `nintvar` | `Subnetwork.configure()` | Boundary/clamping reconfiguration in the integrator |
-| `state_variable_range` | `random_states()` | Default initial conditions when none are supplied |
-| `state_variable_boundaries` | integrator configuration | Per-variable clamps after each step |
-| `variables_of_interest` | monitor configuration | Channel count and layout of recorded output |
-| `coupling_terms` | *nothing* | Documentation only — string cvar names resolve against `cvar`, not this |
-| `dfun(x, c)` | every step | Local derivative; must broadcast over nodes and modes |
-| `observe(x)` | every step | Selection of `variables_of_interest` for monitors |
-| `update_derived_parameters()` | `model.configure()` | Filling derived matrices/vectors used by `dfun` |
+| Declaration | Used for |
+|---|---|
+| `state_variables`, `nvar` | State array shape `(nvar, nnodes, M)`; history layout |
+| `cvar` | Number of coupling slots; source variables that can be routed |
+| `number_of_modes` | Mode axis; `mode_map` shape; mode summation in monitors |
+| `stvar` | Nothing — ignored in hybrid (stimuli target `cvar` slots) |
+| `state_variable_range` | Initial conditions: each variable is drawn uniformly from its `[lo, hi]` |
+| `state_variable_boundaries` | Per-variable clamps the integrator applies after each step |
+| `non_integrated_variables`, `nintvar` | Boundary/clamp re-indexing; no built-in model uses it |
+| `variables_of_interest` | What `observe(x)` returns and monitors record |
+| `coupling_terms` | Nothing — documentation only; string resolution uses `cvar` |
+| `dfun(x, c)` | Local derivative; must broadcast over nodes and modes |
+| `observe(x)` | Selection of `variables_of_interest`, built during `configure()` |
+| `update_derived_parameters()` | Derived matrices and tables used by `dfun` |
 
-`coupling_terms` is the trap worth remembering: `CerebellarMF` names its slots
-`["mossy", "parallel"]`, but string resolution looks at `cvar`, i.e. at
-`["GrC", "GoC"]`. Pass integer slots `0` and `1` for that model.
+Points worth knowing beyond the table:
+
+- **`state_variable_range` and `state_variable_boundaries` are different
+  things.** The range bounds *initial conditions only*. The boundaries are
+  clamps the integrator applies *after each step*, and only in models that
+  declare them: `ReducedWongWang*`, `Zerlaut*`, `MontbrioPazoRoxin`,
+  `KIonEx`, `CerebellarMF`, `CoombesByrne*`, `DecoBalancedExcInh`,
+  `DumontGutkin`, `Gast*`. Clamping is a post-hoc clip of the state, not a
+  constraint inside `dfun`.
+- **`variables_of_interest` defaults to all state variables** where the model
+  defines it. If it is empty, `observe` returns an empty array and monitors
+  record nothing.
+- **`nvar` is a plain attribute each model sets by hand** (`_nvar = 6` next to
+  `state_variables = ('y0', …)`); read it via the `model.nvar` property after
+  `configure()`. `Hopfield` rewrites `_nvar` and `cvar` inside `configure()`
+  when `dynamic=True` — read those attributes *after* configuring, never from
+  the class.
+- **`coupling_terms` is the naming trap.** `CerebellarMF` names its slots
+  `["mossy", "parallel"]`, but string resolution looks at `cvar`, i.e.
+  `["GrC", "GoC"]`. Pass integer slots `0` and `1` for that model.
+
+### Initial conditions
+
+With no initial conditions supplied, `Subnetwork.initial_state` calls
+`model.initial(dt, history_shape, rng)`, which draws each state variable
+uniformly from its `state_variable_range` entry, independently for every node
+and mode. The draw always uses `numpy.random`, not the integrator's noise
+stream, so seed it for reproducible runs:
+
+```python
+import numpy as np
+
+np.random.seed(42)
+state = cortex.initial_state()    # shape (nvar, nnodes, modes)
+```
+
+To set exact starting values, pass `initial_conditions` to `sim.run()`; see
+[initial conditions](bb-initial-conditions.md) and the
+[hybrid tutorials](hybrid/hybrid-tutorials.md).
 
 ### Built-in models
 
@@ -210,10 +217,7 @@ Only the fields that matter for routing are shown. `n` is `nvar`, `M` is
 | `CerebellarMF` | 5 | 1 | 2 → `GrC`, `GoC` | Slots mean *mossy* / *parallel*; integer slots only |
 | `Dody` | 6 | 1 | 3 → `r`, `V`, `u` | Custom hybrid-era model |
 
-`Hopfield` rewrites `_nvar` and `cvar` inside `configure()` when `dynamic=True`,
-so read those attributes *after* configuring, never from the class.
-
-#### Choosing a model per subnetwork
+### Choosing a model per subnetwork
 
 - **Match the coupling function to the model, not the other way round.** Models
   whose equations already saturate (`JansenRit`, `ReducedWongWang`) want
@@ -232,12 +236,12 @@ so read those attributes *after* configuring, never from the class.
 (hybrid-model-parameters)=
 ### Parameters
 
-Parameters belong to the model *instance*, and each subnetwork holds its own
+Parameters belong to the model instance, and each subnetwork holds its own
 instance. Two rules:
 
-**No spatialisation pass.** Classic TVB reshapes region-sized parameter arrays
-to `(nnodes, 1)` inside `Simulator.configure()`. The hybrid simulator does not.
-Scalars broadcast fine; a per-node parameter must already have shape
+**No spatialisation pass.** Classic TVB reshapes region-sized parameter
+arrays to `(nnodes, 1)` inside `Simulator.configure()`. The hybrid simulator
+does not. Scalars broadcast fine; a per-node parameter must already have shape
 `(nnodes, 1)` to align with `(nvar, nnodes, M)`. A flat `(nnodes,)` array
 broadcasts along the wrong axis and produces silently wrong dynamics.
 
@@ -250,19 +254,19 @@ jr = JansenRit(mu=np.array([0.1]))          # single value, broadcasts
 
 **Configure before use.** `model.configure()` fills derived parameters (the
 `Aik`/`Bik` matrices of `ReducedSet*`, transfer tables of `CerebellarMF`,
-`stvar`, `observe`). `Subnetwork.configure()` does it for you; calling
-`configure()` twice is harmless.
+`observe`). `Subnetwork.configure()` does it for you; calling `configure()`
+twice is harmless.
 
 Parameter sweeps address models by subnetwork-qualified name, e.g.
 `cortex.mu`, through the unified sweep API described in
-[Backends and parameter sweeps](hybrid-backends-and-sweeps.md).
+[Backends and parameter sweeps](hybrid/hybrid-backends-and-sweeps.md).
 
 ### One model instance per subnetwork
 
 A model instance is mutable state: `configure()` writes `stvar`,
 `state_variable_mask`, `nintvar` and rebuilds `observe`. Two subnetworks that
-share one instance share that state, and any later `configure()` overwrites it.
-Instantiate per subnetwork, exactly as you would for integrators:
+share one instance share that state, and any later `configure()` overwrites
+it. Instantiate per subnetwork, exactly as you would for integrators:
 
 ```python
 cortex = Subnetwork(name="cortex", model=JansenRit(), scheme=HeunDeterministic(dt=0.1), nnodes=38)
@@ -334,8 +338,9 @@ sim.configure()
 ```
 
 Let `Subnetwork.configure()` own the operative `configure()` call: it runs the
-model's `configure()` and also configures the integrator boundaries that depend
-on the model. Call `model.configure()` yourself only to inspect declarations.
+model's `configure()` and also configures the integrator boundaries that
+depend on the model. Call `model.configure()` yourself only to inspect
+declarations.
 
 ### 4. Verify what the model actually received
 
@@ -366,17 +371,15 @@ perturbing it.
 ## API reference
 
 `tvb.simulator.models.base.Model` — the base class consumed by
-`Subnetwork.model`. Only `dfun` is abstract; every other attribute in the table
-above has a default.
-
-Relevant declarations, in the order the hybrid framework touches them:
+`Subnetwork.model`. Only `dfun` is abstract; every other declaration has a
+default.
 
 ```python
 state_variables: tuple[str]          # names, length == nvar
 _nvar: int                           # exposed as model.nvar (read-only property)
 number_of_modes: int = 1
 cvar: numpy.ndarray[int]             # coupling variables, defines slot count
-stvar: numpy.ndarray[int] | None     # defaults to cvar in configure()
+stvar: numpy.ndarray[int] | None     # stimulus variables in classic TVB; unused here
 non_integrated_variables: tuple[str] | None
 state_variable_range: dict[str, list[float]]
 state_variable_boundaries: dict[str, numpy.ndarray] | None
@@ -385,7 +388,7 @@ coupling_terms: tuple[str]           # documentation only
 
 def dfun(self, state_variables, coupling, local_coupling=0.0): ...
 def observe(self, state_variables): ...     # built in configure()
-def update_derived_parameters(self): ...    # called from configure()
+def update_derived_parameters(self): ...     # called from configure()
 ```
 
 `tvb.simulator.hybrid.cvar_utils` — name resolution used by projections and
@@ -417,14 +420,15 @@ The pure-Python path accepts any Python model. Accelerated backends do not:
 
 A custom model needs `state_variable_dfuns` (or a custom Mako template, as
 `CerebellarMF` does) to run outside the Python path. See
-[Backends and parameter sweeps](hybrid-backends-and-sweeps.md) for the full
-matrix.
+[Backends and parameter sweeps](hybrid/hybrid-backends-and-sweeps.md) for the
+full matrix.
 
 ---
 
 ## Next steps
 
-- [Conceptual model](hybrid-concepts.md) — ownership seams and multirate clocks.
-- [API contracts and common pitfalls](hybrid-contracts.md) — matrix orientation, slot indexing.
-- [Hands-on tutorials](hybrid-tutorials.md) — mixed-model, multi-slot and sweep scripts.
-- [Coupling functions](../bb-coupling.md) — what happens to the value on each edge.
+- [Conceptual model](hybrid/hybrid-concepts.md) — ownership seams and multirate clocks.
+- [API contracts and common pitfalls](hybrid/hybrid-contracts.md) — matrix orientation, slot indexing.
+- [Hands-on tutorials](hybrid/hybrid-tutorials.md) — mixed-model, multi-slot and sweep scripts.
+- [Coupling functions](bb-coupling.md) — what happens to the value on each edge.
+- [Model zoo](../model-zoo/intro.md) — per-model background and equations.

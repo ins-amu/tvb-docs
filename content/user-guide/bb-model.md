@@ -25,7 +25,7 @@ and how to pick, attach and verify one.
 
 Every node of a subnetwork carries the same set of
 {term}`state variables <State variable>` — potentials, firing rates, synaptic
-gates, whatever the model's equations are written in terms of. The model owns
+gates, whatever the model's equations describe. The model owns
 that state and does four things with it:
 
 - **Holds the state.** One value per variable per node, laid out as
@@ -34,27 +34,24 @@ that state and does four things with it:
   `ReducedSetHindmarshRose`, which use `3`.
 - **Computes the derivative.** `dfun` is the model's equations: given the
   current state and everything arriving from the network, the rate of change
-  of each state variable. The integrator — not the model — advances the state.
-- **Declares what crosses the subnetwork boundary.** `cvar` picks which state
-  variables travel: as a source, what can be routed out; as a target, how
-  many coupling slots `dfun` reads.
+  of each state variable. The integrator then advances the state.
+- **Declares the coupling variables.** cvar selects which state variables affect the rest of the network,
+   and which coupling slots its dfun reads.
 - **Reports the output.** `variables_of_interest` picks what `observe(nx)`
   returns and monitors record.
 
-Each step the framework calls the model once, as `dfun(x, c)`:
+Each integration step the model's dfun is called once, as `dfun(x, c)`:
 
-- `x` is the state above.
-- `c` is the coupling array, shape `(len(cvar), nnodes, modes)`. It is
-  everything the rest of the simulation wants to say to this model at this
-  step, summed into one array.
+- `x` is the current node state.
+- `c` is the coupling array, shape `(len(cvar), nnodes, modes)`. It represents
+  the state of the rest of the network, and it's effects on the node.
 
 The derivative `dfun` returns is integrated by the subnetwork's scheme, then
 the state is clamped to `state_variable_boundaries` where the model declares
 them, and `observe(nx)` selects `variables_of_interest` for monitors.
 
-How `c` gets filled — projections, delays, mode maps — is the simulator's
-business; see [Conceptual model](hybrid/hybrid-concepts.md). The rest of this
-section covers the model's side of the contract: what reaches `dfun`, and what
+`c` is filled by the simulator, through [Connectivity](bb-connectivity.md) and/or [Conceptual model](hybrid/hybrid-concepts.md) 
+for more details. The rest of this section covers the model side: what reaches `dfun`, and what
 happens to its output.
 
 ### The coupling array `dfun` receives

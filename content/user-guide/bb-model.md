@@ -228,6 +228,8 @@ TODO maybe remove?
 
 ### Backend support
 
+TODO move to backend file? reference from here?
+
 The pure-Python path accepts any Python model. Accelerated backends do not:
 
 - **Numba** (`backend="numba"`, `cpu-seq`, `cpu-prange`) — 29 built-in models,

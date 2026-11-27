@@ -53,6 +53,19 @@ jobs:
           /opt/node-v${NODE_VERSION}-linux-x64/bin/node --version
           /usr/local/bin/uv --version
 
+      - name: Allow Jupyter to run as root
+        # act_runner job containers run as root; Jupyter's ServerApp refuses that
+        # ("Running as root is not recommended. Use --allow-root to bypass") and
+        # myst then reports "Jupyter server did not start". GitHub runners are
+        # unprivileged, which is why the GitHub pipeline never needed this.
+        run: |
+          mkdir -p ~/.jupyter
+          cat > ~/.jupyter/jupyter_server_config.py <<'PY'
+          c.ServerApp.allow_root = True
+          c.ServerApp.open_browser = False
+          c.ServerApp.ip = "127.0.0.1"
+          PY
+
       - name: Cache MyST executed notebooks
         uses: actions/cache@v4
         with:
@@ -103,6 +116,15 @@ jobs:
           echo "MAMBA_ROOT_PREFIX=$HOME/.micromamba" >> "$GITHUB_ENV"
           /opt/node-v${NODE_VERSION}-linux-x64/bin/node --version
           /usr/local/bin/micromamba --version
+
+      - name: Allow Jupyter to run as root
+        run: |
+          mkdir -p ~/.jupyter
+          cat > ~/.jupyter/jupyter_server_config.py <<'PY'
+          c.ServerApp.allow_root = True
+          c.ServerApp.open_browser = False
+          c.ServerApp.ip = "127.0.0.1"
+          PY
 
       - name: Extract TVB git revision from environment.yml
         id: tvb_rev
@@ -200,24 +222,23 @@ jobs:
           Path("environment.ci.yml").write_text("\n".join(out) + "\n")
           PY
 
-      - name: Cache MCP hub JupyterLite extension
-        id: cache-mcp-ext
-        if: steps.cache-lite.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: |
-            mcp-hub-extension/node_modules
-            extensions/@tvbl/jupyterlite-mcp-hub
-          key: mcp-hub-ext-${{ runner.os }}-${{ hashFiles('mcp-hub-extension/**') }}
-
-      - name: Build the MCP hub JupyterLite extension
-        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-mcp-ext.outputs.cache-hit != 'true'
+      - name: Use the committed MCP hub extension bundle
+        # The build output of mcp-hub-extension/ is committed to the repo
+        # (extensions/@tvbl/jupyterlite-mcp-hub/) and that is what JupyterLite
+        # consumes. The CI rebuild is intentionally not run here: it fails
+        # upstream today, because @jupyterlab/builder resolves to 4.5.x and
+        # `jupyter labextension build` then asks for @jupyterlab/core-meta
+        # 4.5.x, which is not published on npm ("No published ... versions
+        # match range '4.5.x'", GitHub API fallback answers 401). GitHub never
+        # hit it: its cache key made that step a no-op.
+        # To refresh the bundle after editing the extension's sources:
+        #   cd mcp-hub-extension && jlpm install --immutable && jlpm build
+        # and commit extensions/@tvbl/jupyterlite-mcp-hub/.
         run: |
-          set -euo pipefail
-          cd mcp-hub-extension
-          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" jlpm install --immutable
-          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" jlpm build
-          ls -R ../extensions/@tvbl/jupyterlite-mcp-hub | head -20
+          test -f extensions/@tvbl/jupyterlite-mcp-hub/package.json
+          test -d extensions/@tvbl/jupyterlite-mcp-hub/static
+          echo "using committed extension bundle"
+          ls extensions/@tvbl/jupyterlite-mcp-hub/static | head -5
 
       - name: Cache xeus WASM prefix
         id: cache-xeus

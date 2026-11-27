@@ -20,7 +20,7 @@ excitability, bifurcation — are dynamical-systems concepts.
 Write the model as
 
 $$
-\dot{x} = f(x, \mu), \qquad x \in \mathbb{R}^n ,
+d/dt x = f(x, \mu), \qquad x \in \mathbb{R}^n ,
 $$
 
 where $x$ collects the state variables and $\mu$ the parameters. The **state

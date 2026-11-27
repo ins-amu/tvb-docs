@@ -9,6 +9,14 @@ simulation to exploring the phase-plane — and see how the pieces fit together.
 Tutorials are aimed at learners: they are opinionated, minimal, and guaranteed
 to work as written.
 
+## Presenting TVB
+
+Use the introductory tutorial deck for events:
+[HTML presentation](https://ins-amu.github.io/tvb-docs/slides/tvb-tutorial.html),
+[PDF](https://ins-amu.github.io/tvb-docs/slides/tvb-tutorial.pdf), or
+[PowerPoint](https://ins-amu.github.io/tvb-docs/slides/tvb-tutorial.pptx).
+The HTML and PowerPoint versions include presenter notes.
+
 :::{tip} Open in JupyterLite Lab
 Want to run tutorials live in your browser with zero installation?
 [Open in JupyterLite Lab](/lite/lab/index.html) or launch [Your first simulation in Lab](/lite/lab/index.html?path=tutorials/first-simulation.ipynb).

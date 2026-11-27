@@ -22,6 +22,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-slides:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install slide rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra lmodern
+
+      - name: Build and verify tutorial slides
+        run: |
+          python3 make.py slides
+          python3 -m unittest discover -s tests -p test_slides.py
+
+      - name: Upload slide deck
+        uses: actions/upload-artifact@v4
+        with:
+          name: tutorial-slides
+          path: _build/slides
+          retention-days: 5
+
   build-docs:
     runs-on: ubuntu-latest
     steps:
@@ -217,7 +239,7 @@ jobs:
           retention-days: 1
 
   assemble:
-    needs: [build-docs, build-lite]
+    needs: [build-docs, build-lite, build-slides]
     runs-on: ubuntu-latest
     steps:
       - name: Download docs HTML artifact
@@ -235,6 +257,12 @@ jobs:
           name: lite-site
           path: _build/html/lite
 
+      - name: Download tutorial slides
+        uses: actions/download-artifact@v4
+        with:
+          name: tutorial-slides
+          path: _build/html/slides
+
       - name: Finalize static site tree
         run: |
           touch _build/html/.nojekyll
@@ -243,6 +271,9 @@ jobs:
           test -d _build/html/notebooks
           test -f _build/html/lite/lab/index.html
           test -f _build/html/lite/xeus/kernels.json
+          test -f _build/html/slides/tvb-tutorial.html
+          test -f _build/html/slides/tvb-tutorial.pdf
+          test -f _build/html/slides/tvb-tutorial.pptx
 
       - name: Upload static site preview artifact
         if: github.event_name == 'pull_request' || github.ref != 'refs/heads/main'

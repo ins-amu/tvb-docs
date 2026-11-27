@@ -1,0 +1,311 @@
+name: Publish static site
+
+# Forgejo Actions port of the GitHub pipeline (.github/workflows/publish.yml).
+# Same outputs, same cache keys; the GitHub-Pages upload/deploy steps are
+# replaced by an rsync of _build/html into /srv/tvb-docs.ins-amu.fr on the proxy.
+#
+# Runner facts this file depends on (see ~/src/static-ins-deploy.md):
+#   - runs-on: ubuntu-latest = disposable node:20-bookworm container, running as
+#     root, with outbound internet and no persistence between jobs;
+#   - the runner's per-job timeout must be >= 45m (cold JupyterLite/WASM build);
+#   - actions/cache and code.forgejo.org/forgejo/{upload,download}-artifact work,
+#     astral-sh/setup-uv / actions/setup-node / mamba-org/setup-micromamba are
+#     deliberately not used: the toolchain is installed directly instead.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # Root hostname, not a GitHub project page -> "/" (not "/tvb-docs").
+  BASE_URL: /
+  NODE_VERSION: 22.20.0
+  SITE_ROOT: /srv/tvb-docs.ins-amu.fr
+  DEPLOY_HOST: 139.124.148.56
+  # Pinned proxy host key (ed25519). Never ssh-keyscan into a deploy.
+  DEPLOY_HOST_KEY: "139.124.148.56 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDO60h0zBqFgm8qdgr3uFDFGHtE1GH4E4ozoQdILJvul"
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Toolchain (Node 22 + uv)
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates curl xz-utils bzip2 git
+          curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" -o /tmp/node.tar.xz
+          mkdir -p /opt && tar -xJf /tmp/node.tar.xz -C /opt
+          echo "/opt/node-v${NODE_VERSION}-linux-x64/bin" >> "$GITHUB_PATH"
+          curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+          /opt/node-v${NODE_VERSION}-linux-x64/bin/node --version
+          /usr/local/bin/uv --version
+
+      - name: Cache MyST executed notebooks
+        uses: actions/cache@v4
+        with:
+          path: _build/execute
+          key: myst-execute-${{ runner.os }}-${{ hashFiles('requirements/uv.lock', 'content/_code/**', 'trajecturtle/src/**') }}-${{ hashFiles('content/**') }}
+          restore-keys: |
+            myst-execute-${{ runner.os }}-${{ hashFiles('requirements/uv.lock', 'content/_code/**', 'trajecturtle/src/**') }}-
+
+      - name: Install pinned dependencies
+        run: python3 make.py setup
+
+      - name: Check references against Crossref
+        env:
+          CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
+        run: python3 make.py refs
+
+      - name: Build MyST HTML, check glossary, and stage notebooks
+        run: python3 make.py docs
+
+      - name: Show build size
+        run: du -sh _build/html _build/execute 2>/dev/null || true
+
+      - name: Upload docs artifact
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: docs-html
+          path: _build/html
+          include-hidden-files: true
+          retention-days: 1
+
+  build-lite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Toolchain (Node 22 + uv + micromamba)
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates curl xz-utils bzip2 git
+          curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" -o /tmp/node.tar.xz
+          mkdir -p /opt && tar -xJf /tmp/node.tar.xz -C /opt
+          echo "/opt/node-v${NODE_VERSION}-linux-x64/bin" >> "$GITHUB_PATH"
+          curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+          curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj -C /usr/local bin/micromamba
+          echo "MAMBA_ROOT_PREFIX=$HOME/.micromamba" >> "$GITHUB_ENV"
+          /opt/node-v${NODE_VERSION}-linux-x64/bin/node --version
+          /usr/local/bin/micromamba --version
+
+      - name: Extract TVB git revision from environment.yml
+        id: tvb_rev
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import re
+          from pathlib import Path
+
+          text = Path("environment.yml").read_text(encoding="utf-8")
+          m = re.search(r"tvb-library\s*@\s*git\+(https://[^\s@\"]+)@([^\s#\"]+)", text)
+          if m:
+              print(f"url={m.group(1)}")
+              print(f"rev={m.group(2)}")
+          PY
+
+      - name: Cache built JupyterLite site
+        id: cache-lite
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build/lite
+            _build/lite_contents
+            _build/.state.json
+            .jupyterlite.doit.db
+          key: lite-site-${{ runner.os }}-${{ hashFiles('build-environment.yml', 'environment.yml', 'wasm-tests/recipes/**', 'mcp-hub-extension/**', 'extensions/**', 'jupyter_lite_config.json', 'jupyter-lite.json', 'overrides.json', 'cockle-config.json', 'tools/build_xeus_prefix.py') }}-${{ hashFiles('content/**', 'README.md', 'tools/stage_lite.py', 'tools/patch_lite_runtime.py', 'make.py') }}
+          restore-keys: |
+            lite-site-${{ runner.os }}-${{ hashFiles('build-environment.yml', 'environment.yml', 'wasm-tests/recipes/**', 'mcp-hub-extension/**', 'extensions/**', 'jupyter_lite_config.json', 'jupyter-lite.json', 'overrides.json', 'cockle-config.json', 'tools/build_xeus_prefix.py') }}-
+
+      - name: Install the JupyterLite build environment
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        run: python3 make.py lite-setup
+
+      - name: Cache WASM packages (local-channel)
+        id: cache-wasm
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: local-channel
+          key: wasm-pkgs-${{ runner.os }}-${{ hashFiles('wasm-tests/recipes/**') }}-${{ steps.tvb_rev.outputs.rev }}
+
+      - name: Build the tvb-gdist wasm package
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-wasm.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p "$PWD/local-channel"
+          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" rattler-build build \
+            --recipe wasm-tests/recipes/tvb-gdist \
+            --target-platform emscripten-wasm32 \
+            --test skip \
+            --output-dir "$PWD/local-channel" \
+            -c https://repo.prefix.dev/emscripten-forge-4x \
+            -c https://repo.prefix.dev/emscripten-forge-dev \
+            -c https://repo.prefix.dev/conda-forge \
+            -c microsoft \
+            -m wasm-tests/recipes/variant.yaml
+
+      - name: Build the tvb-cpp-hybrid wasm package
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-wasm.outputs.cache-hit != 'true'
+        env:
+          TVB_ROOT_GIT_URL: ${{ steps.tvb_rev.outputs.url }}
+          TVB_ROOT_GIT_REV: ${{ steps.tvb_rev.outputs.rev }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$PWD/local-channel"
+          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" rattler-build build \
+            --recipe wasm-tests/recipes/tvb-cpp-hybrid \
+            --target-platform emscripten-wasm32 \
+            --test skip \
+            --output-dir "$PWD/local-channel" \
+            -c https://repo.prefix.dev/emscripten-forge-4x \
+            -c https://repo.prefix.dev/emscripten-forge-dev \
+            -c https://repo.prefix.dev/conda-forge \
+            -c microsoft \
+            -m wasm-tests/recipes/variant.yaml
+
+      - name: Add tvb-gdist and tvb-cpp-hybrid to the kernel environment
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path.cwd()
+          lines = Path("environment.yml").read_text().splitlines()
+          out = []
+          for line in lines:
+              out.append(line)
+              if line.strip() == "channels:":
+                  out.append(f"  - file://{root}/local-channel")
+          lines, out = out, []
+          for line in lines:
+              out.append(line)
+              if line.strip() == "dependencies:":
+                  out.append("  - tvb-gdist")
+                  out.append("  - tvb-cpp-hybrid")
+          Path("environment.ci.yml").write_text("\n".join(out) + "\n")
+          PY
+
+      - name: Cache MCP hub JupyterLite extension
+        id: cache-mcp-ext
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            mcp-hub-extension/node_modules
+            extensions/@tvbl/jupyterlite-mcp-hub
+          key: mcp-hub-ext-${{ runner.os }}-${{ hashFiles('mcp-hub-extension/**') }}
+
+      - name: Build the MCP hub JupyterLite extension
+        if: steps.cache-lite.outputs.cache-hit != 'true' && steps.cache-mcp-ext.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          cd mcp-hub-extension
+          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" jlpm install --immutable
+          micromamba run -p "$HOME/.micromamba/envs/build-tvbl" jlpm build
+          ls -R ../extensions/@tvbl/jupyterlite-mcp-hub | head -20
+
+      - name: Cache xeus WASM prefix
+        id: cache-xeus
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: _build/xeus-prefix
+          key: xeus-prefix-${{ runner.os }}-${{ hashFiles('environment.yml', 'wasm-tests/recipes/**', 'tools/build_xeus_prefix.py') }}
+
+      - name: Build the JupyterLite site and apply runtime patches
+        if: steps.cache-lite.outputs.cache-hit != 'true'
+        env:
+          CMAKE_ARGS: -DTVB_CPP_BUILD_EXTENSION=OFF
+        run: python3 make.py lite
+
+      - name: Show build size
+        run: du -sh _build/lite 2>/dev/null || true
+
+      - name: Upload JupyterLite artifact
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: lite-site
+          path: _build/lite
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    needs: [build-docs, build-lite]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download docs HTML artifact
+        uses: https://code.forgejo.org/forgejo/download-artifact@v4
+        with:
+          name: docs-html
+          path: _build/html
+
+      - name: Verify docs artifact does not contain stale lite output
+        run: test ! -e _build/html/lite
+
+      - name: Download JupyterLite artifact
+        uses: https://code.forgejo.org/forgejo/download-artifact@v4
+        with:
+          name: lite-site
+          path: _build/html/lite
+
+      - name: Finalize static site tree
+        run: |
+          set -eu
+          touch _build/html/.nojekyll
+          test -f _build/html/index.html
+          test -f _build/html/site-search-manifest.json
+          test -d _build/html/notebooks
+          test -f _build/html/lite/lab/index.html
+          test -f _build/html/lite/xeus/kernels.json
+          du -sh _build/html
+
+      - name: Setup SSH
+        run: |
+          set -eu
+          apt-get update -qq
+          apt-get install -y --no-install-recommends rsync openssh-client curl
+          umask 077; mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          printf '%s\n' "$DEPLOY_HOST_KEY" >> ~/.ssh/known_hosts
+
+      - name: Deploy (dry run)
+        run: |
+          rsync -azn --delete --itemize-changes \
+            _build/html/ "root@${DEPLOY_HOST}:${SITE_ROOT}/" | tail -40
+
+      - name: Deploy
+        run: |
+          rsync -az --delete _build/html/ "root@${DEPLOY_HOST}:${SITE_ROOT}/"
+          ssh "root@${DEPLOY_HOST}" "chown -R caddy:caddy '${SITE_ROOT}'"
+          ssh "root@${DEPLOY_HOST}" "du -sh '${SITE_ROOT}'"
+
+      - name: Verify served bytes
+        run: |
+          set -eu
+          local_hash=$(sha256sum _build/html/index.html | cut -d' ' -f1)
+          remote_hash=$(ssh "root@${DEPLOY_HOST}" "sha256sum '${SITE_ROOT}/index.html'" | cut -d' ' -f1)
+          served_hash=$(curl -sS https://tvb-docs.ins-amu.fr/ | sha256sum | cut -d' ' -f1)
+          echo "built=$local_hash"
+          echo "remote=$remote_hash"
+          echo "served=$served_hash"
+          test "$local_hash" = "$remote_hash"
+          test "$local_hash" = "$served_hash"
+          curl -sS -o /dev/null -w 'HTTP %{http_code}\n' https://tvb-docs.ins-amu.fr/

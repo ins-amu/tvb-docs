@@ -9,11 +9,10 @@ bibliography:
 ---
 # Functional connectivity dynamics and fluidity
 
-A [functional connectivity](../../explanation/functional-connectivity.md)
-matrix computed over a whole recording is an average. It says which regions
-co-vary over the session, but not whether they did so throughout or only
-during part of it. Hansen et al. showed that this matters for resting-state
-fMRI [@hansen2015]. When FC is computed in 60 s windows, it often stays nearly
+A functional connectivity (FC) matrix computed over a whole recording is an
+average. It says which regions co-vary over the session, but not whether they
+did so throughout or only during part of it. Hansen et al. showed that this
+matters for resting-state fMRI [@hansen2015]. When FC is computed in 60 s windows, it often stays nearly
 unchanged for minutes, then turns into an almost unrelated pattern within the
 span of one window, and earlier configurations can come back later in the
 same session. Whole-brain models tuned only to reproduce the static FC did
@@ -382,8 +381,8 @@ sides.
   sessions or subjects.
 - **Preprocessing and parcellation.** Filtering, the number of regions (which
   sets the length of $\mathbf{v}(t)$), and for simulations the
-  [forward model](../../explanation/forward-models.md) that turns activity
-  into a BOLD-like signal all change the numbers.
+  forward model that turns activity into a BOLD-like signal all change the
+  numbers.
 
 ## Fitting models with FCD
 
@@ -433,9 +432,6 @@ FCD and its summary statistics as part of its feature extraction
 
 ## Where to go next
 
-- [Functional connectivity](../../explanation/functional-connectivity.md): the
-  static measure that FCD extends, and what it does and does not say about
-  wiring.
 - [Simulate the Hopf whole-brain model](../../howtos/hopf-whole-brain-model.md):
   generate BOLD-like signals at a scanner sampling rate, to which this
   analysis applies directly.

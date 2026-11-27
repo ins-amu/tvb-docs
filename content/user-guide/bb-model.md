@@ -21,35 +21,47 @@ hybrid-specific model class — the framework consumes
 `ReducedSetFitzHughNagumo` run identically in classic TVB and inside a
 subnetwork.
 
-This page covers what a model declares, what happens to it during a hybrid
-run, and how to pick, attach and verify one.
+This page covers what the model does in the simulation, what it declares,
+and how to pick, attach and verify one.
 
 ---
 
 (hybrid-model-role)=
-## What happens to the model each step
+## What the model does in the simulation
 
-The state of a subnetwork always has shape `(nvar, nnodes, modes)` — modes is
-`model.number_of_modes`, `1` everywhere except `ReducedSetFitzHughNagumo` and
-`ReducedSetHindmarshRose`, which use `3`. Every step:
+Every node of a subnetwork carries the same set of
+{term}`state variables <State variable>` — potentials, firing rates, synaptic
+gates, whatever the model's equations are written in terms of. The model owns
+that state and does four things with it:
 
-1. **Intra coupling.** Each `IntraProjection` reads (possibly delayed) source
-   states from its own history buffer and writes into the subnetwork's
-   coupling slots.
-2. **Inter coupling.** Each `InterProjection` addressed at the subnetwork adds
-   afferents from other subnetworks into the target's coupling slots.
-3. **Stimuli.** Stimuli owned by the subnetwork add into their designated slot.
-4. **`dfun`.** The model runs as `dfun(x, total_c)`. The integrator's
-   `local_coupling` and `stimulus` arguments are `0.0`: stimuli were already
-   folded into a slot at step 3.
-5. **Integration.** The subnetwork's `scheme` advances the state, then applies
-   the model's boundaries and clamps.
-6. **Observation.** `model.observe(nx)` selects `variables_of_interest`. Local
-   `Recorder`s see per-subnetwork state; global monitors see mode-summed
-   output.
+- **Holds the state.** One value per variable per node, laid out as
+  `(nvar, nnodes, modes)`. Modes are parallel copies of the model per node —
+  `1` everywhere except `ReducedSetFitzHughNagumo` and
+  `ReducedSetHindmarshRose`, which use `3`.
+- **Computes the derivative.** `dfun` is the model's equations: given the
+  current state and everything arriving from the network, the rate of change
+  of each state variable. The integrator — not the model — advances the state.
+- **Declares what crosses the subnetwork boundary.** `cvar` picks which state
+  variables travel: as a source, what can be routed out; as a target, how
+  many coupling slots `dfun` reads.
+- **Reports the output.** `variables_of_interest` picks what `observe(nx)`
+  returns and monitors record.
 
-Steps 1–3 all write into the same array, and that array — nothing else — is
-what `dfun` receives as its second argument.
+Each step the framework calls the model once, as `dfun(x, c)`:
+
+- `x` is the state above.
+- `c` is the coupling array, shape `(len(cvar), nnodes, modes)`. It is
+  everything the rest of the simulation wants to say to this model at this
+  step, summed into one array.
+
+The derivative `dfun` returns is integrated by the subnetwork's scheme, then
+the state is clamped to `state_variable_boundaries` where the model declares
+them, and `observe(nx)` selects `variables_of_interest` for monitors.
+
+How `c` gets filled — projections, delays, mode maps — is the simulator's
+business; see [Conceptual model](hybrid/hybrid-concepts.md). The rest of this
+section covers the model's side of the contract: what reaches `dfun`, and what
+happens to its output.
 
 ### The coupling array `dfun` receives
 
@@ -80,18 +92,11 @@ many slots exist. Two consequences when mixing models:
 ### Stimuli enter through coupling slots, not `stvar`
 
 In classic TVB, a stimulus is written into the state variables listed in
-`model.stvar` and added to the state by the integrator. A hybrid simulation
-never reads `stvar`. Stimuli are `hybrid.stimulus.Stim` objects that add into
-coupling slots:
-
-```python
-internal_c[stim.target_cvar] += stim.get_coupling(step)
-```
-
-so a stimulus must target a `cvar` slot — it reaches `dfun` inside `total_c`,
-unlike in classic TVB. `KIonEx`, `InfiniteTheta` and `GastSollaKennedy`
-override `stvar` for classic use; inside a hybrid simulation that override is
-ignored.
+`model.stvar` and added to the state by the integrator — it never reaches
+`dfun`. A hybrid simulation never reads `stvar`. A stimulus targets one of
+the model's `cvar` slots and arrives inside `c`, so the model's equations see
+it as coupling. `KIonEx`, `InfiniteTheta` and `GastSollaKennedy` override
+`stvar` for classic use; inside a hybrid simulation that override is ignored.
 
 ### Modes belong to the model, not the simulator
 
@@ -109,9 +114,8 @@ ignored.
 
 ### `local_coupling` is always zero
 
-`Subnetwork.step` calls the integrator as `scheme(x, dfun, total_c, 0.0, 0.0)`.
-The fourth argument is `local_coupling`, hardwired to zero. Any model whose
-equations contain a local term — `JansenRit`'s `local_coupling * (y1 - y2)`,
+The `local_coupling` argument `dfun` receives is always `0.0` in a hybrid
+simulation. Any model whose equations contain a local term — `JansenRit`'s `local_coupling * (y1 - y2)`,
 the `LarterBreakspear` and `Zerlaut` local drives — silently loses it inside a
 hybrid simulation.
 
@@ -232,6 +236,24 @@ Only the fields that matter for routing are shown. `n` is `nvar`, `M` is
 - **Keep mode counts deliberate.** Mixing $M = 1$ and $M = 3$ is supported and
   is the main reason to use a hybrid model at all, but it changes the gain
   through `mode_map` unless compensated.
+
+### Backend support
+
+The pure-Python path accepts any Python model. Accelerated backends do not:
+
+- **Numba** (`backend="numba"`, `cpu-seq`, `cpu-prange`) — 29 built-in models,
+  Heun/Euler deterministic or stochastic, uniform `dt`; rejects
+  `modification=True` on `Epileptor*`, `dynamic=True` on `Hopfield`,
+  `shift_sigmoid=False` on `WilsonCowan`, non-`"combined"` `dfun_mode` on
+  `ReducedSet*`, and nonzero `local_coupling`.
+- **C++** (`CppHybridBackend`) — 13 core plus 25 built-in models, with a custom
+  symbolic fallback.
+- **CUDA** (`backend="cuda"`, `"auto"`) — uniform `dt` only, no `CerebellarMF`.
+
+A custom model needs `state_variable_dfuns` (or a custom Mako template, as
+`CerebellarMF` does) to run outside the Python path. See
+[Backends and parameter sweeps](hybrid/hybrid-backends-and-sweeps.md) for the
+full matrix.
 
 (hybrid-model-parameters)=
 ### Parameters
@@ -370,58 +392,12 @@ perturbing it.
 (hybrid-model-api-reference)=
 ## API reference
 
-`tvb.simulator.models.base.Model` — the base class consumed by
-`Subnetwork.model`. Only `dfun` is abstract; every other declaration has a
-default.
-
-```python
-state_variables: tuple[str]          # names, length == nvar
-_nvar: int                           # exposed as model.nvar (read-only property)
-number_of_modes: int = 1
-cvar: numpy.ndarray[int]             # coupling variables, defines slot count
-stvar: numpy.ndarray[int] | None     # stimulus variables in classic TVB; unused here
-non_integrated_variables: tuple[str] | None
-state_variable_range: dict[str, list[float]]
-state_variable_boundaries: dict[str, numpy.ndarray] | None
-variables_of_interest: tuple[str]
-coupling_terms: tuple[str]           # documentation only
-
-def dfun(self, state_variables, coupling, local_coupling=0.0): ...
-def observe(self, state_variables): ...     # built in configure()
-def update_derived_parameters(self): ...     # called from configure()
-```
-
-`tvb.simulator.hybrid.cvar_utils` — name resolution used by projections and
-stimuli:
-
-| Function | Accepts | Returns |
-|---|---|---|
-| `resolve_source_cvar(model, spec)` | names of coupling variables, or ints | state-variable indices (history-buffer positions) |
-| `resolve_target_cvar(model, spec)` | names of coupling variables, or ints | coupling-slot indices (`0 … len(cvar)-1`) |
-| `validate_cvar_indices(model, idx)` | int array | `True`, or `ValueError` outside `0 … nvar-1` |
-| `validate_target_cvar_indices(model, idx)` | int array | `True`, or `ValueError` outside `0 … len(cvar)-1` |
-
-Error messages name the offending variable and list the valid ones, e.g.
-`"'mossy' is not a coupling variable of CerebellarMF. Coupling variables are:
-['GrC', 'GoC']"`.
-
-### Backend support
-
-The pure-Python path accepts any Python model. Accelerated backends do not:
-
-- **Numba** (`backend="numba"`, `cpu-seq`, `cpu-prange`) — 29 built-in models,
-  Heun/Euler deterministic or stochastic, uniform `dt`; rejects
-  `modification=True` on `Epileptor*`, `dynamic=True` on `Hopfield`,
-  `shift_sigmoid=False` on `WilsonCowan`, non-`"combined"` `dfun_mode` on
-  `ReducedSet*`, and nonzero `local_coupling`.
-- **C++** (`CppHybridBackend`) — 13 core plus 25 built-in models, with a custom
-  symbolic fallback.
-- **CUDA** (`backend="cuda"`, `"auto"`) — uniform `dt` only, no `CerebellarMF`.
-
-A custom model needs `state_variable_dfuns` (or a custom Mako template, as
-`CerebellarMF` does) to run outside the Python path. See
-[Backends and parameter sweeps](hybrid/hybrid-backends-and-sweeps.md) for the
-full matrix.
+- [`tvb.simulator.models.base`](../reference/api/tvb.simulator.models.base.md) —
+  the `Model` base class consumed by `Subnetwork.model`.
+- [`tvb.simulator.models`](../reference/api/tvb.simulator.models.md) — the
+  built-in models.
+- [`tvb.simulator.hybrid.cvar_utils`](../reference/api/tvb.simulator.hybrid.cvar_utils.md) —
+  cvar name resolution used by projections and stimuli.
 
 ---
 

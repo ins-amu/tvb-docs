@@ -58,9 +58,11 @@ jobs:
         # ("Running as root is not recommended. Use --allow-root to bypass") and
         # myst then reports "Jupyter server did not start". GitHub runners are
         # unprivileged, which is why the GitHub pipeline never needed this.
+        # make.py sets JUPYTER_CONFIG_DIR=_build/jupyter_config, which overrides
+        # ~/.jupyter, whereas /etc/jupyter is always read from SYSTEM_CONFIG_PATH.
         run: |
-          mkdir -p ~/.jupyter
-          cat > ~/.jupyter/jupyter_server_config.py <<'PY'
+          mkdir -p /etc/jupyter
+          cat > /etc/jupyter/jupyter_server_config.py <<'PY'
           c.ServerApp.allow_root = True
           c.ServerApp.open_browser = False
           c.ServerApp.ip = "127.0.0.1"
@@ -83,6 +85,11 @@ jobs:
         run: python3 make.py refs
 
       - name: Build MyST HTML, check glossary, and stage notebooks
+        env:
+          # In node:20-bookworm on Docker IPv4 bridge networks, app.listen(port, "localhost")
+          # binds [::1] while undici fetch("http://localhost:...") connects to 127.0.0.1.
+          HOST: "127.0.0.1"
+          NODE_OPTIONS: "--dns-result-order=ipv4first"
         run: python3 make.py docs
 
       - name: Show build size
@@ -119,8 +126,8 @@ jobs:
 
       - name: Allow Jupyter to run as root
         run: |
-          mkdir -p ~/.jupyter
-          cat > ~/.jupyter/jupyter_server_config.py <<'PY'
+          mkdir -p /etc/jupyter
+          cat > /etc/jupyter/jupyter_server_config.py <<'PY'
           c.ServerApp.allow_root = True
           c.ServerApp.open_browser = False
           c.ServerApp.ip = "127.0.0.1"

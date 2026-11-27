@@ -338,7 +338,8 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def _hash_tree(
+def _hash_tree_for_root(
+    base_root: Path,
     paths: list[str],
     *,
     exclude_content_generated: bool = False,
@@ -354,7 +355,7 @@ def _hash_tree(
 
     files: list[Path] = []
     for rel in paths:
-        p = ROOT / rel
+        p = base_root / rel
         if p.is_file():
             files.append(p)
         elif p.is_dir():
@@ -363,7 +364,7 @@ def _hash_tree(
                     files.append(child)
 
     for f in sorted(set(files)):
-        rel_posix = f.relative_to(ROOT).as_posix()
+        rel_posix = f.relative_to(base_root).as_posix()
         parts = rel_posix.split("/")
         if any(part.startswith(".") or part == "__pycache__" for part in parts):
             continue
@@ -386,6 +387,24 @@ def _hash_tree(
         except OSError:
             pass
     return h.hexdigest()
+
+
+def _hash_tree(
+    paths: list[str],
+    *,
+    exclude_content_generated: bool = False,
+    exclude_content_dirs: tuple[str, ...] = (),
+    extra_tokens: list[str] | None = None,
+    content_hash: bool | None = None,
+) -> str:
+    return _hash_tree_for_root(
+        ROOT,
+        paths,
+        exclude_content_generated=exclude_content_generated,
+        exclude_content_dirs=exclude_content_dirs,
+        extra_tokens=extra_tokens,
+        content_hash=content_hash,
+    )
 
 
 def fp_refs() -> str:
@@ -468,6 +487,126 @@ def fp_lite_contents() -> str:
     return h.hexdigest()
 
 
+def _exec_env_hash_for(base_root: Path) -> str:
+    paths = ["requirements/uv.lock", "content/_code"]
+    if (base_root / "trajecturtle" / "src").is_dir():
+        paths.append("trajecturtle/src")
+    return _hash_tree_for_root(base_root, paths, content_hash=True)[:16]
+
+
+def fp_exec_env() -> str:
+    """Content hash of Python/TVB runtime inputs affecting notebook execution."""
+    return _exec_env_hash_for(ROOT)
+
+
+def exec_cache_dir() -> Path | None:
+    """Return shared user cache directory for _build/execute, or None if disabled."""
+    raw = os.environ.get("TVB_DOCS_EXEC_CACHE")
+    if raw is not None:
+        cleaned = raw.strip()
+        if cleaned.lower() in ("0", "off", "false", "none", ""):
+            return None
+        return Path(cleaned).expanduser() / fp_exec_env()
+    if is_ci():
+        return None
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA") or (Path.home() / ".cache"))
+    else:
+        base = Path(os.environ.get("XDG_CACHE_HOME") or (Path.home() / ".cache"))
+    return base / "tvb-docs" / "execute" / fp_exec_env()
+
+
+def _git_main_worktree_root() -> Path | None:
+    if not (ROOT / ".git").is_file() or shutil.which("git") is None:
+        return None
+    res = subprocess.run(
+        ["git", "rev-parse", "--git-common-dir"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if res.returncode != 0:
+        return None
+    raw = res.stdout.strip()
+    if not raw:
+        return None
+    common = Path(raw)
+    if not common.is_absolute():
+        common = (ROOT / common).resolve()
+    else:
+        common = common.resolve()
+    main_root = common.parent
+    if main_root.is_dir() and main_root != ROOT.resolve():
+        return main_root
+    return None
+
+
+def _sync_ipynb_files(src: Path, dst: Path) -> int:
+    if not src.is_dir():
+        return 0
+    copied = 0
+    try:
+        dst.mkdir(parents=True, exist_ok=True)
+        for item in src.iterdir():
+            if item.suffix != ".ipynb" or not item.is_file():
+                continue
+            target = dst / item.name
+            try:
+                if target.is_file():
+                    try:
+                        if os.path.samefile(item, target):
+                            continue
+                    except OSError:
+                        pass
+                    if target.stat().st_size == item.stat().st_size:
+                        continue
+                    target.unlink()
+                try:
+                    os.link(item, target)
+                except OSError:
+                    shutil.copy2(item, target)
+                copied += 1
+            except OSError:
+                continue
+    except OSError:
+        return copied
+    return copied
+
+
+def hydrate_exec_cache() -> int:
+    """Seed _build/execute from shared user cache or a matching git worktree."""
+    if DRY_RUN:
+        return 0
+    target = ROOT / "_build" / "execute"
+    cache_dir = exec_cache_dir()
+    env_hash = fp_exec_env()
+    hydrated = 0
+    if cache_dir is not None:
+        hydrated += _sync_ipynb_files(cache_dir, target)
+    if hydrated == 0:
+        main_root = _git_main_worktree_root()
+        if main_root is not None:
+            main_exec = main_root / "_build" / "execute"
+            if main_exec.is_dir() and _exec_env_hash_for(main_root) == env_hash:
+                hydrated += _sync_ipynb_files(main_exec, target)
+                if cache_dir is not None:
+                    _sync_ipynb_files(main_exec, cache_dir)
+    if hydrated > 0:
+        print(f"Hydrated {hydrated} cached notebook(s) into _build/execute.", flush=True)
+    return hydrated
+
+
+def persist_exec_cache() -> int:
+    """Sync _build/execute/*.ipynb back into the shared user cache."""
+    if DRY_RUN:
+        return 0
+    cache_dir = exec_cache_dir()
+    if cache_dir is None:
+        return 0
+    return _sync_ipynb_files(ROOT / "_build" / "execute", cache_dir)
+
+
 def venv_ready() -> bool:
     for rel in (".venv/bin/python", ".venv/Scripts/python.exe", ".venv/Scripts/python"):
         candidate = ROOT / rel
@@ -494,9 +633,32 @@ def _uv_lock_sha256() -> str:
     return hashlib.sha256(lock_file.read_bytes()).hexdigest()
 
 
+def _trajecturtle_ready() -> bool:
+    return (ROOT / "trajecturtle" / "pyproject.toml").is_file()
+
+
+def _trajecturtle_installed_editable() -> bool:
+    expected_url = (ROOT / "trajecturtle").resolve().as_uri()
+    patterns = (
+        ".venv/lib/python*/site-packages/tvb_phaseplane-*.dist-info/direct_url.json",
+        ".venv/Lib/site-packages/tvb_phaseplane-*.dist-info/direct_url.json",
+    )
+    for pattern in patterns:
+        for path in ROOT.glob(pattern):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if data.get("url") == expected_url and data.get("dir_info", {}).get("editable"):
+                return True
+    return False
+
+
 def venv_in_sync() -> bool:
     """Return True if .venv exists and matches requirements/uv.lock."""
     if not venv_ready():
+        return False
+    if not is_ci() and (ROOT / ".gitmodules").is_file() and not _trajecturtle_installed_editable():
         return False
     lock_hash = _uv_lock_sha256()
     stamp_matches = (
@@ -609,7 +771,9 @@ def task_setup() -> None:
             cmd.append("--clear")
         run(cmd)
     run(["uv", "pip", "sync", "requirements/uv.lock"])
-    if (ROOT / "trajecturtle" / "pyproject.toml").is_file():
+    if not _trajecturtle_ready() and (ROOT / ".gitmodules").is_file() and (ROOT / ".git").exists() and shutil.which("git"):
+        run(["git", "submodule", "update", "--init", "trajecturtle"])
+    if _trajecturtle_ready():
         run(["uv", "pip", "install", "--no-deps", "-e", "./trajecturtle"])
     if not DRY_RUN and (ROOT / ".venv").is_dir():
         VENV_LOCK_STAMP.write_text(_uv_lock_sha256() + "\n", encoding="utf-8")
@@ -668,12 +832,28 @@ def task_docs() -> None:
 
     myst_cmd = [*venv_bin("myst"), "build", "--config", ".myst.apidoc.yml"]
     if execute:
+        hydrate_exec_cache()
         myst_cmd.append("--execute")
         if is_ci():
             myst_cmd.extend(["--execute-parallel", "2"])
     myst_cmd.append("--html")
 
-    run(myst_cmd)
+    if DRY_RUN:
+        print("+ " + " ".join(myst_cmd), flush=True)
+    else:
+        from tools.myst_progress import estimate_page_count, run_myst_with_progress
+
+        rc = run_myst_with_progress(
+            myst_cmd,
+            cwd=ROOT,
+            env=build_env(),
+            total_pages=estimate_page_count(ROOT, STATE_FILE),
+            state_file=STATE_FILE,
+        )
+        if rc:
+            raise subprocess.CalledProcessError(rc, myst_cmd)
+        if execute:
+            persist_exec_cache()
     run(["node", "tools/build_glossary.mjs"])
     run(["node", "tools/build_site_search.mjs"])
     run(
@@ -918,6 +1098,9 @@ def task_dev() -> None:
     if len(myst_cmd) != 1:
         raise RuntimeError("myst binary not found in .venv; run `python make.py setup` first.")
 
+    if not NO_EXECUTE:
+        hydrate_exec_cache()
+
     cmd = [
         venv_python(),
         "tools/dev_server.py",
@@ -935,6 +1118,10 @@ def task_dev() -> None:
         "_build/notebooks",
         "--execute" if not NO_EXECUTE else "--no-execute",
     ]
+    if not NO_EXECUTE:
+        cache_dir = exec_cache_dir()
+        if cache_dir is not None:
+            cmd.extend(["--exec-cache-dir", str(cache_dir)])
     run(cmd)
 
 

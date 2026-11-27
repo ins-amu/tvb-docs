@@ -52,6 +52,14 @@ jobs:
           CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
         run: python make.py refs
 
+      - name: Cache MyST executed notebooks
+        uses: actions/cache@v4
+        with:
+          path: _build/execute
+          key: myst-execute-${{ runner.os }}-${{ hashFiles('requirements/uv.lock', 'content/_code/**', 'trajecturtle/src/**') }}-${{ hashFiles('content/**') }}
+          restore-keys: |
+            myst-execute-${{ runner.os }}-${{ hashFiles('requirements/uv.lock', 'content/_code/**', 'trajecturtle/src/**') }}-
+
       - name: Build MyST HTML, check glossary, and stage notebooks
         run: python make.py docs
 

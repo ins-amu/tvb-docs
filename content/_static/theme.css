@@ -475,12 +475,30 @@ html.dark body:has(.tvb-about-mascot) footer.footer {
     0 14px 32px rgba(20, 24, 30, 0.28),
     0 2px 6px rgba(20, 24, 30, 0.14);
   transform: rotate(2deg);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .tvb-about-mascot:hover {
   transform: rotate(0deg) translateY(-4px) scale(1.03);
   box-shadow: 0 18px 40px rgba(20, 24, 30, 0.34);
+}
+
+.tvb-about-mascot:active {
+  transform: rotate(0deg) translateY(-1px) scale(0.98);
+}
+
+.tvb-about-mascot:focus-visible {
+  outline: 3px solid var(--myst-color-accent, #2e6f95);
+  outline-offset: 4px;
+}
+
+.tvb-about-mascot.tvb-about-mascot--playing {
+  border-color: var(--myst-color-accent, #2e6f95);
+  box-shadow:
+    0 18px 40px rgba(20, 24, 30, 0.34),
+    0 0 0 4px rgba(46, 111, 149, 0.25);
 }
 
 html.dark .tvb-about-mascot {

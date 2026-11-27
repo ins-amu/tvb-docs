@@ -50,6 +50,7 @@ HOP_BY_HOP = {
 }
 
 SITE_SEARCH_TAG = b'<script id="tvb-site-search-script" type="module" src="/site-search.mjs"></script>'
+ABOUT_MASCOT_TAG = b'<script id="tvb-about-mascot-script" type="module" src="/about-mascot.mjs"></script>'
 
 
 @dataclass
@@ -325,6 +326,8 @@ class UnifiedDevHandler(SimpleHTTPRequestHandler):
 
         if target.suffix == ".mjs":
             ctype = "application/javascript; charset=utf-8"
+        elif target.suffix == ".opus":
+            ctype = "audio/ogg"
         else:
             ctype, _ = mimetypes.guess_type(str(target))
             if not ctype:
@@ -371,7 +374,13 @@ class UnifiedDevHandler(SimpleHTTPRequestHandler):
                 self._send_bytes(200, "application/javascript; charset=utf-8", js_path.read_bytes())
                 return
 
-        if path_only in ("/the-hillside.jpg", "/the-goat.jpg"):
+        if path_only == "/about-mascot.mjs":
+            js_path = self.root / "content" / "_static" / "about-mascot.mjs"
+            if js_path.is_file():
+                self._send_bytes(200, "application/javascript; charset=utf-8", js_path.read_bytes())
+                return
+
+        if path_only in ("/the-hillside.jpg", "/the-goat.jpg", "/goat.opus"):
             img_path = self.root / "_static" / path_only.lstrip("/")
             if img_path.is_file():
                 self._serve_static_under(self.root / "_static", path_only.lstrip("/"))
@@ -444,6 +453,14 @@ class UnifiedDevHandler(SimpleHTTPRequestHandler):
                 and (self.root / "_build" / "html" / "site-search-manifest.json").is_file()
             ):
                 body = body.replace(b"</body>", SITE_SEARCH_TAG + b"</body>", 1)
+
+            if (
+                "text/html" in ctype
+                and b"</body>" in body
+                and b'id="tvb-about-mascot-script"' not in body
+                and (self.root / "content" / "_static" / "about-mascot.mjs").is_file()
+            ):
+                body = body.replace(b"</body>", ABOUT_MASCOT_TAG + b"</body>", 1)
 
             self.send_response(resp.status, resp.reason)
             for k, v in resp.getheaders():

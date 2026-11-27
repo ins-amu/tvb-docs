@@ -473,6 +473,7 @@ def fp_docs() -> str:
             "README.md",
             "tools/build_glossary.mjs",
             "tools/build_site_search.mjs",
+            "tools/stage_about_mascot.mjs",
             "tools/build_contributors.py",
             "tools/stage_lite.py",
         ],
@@ -925,6 +926,7 @@ def task_docs() -> None:
         env=build_env({"PYTHONPATH": "content/_code"}),
     )
     run(["node", "tools/stage_phaseplane.mjs"])
+    run(["node", "tools/stage_about_mascot.mjs"])
     run(
         [
             venv_python(),
@@ -944,7 +946,7 @@ def task_docs() -> None:
 
 def task_test() -> None:
     ensure_venv()
-    run(["node", "--test", "tests/test_site_search.mjs"])
+    run(["node", "--test", "tests/test_site_search.mjs", "tests/test_about_mascot.mjs"])
     run(
         ["uv", "run", "--with", "pytest", "pytest", "-q", "tests", tvbl_test_dir()],
         env=build_env({"PYTHONPATH": f".{os.pathsep}content/_code"}),

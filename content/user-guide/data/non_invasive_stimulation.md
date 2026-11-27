@@ -178,7 +178,7 @@ As an entry point to applying stimulation fields on TVB simulations we will assu
 The crucial steps for coupling the external E-field with the TVB are:
 
 - Identify the equations of the **neural mass model** that accept a stimulation input
-- Determine the way the electric field distribution inside the volume represented by a neural mass maps onto the stimulus terms on the r.h.s. of he state equations.
+- Determine the way the electric field distribution inside the volume represented by a neural mass maps onto the stimulus terms on the r.h.s. of the state equations.
 
 ## How to identify and set which state equations can be stimulated
 
@@ -191,21 +191,13 @@ if self.stvar is None:
     self.stvar = self.cvar.copy()
 ```
 
-To choose a target, assign the attribute before calling `run()`. Note that `stvar` is a plain class attribute rather than a validated trait, so nothing checks your indices until the simulation actually indexes the array:
+To choose a target, assign the attribute before calling `run()`:
 
 ```python
 model.stvar = numpy.r_[4]        # stimulus is added to d(y4)/dt
 ```
 
-The simulator then writes the stimulus into the derivative array at those rows, and the integrator adds it to the state update:
-
-```python
-stimulus[self.model.stvar, :, :] = self.stimulus(stim_step).reshape((1, -1, 1))
-...
-X_next = X + self.dt * (self.dX + stimulus)
-```
-
-Because the stimulus is injected at the derivative level, you can reach **any** state variable in the range `0 .. nvar-1`. An out-of-range index raises an `IndexError` at runtime, so mistakes are loud rather than silent.
+`stvar` is a plain class attribute, not a validated trait, so indices are only checked when the simulation indexes the array. You can reach **any** state variable in `0 .. nvar-1`; an out-of-range index raises `IndexError` at runtime.
 
 ---
 
@@ -221,14 +213,7 @@ To choose a target, set `Stim.target_cvar`, or pass `stimulus_cvar=` to `add_sti
 subnet.add_stimulus(stimulus=pat, stimulus_cvar=np.r_[0])   # slot 0, not state 0
 ```
 
-The subnetwork adds the stimulus into the coupling buffer and then hands the combined coupling to `dfun`. Note that the final two arguments of the integrator call are hardcoded to zero, which is why `stvar` has no effect here:
-
-```python
-internal_c[stim.target_cvar] += stim_coupling
-nx = self.scheme.scheme(x, self.model.dfun, total_c, 0.0, 0.0)   # stimulus=0.0
-```
-
-Consequently, you can only stimulate equations that the model already wires to a coupling slot. I checked every hybrid module and backend, and `stvar` appears zero times, so setting it in a hybrid simulation has no effect whatsoever.
+In a hybrid simulation `stvar` is ignored, silently. Use `target_cvar` instead, and note that you can only reach equations the model already wires to a coupling slot.
 
 ---
 
@@ -260,9 +245,9 @@ Consequently, you can only stimulate equations that the model already wires to a
 
 ### How to decide
 
-If you need to hit a specific ordinary differential equation in any model, use the classic `stvar`, because it gives you direct access to every state variable. If the model already exposes the pathway you need as a coupling slot, the hybrid `target_cvar` is the natural choice and keeps you inside the hybrid architecture. If the equation you want is not wired to any slot, you have two options: extend `cvar` and make `dfun` read the new slot, or fall back to the classic simulator.
+Use the classic `stvar` when you need to reach a specific equation, since it gives access to every state variable. Use the hybrid `target_cvar` when the model already exposes the pathway you need as a coupling slot.
 
-One caveat is worth repeating. For seven shipped models (`JansenRit`, `WilsonCowan`, `CoombesByrne`, `DumontGutkin`, `GastSchmidtKnosche_SD` and `_SF`), `len(cvar)` is larger than `len(coupling_terms)`. The hybrid validator only checks that the index is below `len(cvar)`, so `target_cvar=1` on `JansenRit` passes validation and then does nothing at all.
+Watch out for models where `len(cvar)` exceeds `len(coupling_terms)` — `JansenRit`, `WilsonCowan`, `CoombesByrne`, `DumontGutkin`, `GastSchmidtKnosche_SD` and `_SF`. The hybrid validator only checks the index against `len(cvar)`, so `target_cvar=1` on `JansenRit` passes validation and then does nothing.
 
 ## Determining the influence of the E-field
 
@@ -275,9 +260,9 @@ $$
 \mathcal{F}[\vec{E}]=w_i
 $$
 
-We call $w_i$ the **stimulation weight** of parcel $i$. It is not necessarily a current: depending on the model it may be a membrane-potential offset, an additive current, a shift of the mean drive, or a modulation of a gating variable. It is also not necessarily positive, because the polarity of the field relative to the neuronal axis carries the sign of the effect. Its units are therefore model-dependent, and what the state equations do with $w_i$ is a separate modelling choice, discussed further below.
+We call $w_i$ the **stimulation weight** of parcel $i$. It is not necessarily a current: depending on the model it may be a membrane-potential offset, an additive current, a shift of the mean drive, or a modulation of a gating variable. It is also not necessarily positive, because the polarity of the field relative to the neuronal axis carries the sign of the effect. Its units are therefore model-dependent, and what the state equations do with $w_i$ is a separate modelling choice, taken up under "Where the term enters the state equations" below.
 
-The rest of this section surveys the functionals $\mathcal{F}$ that have actually been used in the literature. Every row of the table below produces the same object, a scalar $w_i$ attached to parcel $i$; the rows differ only in how the field distribution over $V_i$ is reduced to that scalar.
+The rest of this subsection surveys the functionals $\mathcal{F}$ that have actually been used in the literature. Every row of the table below produces the same object, a scalar $w_i$ attached to parcel $i$; the rows differ only in how the field distribution over $V_i$ is reduced to that scalar.
 
 ### Functionals used in the literature
 
@@ -285,49 +270,80 @@ The temporal part of the coupling is rarely controversial: under the quasi-stati
 
 | # | Functional | Form | Neural mass model | Modality | Where the result enters | Representative work |
 |---|---|---|---|---|---|---|
-| F1 | Signed normal projection, membrane offset ($\lambda$-$E$) | $w_i=\lambda\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit, Wendling | tDCS, tACS | voltage offset added to the mean membrane potential, inside the sigmoid | [@ruffini2013tcs; @merlet2013oscillatory; @molaeeardekani2013tdcs; @dong2025tdcs] |
-| F2 | Signed normal projection, firing-rate shift | $w_i=\dfrac{\lambda}{A h_e}\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit | tDCS | additive mean firing rate entering the pyramidal population via the excitatory interneuron path | [@kunze2016tdcs] |
-| F3 | Vector dipole projection | $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$ | MPR / NMM2 | tACS, tDCS | additive current or voltage in the mean-potential equation | [@ruffini2022exact; @clusella2023comparison] |
-| F4 | Spherical-harmonic response function | $w_i=\sum_{\ell m}c_{\ell m}^{(i)}\,\langle Y_\ell^m(\theta,\varphi)\rangle_{V_i}$ | any (response function) | tDCS | orientation-resolved coupling; the $\ell=1$ term recovers F3 | [@galan2023spherical] |
-| F5 | Frequency-dependent transfer | $w_i(f)=\hat{Z}_i(f)\,\tilde{E}_i(f)$ from a ball-and-stick cable | AdEx / EIF mean field | tACS | additive current to an AdEx/EIF mean field | [@aspart2016extending; @cakan2020biophysically] |
-| F6 | Axonal activation function | $w_i\propto\big\langle\partial^2V_e/\partial s^2\big\rangle_{V_i}$ along the fibre, thresholded | L2/3 → L5 cortical circuit | TMS | input-rate pulse to a presynaptic mass | [@weise2023directional; @miller2026coupling] |
-| F7 | Distribution-aware functional | $w_i=\big\langle f(\boldsymbol{\lambda}\cdot\vec{E}_0)\big\rangle_{V_i}$ over an orientation distribution, absorbed into the quenched noise $(\eta,\Delta)$ | MPR / NMM2 | tACS, tDCS | renormalises $\eta$ and $\Delta$ of the Lorentzian | [@ruffini2022exact; @clusella2023comparison] |
+| [F1](#insertion-1) | Signed normal projection, membrane offset ($\lambda$-$E$) | $w_i=\lambda\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit, Wendling | tDCS, tACS | voltage offset added to the mean membrane potential of each subpopulation, inside its sigmoid | [@ruffini2013tcs; @merlet2013oscillatory; @molaeeardekani2013tdcs] |
+| [F2](#insertion-2) | Signed normal projection, firing-rate shift | $w_i=\dfrac{\lambda}{A h_e}\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Jansen–Rit | tDCS | additive mean firing rate entering the pyramidal population via the excitatory interneuron path | [@kunze2016tdcs] |
+| [F3](#insertion-3) | Vector dipole projection | $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$ | MPR / NMM2 | tACS, tDCS | additive current $I_E$ in the mean-potential equation | [@ruffini2022exact; @clusella2023comparison] |
+| [F4](#insertion-4) | Frequency-dependent transfer | $w_i(f)=\hat{Z}_i(f)\,\tilde{E}_i(f)$ from a ball-and-stick cable | AdEx / EIF mean field | tACS | additive current to an AdEx/EIF mean field | [@aspart2016extending; @cakan2020biophysically] |
+| [F5](#insertion-5) | Distribution-aware functional | $w_i=\big\langle f(\boldsymbol{\lambda}\cdot\vec{E}_0)\big\rangle_{V_i}$ over an orientation distribution | MPR / NMM2 | tACS, tDCS | not an additive drive: absorbed into the quenched-noise width $\Delta$ of the Lorentzian | [@ruffini2022exact; @clusella2023comparison] |
+| [F6](#insertion-6) | Signed normal projection, gating modulation | $w_i=\lambda\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ | Reduced Wong–Wang (Deco MFM) | tDCS | additive term $\theta(i)=k\,w_i\,s(t)$ in the synaptic gating equation | [@dong2025tdcs] |
+| [F7](#insertion-7) | Spherical-harmonic response, per-population offset | $w_i=\lambda_i\,\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}$ with $\lambda_i$ from $\Phi(\theta,\varphi)$ | Wendling / Lopez-Sola (162 VEP parcels) | tDCS | voltage offset added to each subpopulation's membrane potential, scaled by a calibrated gain $G_E$ | [@mercadal2026wholebrain] |
+
+### Spatial resolution
+
+The table above says nothing about the spatial resolution at which the functional is evaluated, and this matters for how the result can be used. Two resolutions have to be distinguished:
+
+- **Field resolution.** The resolution of the mesh on which $\vec{E}_0$ is computed and on which $\mathcal{F}$ is evaluated. This is typically fine: FEM head models routinely use $10^5$–$10^6$ elements, and the surface meshes carry $10^4$–$10^5$ vertices.
+- **Network resolution.** The resolution at which neural mass models are instantiated. In every work surveyed here this is a coarse anatomical parcellation, typically 66–74 regions.
+
+In all the works listed, the pipeline is *fine field mesh → coarse parcellation → neural mass*, so the functional is evaluated at high resolution and then collapsed to one scalar per parcel before it reaches the state equations. [@merlet2013oscillatory] is explicit about this: the normal field component is computed on each of 189,494 triangles of the white/grey matter interface and then averaged over 66 macro-regions. [@kunze2016tdcs] likewise map the field onto 16,384 surface vertices and then collapse roughly 30,000 finite elements into each of 74 areas.
+
+No work in this table places neural mass models on the vertices of the cortical surface. That regime, in which each vertex carries its own neural mass and receives its own $w_i$, is not represented in the literature surveyed here, and it is precisely the regime in which the parcel-averaging problems discussed below would disappear. Note that this is not merely a matter of accuracy: as [point 3](#insertion-3) explains, the exactness of the mean-field closure depends on the input being homogeneous across the population, which parcel-level reduction imposes by construction.
 
 ### Where the term enters the state equations
 
-The six insertion points below are genuinely different, and a functional from the table above is only meaningful together with the insertion point it was designed for. In each case the stimulation term is $w_i\,s(t)$, i.e. the weight $w_i$ computed from the static field $\vec{E}_0$ multiplied by the temporal profile $s(t)$.
+The seven insertion points below correspond one-to-one to the rows of the table: point $n$ implements F$n$, and each row number links to its point. In every case the stimulation term is $w_i\,s(t)$. What differs is which equation receives it, and in what form.
 
-1. **Additive current in the mean-potential equation (exact mean field).** In the Montbrió–Pazó–Roxin (MPR) reduction and its second-order-synapse extension NMM2, the field enters as a *common* input $I_E(t)=w_i\,s(t)$ in
+(insertion-1)=
+1. **Voltage offset inside the sigmoid (F1).** Add $w_i\,s(t)$ to the membrane potential of the target subpopulation before the sigmoid, so that it reads $S\!\left(\sum_s v_s+w_i\,s(t)\right)$. In TVB, `JansenRit` exposes only `y4`; to offset a different subpopulation you must extend `cvar`. The offset is a lumped, semi-empirical quantity. It can be applied to more than one subpopulation: [@molaeeardekani2013tdcs] add a separate term to each of the three subpopulations $X\in\{P,I,I'\}$ (pyramidal, fast and slow interneurons) with independent coefficients, whereas [@merlet2013oscillatory] restrict it to pyramidal cells. The laminar NMM (LaNMM) extends this to a layered cortical column with an explicit physical layer for field application and forward modelling [@sanchez-todo2023physical].
+
+(insertion-2)=
+2. **Additive mean firing rate (F2).** Add $w_i\,s(t)$ to the input firing rate of the pyramidal population, entering through the excitatory interneuron path. The weight carries an extra factor $1/(A h_e)$, with $A$ the excitatory synaptic gain and $h_e$ the maximum excitatory postsynaptic potential, which converts a voltage offset into a rate. This is not interchangeable with point 1: an offset acts on the sigmoid's argument, whereas a rate acts on the input to the excitatory interneuron mass. The authors do compute an intermediate offset $\hat{u}_{\text{tDCS}}\,\zeta_i$, capped at $|4|\ \text{mV}$ (30 mV/mm), but it never enters the state equations: it is divided by $A h_e$ to give the rate, which is added to $p_{\text{in}}=p_0+m_{\text{tDCS}}+\gamma W_{\text{het}}S(Ju_{\text{Py}})$ [@kunze2016tdcs].
+
+(insertion-3)=
+3. **Additive current in the mean-potential equation (F3).** Add $I_E(t)=w_i\,s(t)$ to the voltage equation of MPR/NMM2:
    $$
    \tau_m\dot{v}=\eta-(\pi r\tau_m)^2+v^2+\tau_m Js+I_E(t),
    $$
-   with $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$ (F3), where $\boldsymbol{\lambda}_i$ is the dipole coupling vector of the population (written $\tilde{P}$ in some of the original derivations). Because $I_E$ is identical for every neuron in the population, the Lorentzian ansatz remains exact: the field shifts the centre $v$ of the distribution but does not change its half-width. This is the cleanest case, and the one the `stvar`/`cvar` discussion above targets [@montbrio2015; @ruffini2022exact; @clusella2023comparison].
-2. **Voltage offset inside the sigmoid (classical NMM).** The field appears as $S\!\left(\sum_s v_s+w_i\,s(t)\right)$ in a Jansen–Rit or Wendling-type model, with $w_i$ given by F1. This is not exact; the offset is a lumped, semi-empirical quantity [@jansenRit1995; @molaeeardekani2013tdcs; @merlet2013oscillatory]. The laminar NMM (LaNMM) extends this to a layered cortical column with an explicit physical layer for field application and for forward modelling of the resulting electrophysiology [@sanchez-todo2023physical].
-3. **Additive mean firing rate (classical NMM, alternative).** Rather than offsetting the membrane potential, the field can be converted into an equivalent additive mean firing rate that enters the pyramidal population through the excitatory interneuron path. This is the route taken by the large-scale tDCS model of [@kunze2016tdcs]. The functional is still the signed normal projection, but the coupling constant carries an extra factor $1/(A h_e)$, where $A$ is the excitatory synaptic gain and $h_e$ the maximum excitatory postsynaptic potential. The authors do compute an intermediate voltage offset $\hat{u}_{\text{tDCS}}\,\zeta_i$ (capped at $|4|\ \text{mV}$, corresponding to 30 mV/mm), but that offset never enters the state equations: it is immediately divided by $A h_e$ to give the rate $\hat{p}_{\text{tDCS}}\,\zeta_i$, which is then added to the input firing rate $p_{\text{in}}=p_0+m_{\text{tDCS}}+\gamma W_{\text{het}}S(Ju_{\text{Py}})$. The two classical routes are therefore not interchangeable: an offset inside the sigmoid acts on the sigmoid's argument, whereas an additive rate acts on the input to the excitatory interneuron mass, and $A h_e$ is the conversion factor between them.
-4. **Shift of the mean drive in a linear–nonlinear cascade.** For AdEx/EIF populations the field is first converted to an equivalent somatic current through the cable transfer function, giving $w_i$ from F5, and then shifts $\mu_E^{\text{ext}}(t)\to\mu_E^{\text{ext}}(t)+w_i\,s(t)$ [@aspart2016extending; @cakan2020biophysically].
-5. **Modulation of a gating variable.** The field is mapped to a bias voltage $w_i=\lambda\vec{E}_{\text{normal}}(i)$ (F1) and then to a modulation term $\theta(i)=k\,w_i\,s(t)$ added to the synaptic gating dynamics. This is heuristic but explicit, and it is the route used to embed tDCS into a dynamic mean-field whole-brain model [@dong2025tdcs].
-6. **Input-rate pulse (TMS).** The field is converted into a spike-rate pulse on layer 2/3 axons, with $w_i$ from F6 setting the pulse amplitude, which then propagates synaptically to layer 5. This is currently the only fully biophysical TMS-to-NMM coupling [@miller2026coupling].
+   with $w_i=\boldsymbol{\lambda}_i\cdot\langle\vec{E}_0\rangle_{V_i}$. In TVB, `MontbrioPazoRoxin` defaults to `stvar = [1]`, which is exactly this equation, so no change is needed. The closure stays exact because $I_E$ is common to all neurons — a condition that the parcel reduction imposes by construction, not one that the field satisfies. If the field varies over $V_i$, that variation is discarded rather than resolved. The field shifts the centre $v$ of the distribution but not its half-width; retaining per-neuron heterogeneity instead requires the distribution of $\boldsymbol{\lambda}\cdot\vec{E}$ to be Lorentzian, which is the assumption behind F5 [@montbrio2015; @ruffini2022exact; @clusella2023comparison].
+
+(insertion-4)=
+4. **Additive input current in a linear–nonlinear cascade (F4).** Convert the field to an equivalent somatic current through the cable transfer function, then add it to the input of the excitatory population. The transfer function is frequency-dependent, so $w_i$ is a function of the stimulation frequency, $w_i(f)$. For a single-frequency protocol this is still one number per parcel; for broadband or multi-frequency stimulation it is not, and you must either evaluate it per frequency component or precompute it on a grid. [@aspart2016extending] derive the equivalent current analytically from a ball-and-stick cable neuron model and show that its amplitude grows with field frequency while the somatic sensitivity decreases; [@cakan2020biophysically] propagate it to an AdEx mean field and apply it to the excitatory population only.
+
+(insertion-5)=
+5. **Widening of heterogeneity in the rate equation (F5).** Do not add a term; change a parameter. Let $\boldsymbol{\lambda}$ be the dipole coupling vector of a neuron, so that $\boldsymbol{\lambda}\cdot\vec{E}_0$ is its field-induced input, and let $\Delta_\lambda$ be the half-width of the distribution of that input across the population. If that distribution is Lorentzian, the total input stays Lorentzian and its half-width becomes $\Delta+\Delta_\lambda$, since Lorentzian half-widths add under convolution. Set $\Delta\to\Delta+\Delta_\lambda$; $\eta$, the centre of the distribution, is unchanged. In TVB, either set `Delta` directly, which is the faithful option, or set `stvar = [0]` and inject $\Delta_\lambda/(\pi\tau^2)$ into the rate equation, which is algebraically equivalent. Note that the default `stvar = [1]` targets the wrong equation for this case. The location shift is a separate matter and is independent of $\Delta_\lambda$: it vanishes only if orientations are isotropically distributed, whereas $\Delta_\lambda$ can be large or small either way. Note that for a Lorentzian the location parameter is the median, not the mean, since the Cauchy distribution has no finite mean [@ruffini2022exact; @clusella2023comparison].
+
+(insertion-6)=
+6. **Modulation of a gating variable (F6).** Add $\theta(i)=k\,w_i\,s(t)$ to the gating ODE, $\dot{S}_i=-S_i/\tau_S+\gamma(1-S_i)H(x_i)+\sigma v_i(t)+\theta(i)$, with $w_i=\lambda\vec{E}_{\text{normal}}(i)$. In TVB, `ReducedWongWangExcInh` exposes `I_ext`, but that parameter enters the excitatory drive $x_{ek}$, not the gating equation, so setting `I_ext` does not reproduce this coupling. The bias voltage here is a derived quantity that never enters a membrane-potential equation, which is why this is a distinct insertion point from point 1 rather than a variant of it [@deco2013resting; @dong2025tdcs].
+
+(insertion-7)=
+7. **Per-subpopulation offset from a spherical-harmonic response (F7).** Reduce the field to one value per parcel by averaging the normal component over the mesh nodes of parcel $i$, then apply a separate offset to each subpopulation $p$:
+   $$
+   w_{i,p}=\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i}\,\lambda_p\,G_E,
+   $$
+   with $\lambda_p=1,\ 0.35,\ 0.25,\ 0.1$ for pyramidal, excitatory interneuron, SST and PV cells. One parcel therefore receives four perturbations from a single field value. $G_E$ is a calibrated gain, not a physical constant: it absorbs both the cancellation from signed averaging of $\hat{\mathbf{n}}\cdot\vec{E}_0$ over the folded cortex and the mesoscopic amplification from cell to population level, and is fixed per subject so that the hardest-to-influence parcel responds to 0.1 V/m. Expect the signed parcel average to be small — in a 12-patient cohort its median absolute value was 0.013 V/m against a raw cortical field of about 0.1 V/m [@galan2023spherical; @mercadal2026wholebrain].
 
 ### Magnitudes
 
 The coupling constant $\lambda$ has units of length, and is best read as a membrane displacement per unit field. Direct measurements in rat hippocampal slices give $0.12\pm0.05\ \text{mV}$ per $\text{mV/mm}$ at the soma [@bikson2004uniform]. Compartment-model reconstructions of neocortical cells give $0.14\ \text{mV}$ per $\text{V/m}$ for layer 5 thick-tufted pyramidal cells, $0.10$ for layer 6 tufted cells and $0.07$ for untufted cells [@galan2023spherical]. Whole-brain tDCS models typically adopt $\lambda\approx 0.13$ together with the normal field component, and cap the resulting polarization at $|4|\ \text{mV}$ [@dong2025tdcs].
 
-With typical tES field strengths of $0.2$–$2\ \text{V/m}$ [@ruffini2013tcs], the resulting weight $w_i$ corresponds to a membrane perturbation of order $0.02$–$0.4\ \text{mV}$, i.e. genuinely subthreshold. This is why the network-amplification argument matters: in the exact mean-field description the resonant response to a weak alternating field grows with self-connectivity and with slow synapses, so a population can respond measurably to a field that barely moves a single neuron [@clusella2023comparison].
+With typical tES field strengths of $0.2$–$2\ \text{V/m}$ [@ruffini2013tcs], the resulting weight $w_i$ corresponds to a membrane perturbation of order $0.02$–$0.4\ \text{mV}$, i.e. genuinely subthreshold. This is why the network-amplification argument matters. In the exact mean-field description the resonant response to a weak alternating field grows with two things: the strength of recurrent excitation *within* the population, i.e. the gain with which the population's own firing rate feeds back onto its input (the synaptic weight $J$ in the MPR equations), and the slowness of the synaptic kinetics, which gives that feedback loop memory and lets it integrate the perturbation over a longer window. A population can therefore respond measurably to a field that barely moves a single neuron [@clusella2023comparison].
 
 ### Two distinct averaging problems
 
 Averaging a field over a parcel is often described as if it were a single problem, but there are two, and they call for different remedies.
 
 - **Geometric cancellation.** The surface normal $\hat{\mathbf{n}}(\mathbf{r})$ reverses between gyral crowns and sulcal walls. A *signed* average of $\hat{\mathbf{n}}\cdot\vec{E}_0$ over a parcel that spans both can therefore cancel, even when the local field is large everywhere. Remedies are finer parcellation, sub-parcel orientation binning, or a fibre-aligned projection that does not rely on the cortical normal [@colella2025effective].
-- **Rectification.** Because the map from field to membrane displacement is rectifying, $\langle f(E_n)\rangle_{V_i}\neq f(\langle E_n\rangle_{V_i})$. A vanishing mean field therefore does not imply a vanishing $w_i$. The correct procedure is to average the *response*, not the field, which is what the spherical-harmonic representation makes explicit [@galan2023spherical].
+- **Rectification.** Because the map from field to membrane displacement is rectifying, $\langle f(\hat{\mathbf{n}}\cdot\vec{E}_0)\rangle_{V_i}\neq f(\langle\hat{\mathbf{n}}\cdot\vec{E}_0\rangle_{V_i})$. A vanishing mean field therefore does not imply a vanishing $w_i$. The correct procedure is to average the *response*, not the field, which is what the spherical-harmonic representation makes explicit [@galan2023spherical].
 
-Note also that orientation dispersion does not break the Lorentzian ansatz. In the exact mean-field formulation, variations in orientation can be absorbed into the quenched-noise term, so dispersion renormalises $\eta$ and $\Delta$ rather than requiring a modified distribution [@ruffini2022exact].
+Orientation dispersion interacts with the mean-field closure in a way that is easy to overstate. Dispersion does not by itself break the Lorentzian ansatz, but it does not leave it untouched either: the closure survives only if the resulting distribution of $\boldsymbol{\lambda}\cdot\vec{E}_0$ across the population is itself Lorentzian, in which case it can be absorbed into the quenched-noise width as described under [F5](#insertion-5). For other orientation distributions — including the isotropic case, which produces a uniform rather than a Lorentzian distribution of the projected field — the closure is broken and the reduction no longer holds exactly [@ruffini2022exact; @clusella2023comparison].
 
 ### Consequences for TVB
 
-`StimuliRegion` accepts one scalar weight per region, so every functional above has to collapse to a scalar $w_i$. F1, F2, F3 and F4 do so directly. F5 and F6 do not, because they are frequency- or fibre-resolved; they require either a pre-computed effective weight or a custom `StimuliRegion` subclass.
+`StimuliRegion` takes one scalar weight per region, so each functional has to collapse to a scalar $w_i$. F1, F2, F3 and F6 do so directly. F4 does so for a single-frequency protocol, where $w_i(f)$ is one number; for broadband stimulation, precompute an effective weight or subclass `StimuliRegion`. F5 is not an additive drive at all but a change to $\Delta$, so set `Delta` directly instead of using the stimulus channel.
+
+F7 needs one weight per *subpopulation*, not per region. In the classic `Simulator` this is not expressible: `stvar` selects which equations receive the stimulus, but all of them receive the same value. In the hybrid framework, attach one stimulus per subpopulation — four `Subnetwork.add_stimulus` calls, each with its own `StimuliRegion` weight and its own `stimulus_cvar`. No subclassing is needed, and the contributions add.
 
 Two conventions deserve to be fixed explicitly in any implementation:
 
 - **Polarity.** A functional that takes the field magnitude rather than a signed projection discards the sign, so $w_i\ge 0$ by construction. That is fatal for tDCS, where the anodal/cathodal distinction is the entire effect.
-- **Normal orientation.** The sign convention of $\hat{\mathbf{n}}$ must be stated, since surface-inward is depolarizing. This is the most common source of inverted results across the papers cited above.
+- **Normal orientation.** The sign convention of $\hat{\mathbf{n}}$ must be stated explicitly. Reversing it flips the sign of the stimulation contribution, turning an intended depolarization into a hyperpolarization. This is the most common source of inverted results across the papers cited above.

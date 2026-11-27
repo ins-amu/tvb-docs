@@ -1,0 +1,14 @@
+# Canonicalize contributor identities across git history for `git blame` and `git log`.
+# Format: Preferred Name <preferred@email> Commit Name <commit@email>
+Amirhossein Esmaeili <a.essmaeeli@gmail.com> ahesmaeili <a.essmaeeli@gmail.com>
+Charlotte Maschke <charlotte.maschke@gmx.de> CharlotteMaschke <charlotte.maschke@gmx.de>
+Charlotte Maschke <charlotte.maschke@gmx.de> CharlotteMaschke <55599742+CharlotteMaschke@users.noreply.github.com>
+Christos Liontas <clion@teemail.gr> cliontas <77234274+cliontas@users.noreply.github.com>
+Jan Fousek <jan.fousek@ceitec.muni.cz>
+Ján Repka <jan.repka@ceitec.muni.cz> Janči Repka <jan.repka@ceitec.muni.cz>
+Ján Repka <jan.repka@ceitec.muni.cz> Ján Repka <84009463+DolarJoe@users.noreply.github.com>
+Marmaduke Woodman <marmaduke.woodman@univ-amu.fr> marmaduke woodman <marmaduke.woodman@univ-amu.fr>
+Matthew Bassat <87857488+mattbassat@users.noreply.github.com> mattbassat <87857488+mattbassat@users.noreply.github.com>
+Sourin Chatterjee <sourinchatterjee2001@gmail.com> sourinchatt <SOURINCHATTERJEE2001@GMAIL.COM>
+Sourin Chatterjee <sourinchatterjee2001@gmail.com> sourinchatt <183740623+sourinchatt@users.noreply.github.com>
+Spase Petkoski <spase.petkoski@univ-amu.fr> spase <spase.petkoski@univ-amu.fr>

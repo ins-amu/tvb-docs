@@ -155,6 +155,21 @@ class TestBuildCacheHashing(unittest.TestCase):
                 )
                 self.assertTrue(make._trajecturtle_installed_editable())
 
+    def test_hash_tree_excludes_generated_contributors_md(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            about_dir = tmp_path / "content" / "about"
+            about_dir.mkdir(parents=True)
+            (about_dir / "about-this-site.md").write_text("# About\n", encoding="utf-8")
+            gen = about_dir / "contributors.md"
+            gen.write_text("# Contributors v1\n", encoding="utf-8")
+
+            with mock.patch.object(make, "ROOT", tmp_path), mock.patch.dict(os.environ, {"CI": "true"}):
+                h1 = make._hash_tree(["content"], exclude_content_generated=True)
+                gen.write_text("# Contributors v2 with extra text\n", encoding="utf-8")
+                h2 = make._hash_tree(["content"], exclude_content_generated=True)
+                self.assertEqual(h1, h2)
+
 
 if __name__ == "__main__":
     unittest.main()

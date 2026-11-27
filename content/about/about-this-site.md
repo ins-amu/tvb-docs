@@ -1,13 +1,8 @@
 # About this documentation
 
 ## Contributors
-- Charlotte Maschke
-- Marmaduke Woodman
-- Sourin Chatterjee
-- Matthew Bassat
-- Jan Fousek
-- Christos Liontas
-- Ján Repka
+
+Page-level contributor credits and the full [Contributors](contributors.md) index are generated automatically from git history (`git blame` and `Co-authored-by:` trailers). To add or update your affiliation or institute website link, edit [`contributors.yml`](https://github.com/ins-amu/tvb-docs/blob/main/contributors.yml).
 
 *Reference — how this documentation site itself is built and organised.*
 

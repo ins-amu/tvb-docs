@@ -325,3 +325,43 @@ dialog.ppw-expanded-workspace {
 dialog.ppw-expanded-workspace::backdrop {
   background: rgba(15, 20, 28, 0.65);
 }
+
+/* ------------------------------------------------------------------ *
+ * Page-level contributor attribution & Contributors dashboard
+ * ------------------------------------------------------------------ */
+hr:has(+ p > strong:first-child):has(+ p a[href*="#contributor-"]) {
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  border-color: var(--myst-color-bg-secondary);
+}
+
+p:has(> strong:first-child):has(a[href*="#contributor-"]) {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--myst-color-text-secondary);
+  margin-top: 0;
+}
+
+p:has(> strong:first-child):has(a[href*="#contributor-"]) strong {
+  color: var(--myst-color-text);
+  font-weight: 600;
+}
+
+p:has(> strong:first-child):has(a[href*="#contributor-"]) a[href*="#contributor-"] {
+  color: var(--myst-color-link);
+  text-decoration: none;
+}
+
+p:has(> strong:first-child):has(a[href*="#contributor-"]) a[href*="#contributor-"]:is(:hover, :focus-visible) {
+  text-decoration: underline;
+}
+
+[id^="contributor-"] {
+  scroll-margin-top: 5rem;
+}
+
+[id^="contributor-"]:target {
+  background: var(--myst-color-accent-surface);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+}

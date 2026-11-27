@@ -1,0 +1,76 @@
+# Contributor profile metadata for per-page attribution and the Contributors page.
+#
+# How to add or update your profile:
+#   1. Find your entry below (or add a new key using a lowercase slug of your name).
+#   2. Set `github` to your GitHub username (without `@`).
+#   3. Optionally set `affiliation` (e.g. university, lab, or institute name) and
+#      `website` (full `https://...` URL to your institute, lab, or personal page).
+#   4. If you committed under multiple emails, add a mapping in `.mailmap` or list
+#      extra emails under `emails:`.
+#
+# Example entry with optional affiliation and website:
+#   jane-doe:
+#     name: Jane Doe
+#     email: jane.doe@example.org
+#     github: janedoe
+#     affiliation: Institute for Systems Neuroscience
+#     website: https://ins-amu.fr
+
+ignore_names:
+  - copilot
+  - copilot-swe-agent[bot]
+  - dependabot[bot]
+  - github-actions[bot]
+  - renovate[bot]
+
+ignore_emails:
+  - 198982749+Copilot@users.noreply.github.com
+  - 223556219+Copilot@users.noreply.github.com
+  - noreply@anthropic.com
+  - action@github.com
+
+contributors:
+  amirhossein-esmaeili:
+    name: Amirhossein Esmaeili
+    email: a.essmaeeli@gmail.com
+    github: AHEsmaeili
+
+  charlotte-maschke:
+    name: Charlotte Maschke
+    email: charlotte.maschke@gmx.de
+    github: CharlotteMaschke
+
+  christos-liontas:
+    name: Christos Liontas
+    email: clion@teemail.gr
+    github: cliontas
+
+  jan-fousek:
+    name: Jan Fousek
+    email: jan.fousek@ceitec.muni.cz
+    github: i-Zaak
+
+  jan-repka:
+    name: Ján Repka
+    email: jan.repka@ceitec.muni.cz
+    github: DolarJoe
+
+  marmaduke-woodman:
+    name: Marmaduke Woodman
+    email: marmaduke.woodman@univ-amu.fr
+    github: maedoc
+
+  matthew-bassat:
+    name: Matthew Bassat
+    email: 87857488+mattbassat@users.noreply.github.com
+    github: mattbassat
+
+  sourin-chatterjee:
+    name: Sourin Chatterjee
+    email: sourinchatterjee2001@gmail.com
+    github: sourinchatt
+
+  spase-petkoski:
+    name: Spase Petkoski
+    email: spase.petkoski@univ-amu.fr
+    github: esaps

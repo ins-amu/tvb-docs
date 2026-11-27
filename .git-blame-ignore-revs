@@ -1,0 +1,6 @@
+# Commits listed here are ignored by `git blame` when computing per-page attribution.
+# Add full 40-character commit SHAs for pure formatting, bulk migration, or
+# notebook re-execution commits that should not overwrite original authorship.
+#
+# Example:
+# 0123456789abcdef0123456789abcdef01234567  # Reformat markdown tables

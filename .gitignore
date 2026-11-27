@@ -41,5 +41,6 @@ content/.refs-cache.json
 # Generated API reference pages (keep orientation index.md)
 content/reference/api/*
 !content/reference/api/index.md
+content/about/contributors.md
 .myst.apidoc.yml
 

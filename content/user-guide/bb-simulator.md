@@ -32,9 +32,8 @@ The history is stored as a four-dimensional array with axes **time × state
 variable × brain region × mode**. The model sets the length of the
 {term}`mode <Mode>` axis through `number_of_modes`. The `Generic2dOscillator`
 has one mode, so each region has one $V$ and one $W$ value at each time point.
-The array below sets $V=-0.5$ and $W=0$ in every region at the start of the
-run. It supplies only one time point; TVB generates the earlier states needed
-for transmission delays from the model's sampling ranges.
+Here we set $V=-0.5$ and $W=0$ throughout the history required by the
+connectome's transmission delays.
 
 ```{code-cell} ipython3
 import numpy as np
@@ -43,29 +42,35 @@ from tvb.simulator import integrators, models, monitors, simulator
 
 model = models.Generic2dOscillator()
 conn = connectivity.Connectivity.from_file()
+dt = 0.1
+conn.configure()
+conn.set_idelays(dt)
 print(f"Modes per region: {model.number_of_modes}")
 for variable in model.state_variables:
     print(f"{variable} initial draw range: {model.state_variable_range[variable]}")
-initial_history = np.zeros((1, model.nvar, len(conn.region_labels), model.number_of_modes))
+initial_history = np.zeros((conn.horizon, model.nvar, conn.number_of_regions,
+                            model.number_of_modes))
 initial_history[:, model.state_variables.index("V"), :, :] = -0.5
 
 sim_with_ic = simulator.Simulator(
     connectivity=conn,
     model=model,
-    integrator=integrators.HeunDeterministic(dt=0.1),
+    integrator=integrators.HeunDeterministic(dt=dt),
     monitors=(monitors.Raw(),),
     initial_conditions=initial_history,
 )
-np.random.seed(7)
 sim_with_ic.configure()
 print(f"Supplied history shape: {initial_history.shape}")
 print(f"History points needed for delays: {sim_with_ic.good_history_shape[0]}")
 print(f"First region's starting state: {sim_with_ic.current_state[:, 0, 0]}")
 ```
 
-The 300 ms run below uses a separate simulator with model-drawn history.
-To prescribe the entire history, supply enough time points to cover the
-longest transmission delay. During `configure()`, TVB checks the state
+`conn.set_idelays(dt)` gives the required history length, `conn.horizon`, in
+integration steps. The array supplies every one of those steps, so TVB does
+not fill earlier states with random values. A constant history is convenient
+for this example, although the model may show an initial transient as it
+evolves from these values. The 300 ms run below uses a separate simulator with
+model-drawn history. During `configure()`, TVB checks the state
 variable, region, and mode dimensions. A mismatch raises `Incorrect history
 sample shape`
 ([history source](https://docs.thevirtualbrain.org/_modules/tvb/simulator/history.html)).

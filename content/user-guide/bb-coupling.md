@@ -7,7 +7,7 @@ bibliography:
 # Coupling
 
 The {term}`coupling function <Coupling function>` is the rule that turns
-activity arriving over the long-range [connectivity](bb-connectivity.md) into
+activity arriving from the long-range [connectivity](bb-connectivity.md) into
 input to a node's local dynamics. The {term}`connectome` decides *who* talks to
 whom and how strongly; the coupling function decides *how* the arriving signal
 is transformed before it enters the {term}`neural mass model`.
@@ -27,7 +27,7 @@ This page covers three topics. Jump to whichever you need.
 Everything on this page is written from the point of view of a simulation that
 uses delays and a history buffer. The same concepts apply if you don't have
 delays: drop $\tau_{kj}$ and read the neighbourhood state at the current time.
-Same with any mentions to delayed state, without delays that becomes current state.
+Same with any mentions to delayed state; without delays that becomes current state.
 Nothing else about the pipeline changes.
 :::
 
@@ -36,8 +36,8 @@ The pipeline is always the same four steps:
 
 1. The **pre-synaptic** function is applied to the (delayed) state of the
    neighbours.
-2. A **dot product** of the weights with this "new" state: $u_{kj}\,S(\cdot)$.
-3. The **rows are summed** — each target node collects everything addressed to it.
+2. A **dot product** of the weights is calculated with this "new" state: $u_{kj}\,S(\cdot)$.
+3. The **rows are summed**, each target node collects everything addressed to it.
 4. The **post-synaptic** function is applied to that sum, last.
 
 In one line, for target region $k$:
@@ -78,10 +78,10 @@ u_{l1} & u_{l2} & \cdots & u_{ll}
 \Psi_{l\_\mathrm{delayed}}
 \end{pmatrix}\right)=
 \begin{pmatrix}
-\dot \Psi_{1} \\
-\dot \Psi_{2} \\
+I_{1} \\
+I_{2} \\
 \vdots \\
-\dot \Psi_{l}
+I_{l}
 \end{pmatrix}
 $$
 
@@ -99,8 +99,8 @@ vector as a whole.
 
 ### Where the gain enters
 
-Coupling functions regulate the gain, not the simulator. The
-overall gain comes from one of two places:
+Coupling functions, not the simulator, regulate the scale of the neighbours input.
+This effect is called gain. The overall gain comes from one of two places:
 
 - the `a` (or `G`, `cmax`) parameter of the coupling function, which scales the
   summed afferents, and
@@ -129,8 +129,8 @@ instead it should override `pre` and `post` methods.
 
 | Method | Receives | Returns | Default |
 |---|---|---|---|
-| `pre(x_i, x_j)` | current state of the target, delayed state of every source | per-connection transformed activity, shape $(l, l)$ | `x_j` — pass through |
-| `post(gx)` | the row-summed, weighted activity, shape $(l,)$ | the vector that enters `dfun()` | `gx` — pass through |
+| `pre(x_i, x_j)` | current state of the target, delayed state of every source | per-connection transformed activity, shape $(l, l)$ | `x_j` - pass through |
+| `post(gx)` | the row-summed, weighted activity, shape $(l,)$ | the vector that enters `dfun()` | `gx` - pass through |
 
 The defaults make the base class a plain linear-weighted-sum coupling. Any
 function that only rescales or shifts the summed input needs `post` alone; any
@@ -210,7 +210,7 @@ class and touch the full $l \times l$ matrix.
 ### 1. Pick the function for your model
 
 Ask where the nonlinearity already is. If the model equations contain a
-sigmoid, the coupling might consider `Linear`. If the model is a phase
+sigmoid, you might consider `Linear` coupling. If the model is a phase
 oscillator, consider `Difference` or `Kuramoto`. Only reach for a pre-synaptic
 sigmoid when the source activity itself must be bounded.
 
@@ -255,7 +255,7 @@ Do not call `configure()` on the coupling function yourself. `Simulator.configur
 
 Attach `monitors.AfferentCoupling()` and look at the recorded input. 
 The magnitude should be comparable to the terms the
-model's equations expect — if the coupling input is orders of magnitude larger
+model's equations expect - if the coupling input is orders of magnitude larger
 than the local dynamics, the gain is wrong and the network is being driven, not
 coupled.
 

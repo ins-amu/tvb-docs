@@ -96,12 +96,7 @@ The two ends need not match in size, so:
 
 ### Stimuli enter through coupling slots, not `stvar`
 
-In classic TVB, a stimulus is written into the state variables listed in
-`model.stvar` and added to the state by the integrator — it never reaches
-`dfun`. A hybrid simulation never reads `stvar`. A stimulus targets one of
-the model's `cvar` slots and arrives inside `c`, so the model's equations see
-it as coupling. `KIonEx`, `InfiniteTheta` and `GastSollaKennedy` override
-`stvar` for classic use; inside a hybrid simulation that override is ignored.
+A stimulus targets one of the model's `cvar` slots and arrives inside `c`, so the model's equations see it as coupling.
 
 ### Modes belong to the model, not the simulator
 

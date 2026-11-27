@@ -106,6 +106,8 @@ Directional bias
 Dynamic functional connectivity
 : Variation in estimated {term}`functional connectivity <Functional connectivity>` over time, often assessed using sliding windows.
 
+  [User guide: Functional connectivity dynamics and fluidity](user-guide/outward/fcd-fluidity.md)
+
 Dynamical noise
 : A noise term $g(\psi_i)\xi_i(t)$ applied during integration; $g$ sets its amplitude and can depend on the node's state.
 
@@ -152,6 +154,11 @@ Firing rate
 Fixed point
 : A state that remains unchanged under the dynamics. In continuous time, its time derivatives vanish.
 
+Fluidity
+: The variance of {term}`FCD <Functional connectivity dynamics>` values between non-overlapping windows; higher values indicate switching among recurring connectivity patterns.
+
+  [User guide: Functional connectivity dynamics and fluidity](user-guide/outward/fcd-fluidity.md)
+
 fMRI
 : Functional magnetic resonance imaging maps changes related to brain activity, most commonly using {term}`BOLD` contrast.
 
@@ -164,6 +171,11 @@ Functional connectivity
 : Statistical dependence between activity signals from different locations, commonly estimated with correlations.
 
   [Explanation: Functional connectivity](explanation/functional-connectivity.md)
+
+Functional connectivity dynamics
+: A matrix of correlations between the {term}`functional connectivity <Functional connectivity>` patterns of every pair of time windows, showing when connectivity persists, changes, or recurs.
+
+  [User guide: Functional connectivity dynamics and fluidity](user-guide/outward/fcd-fluidity.md)
 
 Global coupling
 : A shared scale factor controlling the overall strength of long-range input in a network simulation.

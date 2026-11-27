@@ -44,6 +44,7 @@ parts:
           - file: content/user-guide/outward/tvb-to-mne.md
           - file: content/user-guide/outward/data-features.md
           - file: content/user-guide/outward/fc-sc.md
+          - file: content/user-guide/outward/fcd-fluidity.md
           - file: content/user-guide/outward/avalanches.md
       
       - title: Parameter Sweeps

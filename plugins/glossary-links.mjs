@@ -20,6 +20,7 @@ const aliases = {
   'Feedback inhibition control': ['FIC'],
   'Fixed point': ['equilibrium', 'equilibria'],
   'Functional connectivity': ['FC'],
+  'Functional connectivity dynamics': ['FCD'],
   'Neural mass model': ['NMM', 'NMMs', 'neural mass', 'neural masses'],
   'Ordinary differential equation': ['ODE', 'ODEs'],
   'Power spectral density': ['PSD'],

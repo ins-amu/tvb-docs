@@ -50,10 +50,10 @@ parts:
       - title: Parameter Sweeps
         sections:
           - file: content/user-guide/sweep/theory.md
-          - file: content/user-guide/sweep/bifurcation.md
-          - file: content/user-guide/sweep/mc-sampling.md
-          - file: content/user-guide/sweep/parameter-types.md
-          - file: content/user-guide/sweep/backends.md
+          - file: content/user-guide/sweep/parameter-types.ipynb
+          - file: content/user-guide/sweep/bifurcation.ipynb
+          - file: content/user-guide/sweep/mc-sampling.ipynb
+          - file: content/user-guide/sweep/backends.ipynb
 
       - title: Inference
         sections:
@@ -67,6 +67,7 @@ parts:
           - file: content/user-guide/hpc/general.md
           # vbi, 
           - file: content/user-guide/hpc/tvb-implementations.md
+          - file: content/user-guide/hpc/cpp-hybrid-backend.md
           - file: content/user-guide/hpc/ebrains.md
 
       - title: High Resolution
@@ -153,6 +154,8 @@ parts:
           - file: content/demos/simulate_hybrid_stochastic_and_bold.ipynb
           - file: content/demos/simulate_hybrid_multi_dt.ipynb
           - file: content/demos/cpp_hybrid_sweep.ipynb
+          - file: content/demos/cpp_hybrid_balloon_windkessel.ipynb
+          - file: content/demos/cpp_hybrid_multirate_bw_sweep.ipynb
           - file: content/demos/gpu_parallel_parameter_sweeps.ipynb
           - file: content/demos/model_generation_using_dsl.ipynb
           - file: content/demos/RateML_Python_TVB.ipynb

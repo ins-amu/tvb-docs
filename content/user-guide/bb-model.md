@@ -220,20 +220,11 @@ Only the fields that matter for routing are shown. `n` is `nvar`, `M` is
 | `Dody` | 6 | 1 | 3 → `r`, `V`, `u` | Custom hybrid-era model |
 
 ### Choosing a model per subnetwork
-
-- **Match the coupling function to the model, not the other way round.** Models
-  whose equations already saturate (`JansenRit`, `ReducedWongWang`) want
-  `Linear` projectors. Oscillator models want `Difference` or `Kuramoto`.
+TODO maybe remove?
 - **Prefer the smallest model that carries the mechanism.** A `Linear` driver
-  subnetwork is often enough to test a projection topology before paying for a
+  subnetwork is often enough to test a projection topology before using a
   second `JansenRit` block.
-- **Check slot count before wiring.** Two-slot targets (`WilsonCowan`,
-  `JansenRit`, `MontbrioPazoRoxin`, `ReducedSet*`, `CerebellarMF`) reward an
-  explicit look at `dfun`, because declaring a slot is not the same as reading
-  it.
-- **Keep mode counts deliberate.** Mixing $M = 1$ and $M = 3$ is supported and
-  is the main reason to use a hybrid model at all, but it changes the gain
-  through `mode_map` unless compensated.
+- **Keep mode counts deliberate.** Mixing $M = 1$ and $M = 3$ is supported, but it changes the gain through `mode_map` unless compensated.
 
 ### Backend support
 

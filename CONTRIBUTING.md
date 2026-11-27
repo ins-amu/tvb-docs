@@ -163,6 +163,39 @@ The `content/demos/` directory contains 60+ legacy demonstration notebooks from 
 
 ---
 
+## Hiding Notebook Cells
+
+For documentation pages rendered from `.ipynb` notebooks, use standard MyST / Jupyter Book **cell tags** to collapse or hide cells in the built HTML:
+
+| Tag | Effect in built HTML |
+|---|---|
+| `hide-cell` | Collapses the whole cell (code + output) behind a toggle |
+| `remove-cell` | Hides the whole cell from the rendered page |
+| `hide-input` | Collapses only the code behind a toggle; keeps outputs visible |
+| `remove-input` | Hides only the code; keeps outputs visible |
+| `hide-output` | Collapses only the outputs behind a toggle; keeps code visible |
+| `remove-output` | Hides only the outputs; keeps code visible |
+
+*(Both `hide-cell` and `remove-cell` also work on Markdown cells.)*
+
+### In VS Code
+1. Open the `.ipynb` file (requires Microsoft's **Jupyter** extension, which bundles **Jupyter Cell Tags**).
+2. Click the cell you want to tag, then click **`+ Tag`** on the cell toolbar — or open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run **`Add Cell Tag`**.
+3. Type the tag (e.g., `hide-input` or `remove-cell`), press **Enter**, and save.
+   *(Tip: run **`Jupyter: Focus on Cell Tags View`** from the Command Palette to view or remove tags across the whole notebook.)*
+
+### In JupyterLab
+1. Open the `.ipynb` file and open the **Property Inspector** (gear icon in the right sidebar, or `View → Property Inspector`).
+2. Click the cell you want to tag.
+3. Under **Common Tools → Cell Tags**, click **Add Tag**, type the tag (e.g., `hide-input` or `remove-cell`), press **Enter**, and save.
+
+**Notes:**
+- Tagged cells still run during `make check` / `myst build --execute` (so later cells can rely on their variables); also add `skip-execution` if a cell should not execute.
+- Hidden/removed cells remain intact when readers open the notebook in JupyterLite or download it.
+- In MyST Markdown (`.md`) pages, pass `:tags: [hide-input]` directly as a `{code-cell}` option.
+
+---
+
 ## Linking Between Pages
 
 MyST (`mystmd`) resolves links differently depending on whether the target is in `_toc.yml`, exists only on disk, or is staged post-build. Follow these rules so links work both in the built HTML site and on GitHub.

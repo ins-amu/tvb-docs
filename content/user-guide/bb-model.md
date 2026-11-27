@@ -69,19 +69,30 @@ writes into the `y2` slot and changes nothing. Use `target_cvar=0` (or
 [API contracts](hybrid/hybrid-contracts.md) for the resolution rules and the
 `source_cvar` / `target_cvar` asymmetry.
 
-### Only declared variables cross a boundary
+### Coupling in terms of the model
+TODO review
 
-A model declares which of its state variables travel: its `cvar`. As a
-**source**, `cvar` selects entries of the history buffer, so only those
-variables can be routed out. As a **target**, the same declaration fixes how
-many slots exist. Two consequences when mixing models:
+A model's `cvar` sets both ends of a projection. The two ends are not
+symmetric.
 
-- A projection from a 1-slot source into a 2-slot target fills one slot; the
-  other receives nothing unless a second projection or a stimulus supplies it.
-- Coupling functions are written against a fixed number of coupling variables.
-  `SigmoidalJansenRit` and dynamic `PreSigmoidal` expect **two** and misbehave
-  when the target model supplies fewer. See
-  [coupling functions](bb-coupling.md).
+**As a source**, `cvar` lists the state variables the model can send. Name a
+source variable as a string and it must be in `cvar`, or the projection is
+rejected. An integer `source_cvar` skips that check and indexes the state
+directly.
+
+**As a target**, `cvar` sets how much the model can receive: exactly
+`len(cvar)` slots, and no projection can create more.
+
+The two ends need not match in size, so:
+
+- **The projection addresses fewer slots than the target has.** Only the
+  addressed slots receive input; the others stay at zero until another
+  projection or a stimulus writes into them.
+- **One source variable, several target slots.** The same value lands in every
+  slot listed. Supply as many source variables as slots to map them one to one.
+- **A coupling function expects more variables than the target has slots.**
+  `SigmoidalJansenRit` and dynamic `PreSigmoidal` both expect two and misbehave
+  with fewer. See [coupling functions](bb-coupling.md).
 
 ### Stimuli enter through coupling slots, not `stvar`
 

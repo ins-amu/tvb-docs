@@ -238,6 +238,11 @@ MEG
 Monitor
 : A TVB component that samples, aggregates, or transforms simulation states into outputs.
 
+Mode
+: An index for parallel components of a local model at each node; reduced-set models use several modes to represent population heterogeneity.
+
+  [Building Blocks: Simulator](user-guide/bb-simulator.md)
+
 Multiplicative noise
 : Noise added during integration with an amplitude that depends on the current state.
 
@@ -330,6 +335,9 @@ R-hat
 Reduced model
 : A simplified model that retains selected behaviour while using fewer variables, parameters, or mechanisms.
 
+Reduced-set model
+: A low-dimensional approximation of a heterogeneous neuronal population obtained by projecting its dynamics onto a small set of modes.
+
 Resting state
 : Brain activity without an instructed task. In dynamical-system discussions, the phrase can also refer to a stable baseline regime.
 
@@ -358,6 +366,11 @@ Simulation-based inference
 : Inference that uses simulations to learn about unknown parameters when evaluating the likelihood directly is difficult.
 
   [Inference overview](user-guide/inference.md)
+
+Simulator
+: TVB component that coordinates connectivity, local dynamics, coupling, integration, delayed history, and monitors to generate activity over time.
+
+  [Building Blocks: Simulator](user-guide/bb-simulator.md)
 
 Sparse coupling
 : A representation or computation that stores or evaluates only the connections present in the network.

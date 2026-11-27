@@ -29,7 +29,9 @@ A simulation is assembled from a handful of components, each an object in
   (e.g. the deterministic `HeunDeterministic`, or `HeunStochastic` when you
   want noise).
 - **Monitor** — an observation process applied to the simulated activity: a
-  `Raw` monitor returns the state variables, a `TemporalAverage` monitor
+  `Raw` monitor returns model variables at every integration step (with TVB's
+  default simulator, the model's variables of interest), a `TemporalAverage`
+  monitor
   downsamples like a measuring device with a sampling period, and biophysical
   monitors (EEG, MEG, …) apply a forward model.
 

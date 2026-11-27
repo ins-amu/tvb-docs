@@ -22,7 +22,7 @@ parts:
           - file: content/user-guide/bb-model.md
           - file: content/user-guide/bb-coupling.md
           - file: content/user-guide/bb-integrators.md
-          - file: content/user-guide/bb-monitors.md
+          - file: content/user-guide/bb-monitors.ipynb
           - file: content/user-guide/bb-stimulus.md
           - file: content/user-guide/bb-simulator.md
           - file: content/user-guide/bb-initial-conditions.md

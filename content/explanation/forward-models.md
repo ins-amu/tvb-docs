@@ -14,7 +14,7 @@ real data, those internal variables have to be mapped into the quantities each
 modality actually reports. That mapping is a **forward model**: it answers "what
 would this neural activity look like to this instrument?" [@sanzleon2013].
 
-Skipping it is the most common way to compare a model with data incorrectly. A
+Without that step, a comparison between model and data has no clear meaning. A
 model's state variable and a recording are different physical quantities with
 different units, different filtering, and different delays, and agreement between
 them is only meaningful once the transformation is made explicit.
@@ -22,8 +22,8 @@ them is only meaningful once the transformation is made explicit.
 ## Electromagnetic signals: lead fields
 
 EEG and MEG measure the electric potential and magnetic field produced by summed
-post-synaptic currents in cortical tissue — a population quantity, which is
-exactly what a neural mass variable represents. The forward model is therefore a
+post-synaptic currents in cortical tissue — a population quantity, of the kind
+a neural mass model describes. The forward model is therefore a
 spatial weighting: each source region contributes to each sensor in proportion to
 how its current dipole projects through the head to that sensor,
 
@@ -52,21 +52,31 @@ haemoglobin, and that ratio — not the activity itself — is what the MRI sign
 reports. This is the **BOLD** contrast.
 
 Modelling it as a simple convolution with a fixed response function captures the
-shape of the response but not its dynamics. Biophysically oriented models instead
-represent the vascular cascade explicitly: activity drives flow, flow drives blood
-volume in a compliant ("balloon") venous compartment, and volume together with
-flow determines the de-oxygenation that sets the signal. TVB's haemodynamic
-monitor is a model of this kind — a Wilson–Cowan-style balloon model with its own
-state variables and time constants — driven by the neural mass output.
+shape of the response but not its nonlinearity: the response to a long stimulus
+cannot be predicted by convolving the response to a short one [@glover1999].
+Biophysically oriented models instead represent the vascular cascade explicitly:
+activity drives flow, flow drives blood volume in a compliant ("balloon") venous
+compartment, and volume together with flow determines the de-oxygenation that
+sets the signal [@friston_nonlinear_2000; @stephan2007]. TVB provides both
+kinds. The `Bold` monitor convolves the neural signal with a fixed kernel, by
+default the first-order Volterra kernel of the balloon model
+[@friston_nonlinear_2000]. The
+Balloon–Windkessel analyzer integrates the vascular cascade, with its own state
+variables and time constants, after the run, taking recorded neural activity
+as its input
+([States and observables](../user-guide/outward/states-observables.md#bold)).
 
 The important conceptual points are what this does to the simulated signal:
 
-- **Delay and smearing.** The response peaks several seconds after the neural
-  event, so a BOLD time series is a heavily low-passed version of the underlying
-  dynamics. High-frequency structure is not recoverable from it.
+- **Delay and smearing.** The measured response peaks several seconds after the
+  neural event, so a BOLD time series is a heavily low-passed version of the
+  underlying dynamics. High-frequency structure is not recoverable from it. The
+  delay in a TVB simulation depends on the chosen kernel; the default one peaks
+  after 0.8 s ([States and observables](../user-guide/outward/states-observables.md#bold)).
 - **It is not a spike count.** The vascular response tracks synaptic and local
-  processing activity more closely than output spiking, which is why driving the
-  haemodynamic model with a mass model's synaptic variable is the sensible choice.
+  processing activity more closely than output spiking [@logothetis2001], which
+  is why driving the haemodynamic model with a mass model's synaptic variable is
+  the sensible choice.
 - **Extra parameters, extra degeneracy.** Haemodynamic parameters are nuisance
   parameters for a neural model: they can absorb mismatch that has nothing to do
   with the neural dynamics.
@@ -74,10 +84,12 @@ The important conceptual points are what this does to the simulated signal:
 ## Monitors are where this happens in TVB
 
 In a simulation the forward model is attached as a **monitor**. A `Raw` or
-`TemporalAverage` monitor reports state variables — useful, but not comparable to
-data. Biophysical monitors apply the mapping above: a haemodynamic monitor returns
-a simulated BOLD time series, and electromagnetic monitors apply lead fields to
-return scalp potentials or sensor fields. See
+`TemporalAverage` monitor reports model variables in model units — useful,
+but not comparable to data. Biophysical monitors apply the
+mapping above: a haemodynamic monitor returns a simulated BOLD time series,
+and electromagnetic monitors apply lead fields to
+return scalp potentials or sensor fields. The available monitors are
+described in [Monitors](../user-guide/bb-monitors). See
 [your first simulation](../tutorials/first-simulation.md) for monitors in a run,
 and [the connectome page](connectome.md) for where the source geometry comes
 from.

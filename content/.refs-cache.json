@@ -173,6 +173,25 @@
     "title": "Systematic approximations of neural fields through networks of neural masses in the virtual brain",
     "year": 2013
   },
+  "10.1016/j.neuroimage.2014.09.007": {
+    "authors": [
+      "Leonardi",
+      "Van De Ville"
+    ],
+    "title": "On spurious and real fluctuations of dynamic functional connectivity during rest",
+    "year": 2015
+  },
+  "10.1016/j.neuroimage.2014.11.001": {
+    "authors": [
+      "Battaglia",
+      "Deco",
+      "Hansen",
+      "Jirsa",
+      "Spiegler"
+    ],
+    "title": "Functional connectivity dynamics: Modeling the switching behavior of the resting state",
+    "year": 2015
+  },
   "10.1016/j.neuroimage.2015.01.002": {
     "authors": [
       "Jirsa",
@@ -202,6 +221,35 @@
     ],
     "title": "An automated pipeline for constructing personalized virtual brains from multimodal neuroimaging data",
     "year": 2015
+  },
+  "10.1016/j.neuroimage.2015.11.055": {
+    "authors": [
+      "Adhikari",
+      "Deco",
+      "Ganzetti",
+      "Hindriks",
+      "Logothetis",
+      "Mantini",
+      "Murayama"
+    ],
+    "title": "Can sliding-window correlations reveal dynamic functional connectivity in resting-state fMRI?",
+    "year": 2016
+  },
+  "10.1016/j.neuroimage.2020.117156": {
+    "authors": [
+      "Battaglia",
+      "Boudou",
+      "Chettouf",
+      "Daffertshofer",
+      "Hansen",
+      "Jirsa",
+      "Lombardo",
+      "McIntosh",
+      "Ritter",
+      "Zimmermann"
+    ],
+    "title": "Dynamic Functional Connectivity between order and randomness and its evolution across the human adult lifespan",
+    "year": 2020
   },
   "10.1016/j.neuroimage.2022.118973": {
     "authors": [
@@ -252,6 +300,23 @@
     ],
     "title": "Brain simulation as a cloud service: The Virtual Brain on EBRAINS",
     "year": 2022
+  },
+  "10.1016/j.neuroimage.2023.120403": {
+    "authors": [
+      "Bittner",
+      "Caspers",
+      "Fousek",
+      "Hashemi",
+      "Jirsa",
+      "Jockwitz",
+      "Lavanga",
+      "Petkoski",
+      "Sheheitli",
+      "Stumme",
+      "Yalcinkaya"
+    ],
+    "title": "The virtual aging brain: Causal inference supports interhemispheric dedifferentiation in healthy aging",
+    "year": 2023
   },
   "10.1023/A:1008202821328": {
     "authors": [
@@ -886,6 +951,18 @@
     ],
     "title": "Biophysically inspired mean-field model of neuronal populations driven by ion-exchange mechanisms",
     "year": 2026
+  },
+  "10.7554/eLife.106194": {
+    "authors": [
+      "Domide",
+      "Hashemi",
+      "Jirsa",
+      "Petkoski",
+      "Woodman",
+      "Ziaeemehr"
+    ],
+    "title": "Virtual Brain Inference (VBI), a flexible and integrative toolkit for efficient probabilistic inference on whole-brain models",
+    "year": 2025
   },
   "10.7554/eLife.56261": {
     "authors": [

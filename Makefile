@@ -9,7 +9,7 @@
 # `make check` and `python make.py check` are equivalent.
 
 PYTHON ?= python3
-TASKS := dev apidoc docs lite all serve check refs test setup lite-setup status clean clean-all help
+TASKS := dev apidoc docs slides lite all serve check refs test setup lite-setup status clean clean-all help
 
 .DEFAULT_GOAL := dev
 .PHONY: $(TASKS)

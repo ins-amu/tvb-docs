@@ -69,6 +69,28 @@ python3 make.py lite
 
 Use `make clean` to clear generated HTML/site outputs while keeping expensive caches (`_build/execute`, `_build/cache`, `_build/xeus-prefix`, `_build/lite`), or `make clean-all` to wipe everything.
 
+### Tutorial slide deck
+
+The introductory presentation and its presenter notes are maintained in
+[`slides/tvb-tutorial.md`](slides/tvb-tutorial.md). Each level-one heading
+starts a slide; put speaker notes in a Pandoc `::: notes` block on that slide.
+The snippets point to the executed first-simulation tutorial rather than
+replacing it. Edit the source and rebuild all formats together:
+
+```bash
+python3 make.py slides
+```
+
+Install Pandoc and a Beamer-capable LaTeX distribution first. On Ubuntu, use
+`sudo apt-get install pandoc texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra lmodern`.
+The generated files are in `_build/slides/`: HTML (reveal.js), PDF, and
+editable PowerPoint (`.pptx`). The HTML and PowerPoint contain speaker notes;
+the PDF is a slide-only handout. To present the HTML, serve the directory
+with `python3 -m http.server --directory _build/slides` and press **S** for
+speaker view. HTML loads reveal.js from a CDN and needs an internet
+connection; PDF and PowerPoint can be used offline. The publishing workflow
+also attaches the deck as a build artifact and publishes it under `/slides/`.
+
 ---
 
 ## Diátaxis Framework

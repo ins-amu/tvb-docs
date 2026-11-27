@@ -40,6 +40,7 @@ TASKS = {
     "dev": "Ensure setup and start live incremental dev server on http://localhost:8000 (default)",
     "apidoc": "Generate native MyST API reference pages for tvb",
     "docs": "Build MyST HTML docs with API reference, glossary check, and downloadable notebooks",
+    "slides": "Build the tutorial presentation as HTML, PDF, and PowerPoint",
     "lite": "Incrementally build JupyterLite into _build/lite (and sync to _build/html/lite)",
     "all": "Build complete unified static site (_build/html with MyST docs and JupyterLite)",
     "serve": "Serve unified site at http://localhost:8000 (live reload, or --static for _build/html)",
@@ -642,6 +643,18 @@ def task_refs() -> None:
         return
     run([python_cmd(), "tools/check_refs.py", "content/references.bib"])
     save_state({"refs": fp_refs()})
+
+
+def task_slides() -> None:
+    output = ROOT / "_build" / "slides"
+    if not DRY_RUN:
+        output.mkdir(parents=True, exist_ok=True)
+    common = ["pandoc", "slides/tvb-tutorial.md", "--standalone", "--slide-level=1"]
+    run([*common, "-t", "revealjs", "-V",
+         "revealjs-url=https://cdn.jsdelivr.net/npm/reveal.js@4.6.1",
+         "-o", str(output / "tvb-tutorial.html")])
+    run([*common, "-t", "pptx", "-o", str(output / "tvb-tutorial.pptx")])
+    run([*common, "-t", "beamer", "-o", str(output / "tvb-tutorial.pdf")])
 
 
 def task_docs() -> None:

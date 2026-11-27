@@ -371,6 +371,12 @@ class UnifiedDevHandler(SimpleHTTPRequestHandler):
                 self._send_bytes(200, "application/javascript; charset=utf-8", js_path.read_bytes())
                 return
 
+        if path_only in ("/the-hillside.jpg", "/the-goat.jpg"):
+            img_path = self.root / "_static" / path_only.lstrip("/")
+            if img_path.is_file():
+                self._serve_static_under(self.root / "_static", path_only.lstrip("/"))
+                return
+
         if path_only.startswith("/vendor/"):
             self._serve_static_under(
                 self.root / "content" / "_static" / "vendor",

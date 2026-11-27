@@ -14,10 +14,13 @@ project:
     - https://github.com/developmentseed/myst-anywidget-static-export/releases/latest/download/plugin.mjs
     # marimo islands: reactive {marimo} cells in MyST pages (see content/_code/tvbl_docs.py)
     - plugins/marimo-lazy.mjs
+    - plugins/about-theme.mjs
   # Static assets copied verbatim into the built site (basename preserved).
   # The standalone phase-plane widget is embedded via iframe from here.
   static_files:
     - content/_static/phase-plane-standalone.html
+    - _static/the-hillside.jpg
+    - _static/the-goat.jpg
 
 site:
   title: TVB Simulation Documentation

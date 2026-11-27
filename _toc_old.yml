@@ -1,0 +1,152 @@
+  - caption: Old Tutorials
+    chapters:
+      - file: content/tutorials/index.md
+      - file: content/tutorials/getting-started.md
+      - file: content/tutorials/first-simulation.md
+      - file: content/tutorials/phase-plane.md
+      - file: content/tutorials/tvbl-quickstart.md
+      - title: Simulation Tutorials
+        sections:
+          - file: content/demos/simulate_region_jansen_rit.ipynb
+          - file: content/demos/simulate_reduced_wong_wang.ipynb
+          - file: content/demos/simulate_hybrid_getting_started.ipynb
+          - file: content/demos/exploring_longer_time_series.ipynb
+          - file: content/demos/exploring_the_bold_monitor.ipynb
+          - file: content/demos/exploring_a_surface_mesh.ipynb
+      - title: Structural Lesion Studies
+        sections:
+          - file: content/demos/sandbox/tutorial_s7_ModelingTheImpactOfStructuralLesionsPart1.ipynb
+          - file: content/demos/sandbox/tutorial_s8_ModelingTheImpactOfStructuralLesionsPart2.ipynb
+          - file: content/demos/sandbox/tutorial_s9_ModelingTheImpactOfStructuralLesionsPart3.ipynb
+
+  - caption: Old How-to guides
+    chapters:
+      - file: content/howtos/index.md
+      - file: content/howtos/custom-stimulus.md
+      - file: content/howtos/write-a-model.md
+      - title: Connectivity & Stimuli
+        sections:
+          - file: content/demos/using_your_own_connectivity.ipynb
+          - file: content/demos/generate_surrogate_connectivity.ipynb
+          - file: content/demos/simulate_region_stimulus.ipynb
+          - file: content/demos/simulate_region_bold_stimulus.ipynb
+          - file: content/demos/multiple_stimuli.ipynb
+          - file: content/demos/simulate_bold_continuation.ipynb
+      - title: Forward Models & Analyzers
+        sections:
+          - file: content/demos/simulate_surface_seeg_eeg_meg.ipynb
+          - file: content/demos/simulate_seeg_from_epileptors_with_observation_noise.ipynb
+          - file: content/demos/analyze_region_corrcoef.ipynb
+          - file: content/demos/analyze_power_spectra.ipynb
+          - file: content/demos/display_source_sensor_geometry.ipynb
+      - title: Backends, Hybrid & HPC
+        sections:
+          - file: content/demos/using_backends.ipynb
+          - file: content/demos/simulate_hybrid_parameter_sweeps.ipynb
+          - file: content/demos/simulate_hybrid_stimuli_and_advanced.ipynb
+          - file: content/demos/simulate_hybrid_stochastic_and_bold.ipynb
+          - file: content/demos/simulate_hybrid_multi_dt.ipynb
+          - file: content/demos/cpp_hybrid_sweep.ipynb
+          - file: content/demos/gpu_parallel_parameter_sweeps.ipynb
+          - file: content/demos/model_generation_using_dsl.ipynb
+          - file: content/demos/RateML_Python_TVB.ipynb
+          - file: content/demos/RateML_CUDA_on_HPC.ipynb
+          - file: content/demos/Zerlaut_parametersweep_HPC.ipynb
+      - title: Framework, REST & Atlases
+        sections:
+          - file: content/demos/siibra_tvb_api.ipynb
+          - file: content/demos/interacting_with_Allen.ipynb
+          - file: content/demos/interacting_with_the_framework.ipynb
+          - file: content/demos/interacting_with_rest_api_fire_simulation.ipynb
+          - file: content/demos/interacting_with_rest_api_launch_operations.ipynb
+          - file: content/demos/launching_bids_adapter.ipynb
+          - file: content/demos/generate_ts_h5_from_library.ipynb
+          - file: content/demos/encrypt_data.ipynb
+          - file: content/demos/export_encrypt_decrypt_data.ipynb
+
+  - caption: Old Reference
+    chapters:
+      - file: content/reference/index.md
+      - title: Model cards
+        sections:
+          - file: content/reference/model-cards/wilson-cowan.md
+          - file: content/reference/model-cards/fitzhugh-nagumo.md
+          - file: content/reference/model-cards/jansen-rit.md
+          - file: content/reference/model-cards/zetterberg-jansen.md
+          - file: content/reference/model-cards/larter-breakspear.md
+          - file: content/reference/model-cards/dumont-gutkin.md
+          - file: content/reference/model-cards/k-ion-ex.md
+          - file: content/reference/model-cards/generic-2d-oscillator.md
+          - file: content/reference/model-cards/epileptor.md
+          - file: content/reference/model-cards/epileptor-2d.md
+          - file: content/reference/model-cards/coombes-byrne.md
+          - file: content/reference/model-cards/coombes-byrne-2d.md
+          - file: content/reference/model-cards/gast-smidt-knosche-sd.md
+          - file: content/reference/model-cards/gast-smidt-knosche-sf.md
+          - file: content/reference/model-cards/kuramoto.md
+          - file: content/reference/model-cards/suphopf.md
+          - file: content/reference/model-cards/linear.md
+          - file: content/reference/model-cards/reduced-set-fitzhugh-nagumo.md
+          - file: content/reference/model-cards/reduced-wong-wang.md
+          - file: content/reference/model-cards/reduced-wong-wang-exc-inh.md
+          - file: content/reference/model-cards/deco-balanced-exc-inh.md
+          - file: content/reference/model-cards/reduced-set-hindmarsh-rose.md
+      - title: Model & Interactive Explorers
+        sections:
+          - file: content/demos/exploring_K_ION_Exchange_model.ipynb
+          - file: content/demos/exploring_epileptor_2d.ipynb
+          - file: content/demos/exploring_the_epileptor_codim_3_model.ipynb
+          - file: content/demos/exploring_supHopf_model.ipynb
+          - file: content/demos/exploring_phase_plane_interactive.ipynb
+          - file: content/demos/exploring_power_spectra_interactive.ipynb
+          - file: content/demos/exploring_time_series_interactive.ipynb
+
+  - caption: Old Explanation
+    chapters:
+      - file: content/explanation/index.md
+      - file: content/explanation/connectome.md
+      - file: content/explanation/functional-connectivity.md
+      - file: content/explanation/forward-models.md
+      - file: content/explanation/dynamical-systems-theory.md
+      - file: content/explanation/bifurcation-analysis.md
+      - file: content/explanation/excitation-inhibition-balance.md
+      - file: content/explanation/neural-mass-models.md
+      - file: content/explanation/phase-plane-explanation.md
+      - title: Numerical & Paper Studies
+        sections:
+          - file: content/demos/integrators_presentation.ipynb
+          - file: content/demos/integrators_comparison.ipynb
+          - file: content/demos/compare_connectivity_normalization.ipynb
+          - file: content/demos/exploring_resting_state_in_epilepsy.ipynb
+          - file: content/demos/simulate_for_mouse.ipynb
+          - file: content/demos/skewed_fc.ipynb
+          - file: content/demos/remake_figure_WilsonCowan.ipynb
+          - file: content/demos/reproduce_figure_Gast_2024_PNAS.ipynb
+          - file: content/demos/simulate_gast_solla_kennedy_resting_state.ipynb
+          - file: content/demos/theta_neuron_models.ipynb
+          - file: content/demos/adex_meanfied/adex_meanfield.ipynb
+          - file: content/demos/adex_meanfied/goldman_2020_spontaneous_activity.ipynb
+
+  - caption: Old Demos & Sandbox
+    chapters:
+      - file: content/demos/index.md
+      - title: TVB-Lite Demos
+        sections:
+          - file: content/demos/cde_jr.ipynb
+          - file: content/demos/mhsa.ipynb
+          - file: content/demos/demo.ipynb
+      - title: Sandbox
+        sections:
+          - file: content/demos/sandbox/display_surface_parcellation.ipynb
+          - file: content/demos/sandbox/exploring_a_model_reducedWongWang.ipynb
+          - file: content/demos/sandbox/exploring_hopfield_based_models.ipynb
+          - file: content/demos/sandbox/mse_analyse_region.ipynb
+          - file: content/demos/sandbox/pca_analyse_view_region.ipynb
+          - file: content/demos/sandbox/region_deterministic_larterbreakspear.ipynb
+          - file: content/demos/sandbox/seeg_region_deterministic.ipynb
+          - file: content/demos/sandbox/seeg_surface_deterministic.ipynb
+          - file: content/demos/sandbox/smooth_parameter_variation.ipynb
+          - file: content/demos/sandbox/stochastic_simulation.ipynb
+          - file: content/demos/sandbox/surface_deterministic_custom_local_connectivity.ipynb
+          - file: content/demos/sandbox/surface_stimuli.ipynb
+          - file: content/demos/sandbox/surface_stochastic.ipynb
